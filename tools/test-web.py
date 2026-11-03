@@ -18,7 +18,7 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader'])
-        width,height=(390,844) if args.touch else (720,1280)
+        width,height=(844,390) if args.touch else (1280,720)
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch)
         messages=[]
         page.on('console',lambda m: messages.append(m.type+': '+m.text))
@@ -36,14 +36,14 @@ try:
             # Software WebGL may render slowly; let the new UI receive a frame before the next action.
             page.wait_for_timeout(2000)
         # Godot expands the logical viewport instead of adding portrait letterboxing.
-        scale=min(canvas['width']/720,canvas['height']/1280)
+        scale=min(canvas['width']/960,canvas['height']/540)
         logical_w,logical_h=canvas['width']/scale,canvas['height']/scale
         ox,oy=canvas['x'],canvas['y']
-        click(ox+(logical_w-57)*scale,oy+237*scale) # Patient roster HUD icon.
+        click(ox+(logical_w-291)*scale,oy+(logical_h-71)*scale) # Patient roster HUD icon.
         page.screenshot(path=str(output/'patient-roster.png'))
-        click(ox+300*scale,oy+(max(180,logical_h*.26)+106)*scale)
+        click(ox+(logical_w-254)*scale,oy+(logical_h-356)*scale)
         page.screenshot(path=str(output/'patient-selected.png'))
-        click(ox+330*scale,oy+(logical_h-100)*scale) # Contextual admission action.
+        click(ox+(logical_w-252)*scale,oy+(logical_h-161)*scale) # Contextual admission action.
         page.wait_for_timeout(3000)
         page.screenshot(path=str(output/'after-admission.png'))
         # Inspect this fresh test browser's own IndexedDB filesystem, never the user's profile.

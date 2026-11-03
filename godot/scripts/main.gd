@@ -39,6 +39,7 @@ var dismiss_button: Button
 var selection_panel: PanelContainer
 var roster: PanelContainer
 var roster_close: Button
+var orientation_hint: Label
 var tool_buttons: Array[Button] = []
 var tool_labels: Array[Label] = []
 var drag_start := Vector2.ZERO
@@ -52,7 +53,7 @@ func _ready() -> void:
  if not no_save: store.load_into(sim)
  var theme_resource := Theme.new()
  theme_resource.default_font = load("res://assets/SunshineHangul.otf")
- theme_resource.default_font_size = 21
+ theme_resource.default_font_size = 18
  theme = theme_resource
  build_ui()
  world = World.new()
@@ -84,7 +85,7 @@ func label_text(text_value: String, font_size: int, color: Color = INK) -> Label
 func button(text_value: String, callback: Callable, primary: bool = false) -> Button:
  var result := Button.new()
  result.text = text_value
- result.custom_minimum_size.y = 52
+ result.custom_minimum_size.y = 44
  result.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
  result.add_theme_stylebox_override("normal",style(TEAL if primary else Color("fffdf5")))
  result.add_theme_stylebox_override("hover",style(Color("3a7c70") if primary else Color("e5eee2")))
@@ -129,7 +130,7 @@ func build_ui() -> void:
  scene_container.gui_input.connect(scene_input)
  add_child(scene_container)
  viewport = SubViewport.new()
- viewport.size = Vector2i(720,1280)
+ viewport.size = Vector2i(960,540)
  viewport.handle_input_locally = false
  viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
  viewport.own_world_3d = true
@@ -140,23 +141,23 @@ func build_ui() -> void:
  hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
  add_child(hud)
- title = label_text("햇살병원",25)
+ title = label_text("햇살병원",23)
  title.add_theme_color_override("font_shadow_color",Color("fff5db"))
  title.add_theme_constant_override("shadow_outline_size",4)
  hud.add_child(title)
- day_label = label_text("",18)
+ day_label = label_text("",16)
  hud.add_child(day_label)
  money_panel = panel(hud,Color("f4e5b8"))
- stats = label_text("",24)
+ stats = label_text("",22)
  stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
  money_panel.add_child(stats)
  pause_button = icon_button("pause","일시정지 / 재생",toggle_pause)
  hud.add_child(pause_button)
- goal = label_text("",19,Color("36584a"))
+ goal = label_text("",16,Color("36584a"))
  goal.add_theme_color_override("font_shadow_color",Color("f9edd1"))
  goal.add_theme_constant_override("shadow_outline_size",4)
  hud.add_child(goal)
- scene_caption = label_text("",17)
+ scene_caption = label_text("",14)
  hud.add_child(scene_caption)
  patient_button = icon_button("people","오늘의 환자 목록",toggle_roster)
  next_button = icon_button("attention","지시가 필요한 환자 찾기",select_next_action)
@@ -181,7 +182,7 @@ func build_ui() -> void:
  selection_panel.add_child(content)
  var info := HBoxContainer.new()
  content.add_child(info)
- detail = label_text("",22)
+ detail = label_text("",18)
  detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
  info.add_child(detail)
  dismiss_button = button("닫기",clear_selection)
@@ -197,8 +198,8 @@ func build_ui() -> void:
  action_button = button("접수하기",perform_action,true)
  action_button.custom_minimum_size.y = 58
  content.add_child(action_button)
- notice = label_text("환자를 누르면 진료할 수 있어요",18)
- notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ notice = label_text("환자를 누르면 진료할 수 있어요",14)
+ notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
  notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
  notice.add_theme_color_override("font_shadow_color",Color("fff4dc"))
  notice.add_theme_constant_override("shadow_outline_size",4)
@@ -211,7 +212,7 @@ func build_ui() -> void:
  roster.add_child(list)
  var list_heading := HBoxContainer.new()
  list.add_child(list_heading)
- var list_title := label_text("오늘의 환자",26)
+ var list_title := label_text("오늘의 환자",23)
  list_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
  list_heading.add_child(list_title)
  roster_close = button("닫기",toggle_roster)
@@ -220,11 +221,15 @@ func build_ui() -> void:
   var row := button("",select_patient.bind(id))
   row.name = "Patient%d" % id
   row.alignment = HORIZONTAL_ALIGNMENT_LEFT
-  row.custom_minimum_size.y = 68
-  row.add_theme_font_size_override("font_size",21)
+  row.custom_minimum_size.y = 56
+  row.add_theme_font_size_override("font_size",18)
   rows.append(row)
   list.add_child(row)
  roster.hide()
+ orientation_hint = label_text("가로로 돌려 플레이해 주세요",32)
+ orientation_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ orientation_hint.add_theme_stylebox_override("normal",style(Color("fff5dd")))
+ hud.add_child(orientation_hint)
  confirmation = preload("res://scripts/game_dialog.gd").new()
  confirmation.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  confirmation.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -265,28 +270,26 @@ func build_ui() -> void:
 func layout_hud() -> void:
  var w := size.x
  var h := size.y
- place(title,Rect2(24,28,220,40))
- place(day_label,Rect2(25,72,280,28))
- place(money_panel,Rect2(w-304,26,196,66))
- place(pause_button,Rect2(w-90,26,66,66))
- place(goal,Rect2(24,112,w-120,32))
- place(scene_caption,Rect2(24,151,w-120,26))
+ place(title,Rect2(24,16,220,34))
+ place(day_label,Rect2(25,50,280,24))
+ place(money_panel,Rect2(w-256,18,154,54))
+ place(pause_button,Rect2(w-90,16,66,66))
+ place(goal,Rect2(24,79,w-300,26))
+ place(scene_caption,Rect2(24,107,w-120,22))
  for i in range(tool_buttons.size()):
-  place(tool_buttons[i],Rect2(w-90,204+i*96,66,66))
-  place(tool_labels[i],Rect2(w-100,271+i*96,86,24))
- var bottom := h-102
- if selection_panel.visible: bottom = h-292
- if next_day_button.visible: bottom = h-178
+  place(tool_buttons[i],Rect2(w-324+i*78,h-104,66,66))
+  place(tool_labels[i],Rect2(w-334+i*78,h-39,86,21))
+ var bottom := h-104
  place(zoom_in_button,Rect2(24,bottom,66,66))
  place(zoom_out_button,Rect2(102,bottom,66,66))
  place(overview_button,Rect2(180,bottom,66,66))
- var action_width := minf(w-40,680)
- place(selection_panel,Rect2((w-action_width)*0.5,h-208,action_width,178))
- var next_width := minf(w-48,680)
- place(next_day_button,Rect2((w-next_width)*0.5,h-94,next_width,64))
- place(notice,Rect2(24,h-29,w-48,26))
- var roster_width := minf(w-128,592)
- place(roster,Rect2(w-roster_width-104,maxf(180,h*0.26),roster_width,400))
+ var action_width := minf(w-48,456)
+ place(selection_panel,Rect2(w-action_width-24,h-286,action_width,170))
+ place(next_day_button,Rect2((w-380)*0.5,20,380,54))
+ place(notice,Rect2(24,h-172,410,60))
+ place(roster,Rect2(w-484,h-448,460,334))
+ orientation_hint.visible = w < h
+ place(orientation_hint,Rect2(24,142,w-48,70))
  place(confirmation.card,Rect2((w-540)*0.5,(h-310)*0.5,540,310))
 
 func toggle_roster() -> void:

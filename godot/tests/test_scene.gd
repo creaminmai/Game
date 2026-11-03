@@ -60,7 +60,7 @@ func run() -> void:
   if arg.begins_with("--output-dir="): output = arg.trim_prefix("--output-dir=")
  if output.is_empty(): output = ProjectSettings.globalize_path("res://../artifacts/validation")
  DirAccess.make_dir_recursive_absolute(output)
- root.size = Vector2i(720,1280)
+ root.size = Vector2i(960,540)
  game = load("res://main.tscn").instantiate()
  root.add_child(game)
  await settle()
@@ -76,7 +76,8 @@ func run() -> void:
  game.sim.tick(24)
  game.refresh()
  await settle()
- check_layout("720x1280")
+ check_layout("960x540 landscape")
+ check(game.world.actors[1].seated and game.world.actors[1].book.visible,"waiting patient sits and reads at the chair")
  await shot("01-fullscreen-game")
  var initial_zoom: float = game.world.camera.size
  await click(game.zoom_in_button)
@@ -93,6 +94,7 @@ func run() -> void:
  check(game.selected_id == 3,"refresh never steals selection")
  await click(game.action_button)
  check(game.sim.ct_owner == 3,"selected patient admitted via real input")
+ check(not game.world.actors[3].seated and game.world.actors[3].left_leg.visible,"admitted patient stands for CT travel")
  await click(game.next_button)
  check(game.selected_id == 4,"explicit helper cycles patients needing action")
  await click(game.action_button)
@@ -100,7 +102,7 @@ func run() -> void:
  await shot("02-ct-queue")
  # Clicking actual patient geometry uses the same viewport ray query as mouse/touch input.
  var actor: Node3D = game.world.actors[1]
- var local: Vector2 = game.world.camera.unproject_position(actor.position+Vector3(0,0.8,0))
+ var local: Vector2 = game.world.camera.unproject_position(actor.position+actor.body.position+Vector3(0,1.0,0))
  var event := InputEventMouseButton.new()
  event.button_index = MOUSE_BUTTON_LEFT
  event.pressed = true
@@ -119,18 +121,18 @@ func run() -> void:
  var press := InputEventMouseButton.new()
  press.button_index = MOUSE_BUTTON_LEFT
  press.pressed = true
- press.position = Vector2(200,500)
+ press.position = Vector2(220,280)
  Input.parse_input_event(press)
  await settle()
  var drag := InputEventMouseMotion.new()
- drag.position = Vector2(270,530)
- drag.relative = Vector2(70,30)
+ drag.position = Vector2(280,300)
+ drag.relative = Vector2(60,20)
  drag.button_mask = MOUSE_BUTTON_MASK_LEFT
  Input.parse_input_event(drag)
  await settle()
  press = InputEventMouseButton.new()
  press.button_index = MOUSE_BUTTON_LEFT
- press.position = Vector2(270,530)
+ press.position = Vector2(280,300)
  Input.parse_input_event(press)
  await settle()
  check(game.world.view_center != old_center and game.selected_id == old_selection,"world drag pans without selecting")
@@ -191,12 +193,13 @@ func run() -> void:
  check(game.sim.day == 2 and game.sim.patients.size() == 1,"next day through real input")
  game.refresh(); await settle()
  check(game.world.actors.size() == 1,"previous day actors removed")
- for dimensions in [Vector2i(360,640),Vector2i(720,1560),Vector2i(720,1080),Vector2i(1280,800)]:
+ for dimensions in [Vector2i(640,360),Vector2i(844,390),Vector2i(1280,720),Vector2i(1024,768),Vector2i(390,844)]:
   root.size = dimensions
   await settle()
   game.refresh()
   await settle()
   check_layout(str(dimensions))
+  check(game.orientation_hint.visible == (dimensions.x < dimensions.y),str(dimensions)+" rotation hint follows orientation")
   game.select_patient(1)
   await settle()
   check_layout(str(dimensions)+" patient action")

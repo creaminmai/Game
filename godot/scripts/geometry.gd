@@ -25,8 +25,8 @@ static func sphere(parent: Node3D, at: Vector3, radius: float, color: Color) -> 
  var mesh := SphereMesh.new()
  mesh.radius = radius
  mesh.height = radius*2
- mesh.radial_segments = 16
- mesh.rings = 8
+ mesh.radial_segments = 24
+ mesh.rings = 12
  return shape(parent,mesh,at,color)
 
 static func cylinder(parent: Node3D, at: Vector3, radius: float, height: float, color: Color) -> MeshInstance3D:
@@ -50,6 +50,34 @@ static func label(parent: Node3D, caption: String, at: Vector3, size: int = 40) 
  node.billboard = BaseMaterial3D.BILLBOARD_ENABLED
  node.no_depth_test = true
  parent.add_child(node)
+ return node
+
+static var wood_shader: Shader
+static func wood(node: MeshInstance3D, color: Color) -> void:
+ if wood_shader == null:
+  wood_shader = Shader.new()
+  wood_shader.code = "shader_type spatial; uniform vec4 tint : source_color; varying vec3 p; void vertex(){p=VERTEX;} void fragment(){float grain=sin(p.x*92.0+sin(p.y*3.5)*1.2)*0.017+sin(p.x*27.0+p.y*0.7)*0.012; ALBEDO=tint.rgb+vec3(grain); ROUGHNESS=0.78; SPECULAR=0.18;}"
+ var mat := ShaderMaterial.new()
+ mat.shader = wood_shader
+ mat.set_shader_parameter("tint",color)
+ node.material_override = mat
+
+# A beveled annular enclosure: a broad medical scanner face, with an open bore.
+static func scanner_shell(parent: Node3D, at: Vector3) -> MeshInstance3D:
+ var profile := PackedVector2Array([Vector2(0.76,0.38),Vector2(1.25,0.38),Vector2(1.38,0.25),Vector2(1.38,-0.25),Vector2(1.25,-0.38),Vector2(0.76,-0.38),Vector2(0.65,-0.27),Vector2(0.65,0.27)])
+ var tool := SurfaceTool.new()
+ tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+ for i in range(64):
+  for j in range(profile.size()):
+   for index in [Vector2i(i,j),Vector2i(i+1,j),Vector2i(i,j+1),Vector2i(i+1,j),Vector2i(i+1,j+1),Vector2i(i,j+1)]:
+    var k: int = index.y%profile.size()
+    var angle: float = index.x*TAU/64
+    var tangent := (profile[(k+1)%profile.size()]-profile[(k+profile.size()-1)%profile.size()]).normalized()
+    var normal := Vector2(-tangent.y,tangent.x)
+    tool.set_normal(Vector3(cos(angle)*normal.x,sin(angle)*normal.x,normal.y))
+    tool.add_vertex(Vector3(cos(angle)*profile[k].x,sin(angle)*profile[k].x,profile[k].y))
+ var node := shape(parent,tool.commit(),at,Color("fff7ec"))
+ node.material_override.roughness = 0.38
  return node
 
 static func plant(parent: Node3D, at: Vector3) -> void:

@@ -13,28 +13,33 @@ var outside := false
 var ct_light: MeshInstance3D
 var exterior_annex: Node3D
 var expansion_sign: Label3D
-var view_center := Vector3(-2,0,0.8)
-var close_size := 15.5
+var view_center := Vector3(-0.35,0,-0.5)
+var close_size := 12.7
 var overview_mode := false
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
  var config := Environment.new()
  config.background_mode = Environment.BG_COLOR
- config.background_color = Color("d9ddc9")
+ config.background_color = Color("e5e9d7")
  config.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
- config.ambient_light_color = Color("fff2d6")
- config.ambient_light_energy = 0.28
+ config.ambient_light_color = Color("eff4ee")
+ config.ambient_light_energy = 0.32
  config.tonemap_mode = Environment.TONE_MAPPER_LINEAR
  env.environment = config
  add_child(env)
  var sun := DirectionalLight3D.new()
- sun.rotation_degrees = Vector3(-52,-28,0)
+ sun.rotation_degrees = Vector3(-48,-38,0)
  sun.light_color = Color("fff3df")
- sun.light_energy = 0.22
+ sun.light_energy = 0.26
  sun.shadow_enabled = true
  sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
  add_child(sun)
+ var fill := DirectionalLight3D.new()
+ fill.rotation_degrees = Vector3(-35,140,0)
+ fill.light_color = Color("d6e7ec")
+ fill.light_energy = 0.06
+ add_child(fill)
  camera = Camera3D.new()
  camera.projection = Camera3D.PROJECTION_ORTHOGONAL
  camera.current = true
@@ -52,12 +57,12 @@ func frame_camera() -> void:
  if overview_mode:
   view_center = Vector3(2.5 if wing_built else -0.3,0,0.3)
   if outside: view_center = Vector3(1,0,0)
- camera.position = view_center + Vector3(10,21,27)
+ camera.position = view_center + Vector3(9,25,29)
  camera.look_at(view_center)
  if overview_mode:
   var aspect := maxf(0.35,get_viewport().get_visible_rect().size.x/get_viewport().get_visible_rect().size.y)
   var width := 25.0 if outside else (22.0 if wing_built else 17.5)
-  camera.size = maxf(17,width/aspect)*1.06
+  camera.size = maxf(17 if outside else 13.7,width/aspect)*1.04
  else:
   camera.size = close_size
 
@@ -73,8 +78,8 @@ func show_overview() -> void:
 
 func focus_patient(at: Vector3) -> void:
  overview_mode = false
- close_size = 14.5
- view_center = at+Vector3(0,0,-0.8)
+ close_size = 11.2
+ view_center = Vector3(clampf(at.x*0.55,-2.5,8),0,clampf(at.z-2.5,-2.0,0.5))
  frame_camera()
 
 func ground_point(pixel: Vector2) -> Vector3:
@@ -98,12 +103,12 @@ func floor_room(center: Vector3, color: Color, name_text: String) -> void:
   for z in range(6):
    var tint := color.darkened(0.025*((x+z)%3))
    G.box(interior,center+Vector3(-2.5+x,0.015,-2.3+z*0.91),Vector3(0.985,0.05,0.895),tint)
- G.box(interior,center+Vector3(0,1.05,-2.75),Vector3(6,2.1,0.16),Color("ddd6c4"))
- G.box(interior,center+Vector3(0,0.55,-2.65),Vector3(5.9,1.05,0.08),Color("b79975"))
+ G.box(interior,center+Vector3(0,1.05,-2.75),Vector3(6,2.1,0.16),Color("f5ecdf"))
+ G.box(interior,center+Vector3(0,0.55,-2.65),Vector3(5.9,1.05,0.08),Color("d6b28a"))
  for i in range(25):
-  G.box(interior,center+Vector3(-2.85+i*0.235,0.55,-2.59),Vector3(0.018,1.05,0.025),Color("9d805e"))
+  G.box(interior,center+Vector3(-2.85+i*0.235,0.55,-2.59),Vector3(0.018,1.05,0.025),Color("c6a079"))
  G.box(interior,center+Vector3(0,1.1,-2.57),Vector3(6,0.09,0.12),Color("c9af87"))
- G.box(interior,center+Vector3(0,2.13,-2.75),Vector3(6.05,0.12,0.22),Color("ece3cf"))
+ G.box(interior,center+Vector3(0,2.13,-2.75),Vector3(6.05,0.12,0.22),Color("fff5e7"))
  for x in [-2.1,2.1]: F.wall_light(interior,center+Vector3(x,1.82,-2.55))
  G.label(interior,name_text,center+Vector3(0,2.55,-2.7),30)
 
@@ -113,22 +118,23 @@ func bed(parent: Node3D, at: Vector3) -> void:
 func build_interior() -> void:
  G.rounded_box(interior,Vector3(0,-0.34,0.2),Vector3(14.4,0.4,12.5),Color("acac8a"),0.18)
  G.box(interior,Vector3(0,-0.08,0),Vector3(2,0.15,12),Color("d2c5a8"))
- for z in range(12): G.box(interior,Vector3(0,0.025,-5.5+z),Vector3(1.94,0.045,0.97),Color("e2d7bf") if z%2 else Color("d9ccb1"))
- floor_room(Vector3(-4,0,3),Color("d4bf9e"),"대기 · 접수")
- floor_room(Vector3(-4,0,-3),Color("bec9bd"),"CT 촬영")
- floor_room(Vector3(4,0,-3),Color("d4c8ae"),"계획실")
- floor_room(Vector3(4,0,3),Color("c2cfc1"),"치료실")
- # Chairs sit behind the waiting points so standing patient meshes remain unobstructed.
+ for z in range(12): G.box(interior,Vector3(0,0.025,-5.5+z),Vector3(1.94,0.045,0.97),Color("f5ead4") if z%2 else Color("ecdfc4"))
+ floor_room(Vector3(-4,0,3),Color("e9d7b9"),"대기 · 접수")
+ floor_room(Vector3(-4,0,-3),Color("c9dcd2"),"CT 촬영")
+ floor_room(Vector3(4,0,-3),Color("e5d9bf"),"계획실")
+ floor_room(Vector3(4,0,3),Color("d3e2d5"),"치료실")
+ # Waiting patients sit in these chairs; simulation paths stay unchanged.
  for id in range(1,5):
   var at := Vector3(-4.5+((id-1)%2)*1.3,0,1.85+floori((id-1)/2.0)*1.5)
   F.chair(interior,at)
- G.cylinder(interior,Vector3(-5.8,0.6,3.1),0.48,0.12,Color("bca078"))
- G.cylinder(interior,Vector3(-5.8,0.3,3.1),0.08,0.6,Color("987953"))
- G.plant(interior,Vector3(-5.8,0.68,3.1))
+ F.tea_table(interior,Vector3(-5.95,0,3.1))
+ F.floor_lamp(interior,Vector3(-6.25,0,1.2))
+ for x in [-5.5,-2.6]: F.framed_art(interior,Vector3(x,1.55,0.47))
  # Rounded wood reception counter with vertical slats and the sunshine emblem.
- G.rounded_box(interior,Vector3(-4.8,0.65,5.05),Vector3(3.2,1.2,0.8),Color("b58c60"),0.23)
- for i in range(22): G.box(interior,Vector3(-6.15+i*0.13,0.65,5.46),Vector3(0.04,0.9,0.035),Color("d1b58b"))
- G.rounded_box(interior,Vector3(-4.8,1.28,5.05),Vector3(3.35,0.15,0.94),Color("e8dfcb"),0.07)
+ var counter := G.rounded_box(interior,Vector3(-4.8,0.65,5.05),Vector3(3.2,1.2,0.9),Color("d3aa7c"),0.3)
+ G.wood(counter,Color("d3aa7c"))
+ for i in range(22): G.box(interior,Vector3(-6.15+i*0.13,0.65,5.46),Vector3(0.04,0.9,0.035),Color("e6c69e"))
+ G.rounded_box(interior,Vector3(-4.8,1.28,5.05),Vector3(3.35,0.15,0.94),Color("fff2dd"),0.07)
  G.logo(interior,Vector3(-4.8,0.75,5.51),0.85)
  F.monitor(interior,Vector3(-5.6,1.36,5.1))
  G.plant(interior,Vector3(-3.5,1.36,5.05))
@@ -138,9 +144,9 @@ func build_interior() -> void:
  bed(ct,Vector3.ZERO)
  G.shadow(ct,Vector3(0,0.055,-0.8),Vector2(3,2))
  G.rounded_box(ct,Vector3(0,0.45,-0.85),Vector3(2.5,0.9,0.85),Color("ced6cb"),0.22)
- G.ring(ct,Vector3(0,1.55,-0.85),0.65,1.25,Color("e1e1d3"))
- G.ring(ct,Vector3(0,1.55,-0.52),0.66,0.78,Color("7aa89b"))
- G.ring(ct,Vector3(0,1.55,-0.48),1.13,1.22,Color("b5c6ba"))
+ G.scanner_shell(ct,Vector3(0,1.55,-0.85))
+ G.ring(ct,Vector3(0,1.55,-0.46),0.65,0.74,Color("9ed6ce"))
+ G.rounded_box(ct,Vector3(0,2.55,-0.43),Vector3(0.42,0.21,0.045),Color("77a9b0"),0.025)
  ct_light = G.rounded_box(ct,Vector3(0,2.61,-0.47),Vector3(0.48,0.09,0.08),Color("74bbaa"),0.03)
  for x in [-0.98,0.98]:
   G.rounded_box(ct,Vector3(x,1.32,-0.37),Vector3(0.25,0.32,0.08),Color("b0bdb4"),0.03)
@@ -153,7 +159,7 @@ func build_interior() -> void:
  F.bookshelf(interior,Vector3(2.05,1.1,-5.3))
  G.plant(interior,Vector3(6.0,1.18,-4.65))
  staff(Vector3(4.8,0.05,-3.4),"박 선생")
- staff(Vector3(-5,0.05,5.85),"민지")
+ staff(Vector3(-4.65,0.05,4.25),"민지")
  build_linac(Vector3(4,0,3))
  F.cabinet(interior,Vector3(6.1,0,1),1.35)
  F.cart(interior,Vector3(5.9,0,4.5))
@@ -183,15 +189,21 @@ func build_interior() -> void:
    G.box(interior,Vector3(side*1.02,0.4,z),Vector3(0.14,0.8,1.4),Color("d7c8a9"))
    G.rounded_box(interior,Vector3(side*1.02,0.85,z),Vector3(0.18,0.1,1.5),Color("af8a5f"),0.04)
  G.logo(interior,Vector3(-4,1.6,0.45),0.8)
- for z in [-4.5,-2,1,4.5]: G.flowers(interior,Vector3(-7.6,0,z),Color("d395a6"))
+ for z in [-4.5,-2,1,4.5]: G.flowers(interior,Vector3(-7.6,-0.5,z),Color("efb0bc"))
+ G.rounded_box(interior,Vector3(0,-0.63,0.4),Vector3(19,0.24,16),Color("c1cda4"),0.4)
+ for x in [-6.5,-4.8,4.9,6.6]: G.flowers(interior,Vector3(x,-0.5,7),Color("efc66b") if x>0 else Color("eeb0bb"))
+ tree(Vector3(-8.5,-0.5,-4.8),true,interior)
+ tree(Vector3(7.8,-0.5,-6.8),false,interior)
 
 func staff(at: Vector3, caption_text: String) -> void:
  var a := Actor.new()
  interior.add_child(a)
  a.position = at
  a.build(1,true)
- a.caption.visible = true
+ a.caption.visible = false
  a.caption.text = caption_text
+ if caption_text == "박 선생": a.body.rotation.y = PI*0.9
+ if caption_text == "민지": a.scale = Vector3.ONE*1.16
 
 func build_linac(at: Vector3) -> void:
  var node := Node3D.new()
@@ -217,13 +229,14 @@ func exterior_window(parent: Node3D, at: Vector3, width: float = 1.1) -> void:
  G.box(parent,at+Vector3(0,0,0.1),Vector3(0.055,1.1,0.04),Color("e4d8bd"))
  G.box(parent,at+Vector3(0,0,0.1),Vector3(width,0.055,0.04),Color("e4d8bd"))
 
-func tree(at: Vector3, flowering: bool = false) -> void:
- G.shadow(exterior,at+Vector3(0,0.055,0),Vector2(3,2.6))
- G.cylinder(exterior,at+Vector3(0,1,0),0.16,2,Color("967c55"))
+func tree(at: Vector3, flowering: bool = false, parent: Node3D = null) -> void:
+ if parent == null: parent = exterior
+ G.shadow(parent,at+Vector3(0,0.055,0),Vector2(3,2.6))
+ G.cylinder(parent,at+Vector3(0,1,0),0.16,2,Color("967c55"))
  for i in range(5):
   var angle := i*2.4
   var color := Color("d5a0b1") if flowering else Color("7e985e")
-  G.oval(exterior,at+Vector3(cos(angle)*0.5,2.25+(i%2)*0.45,sin(angle)*0.45),Vector3(1.45,1.5,1.35),color.lightened((i%3)*0.06))
+  G.oval(parent,at+Vector3(cos(angle)*0.5,2.25+(i%2)*0.45,sin(angle)*0.45),Vector3(1.45,1.5,1.35),color.lightened((i%3)*0.06))
 
 func build_exterior() -> void:
  G.rounded_box(exterior,Vector3(1,-0.3,0),Vector3(22,0.4,17),Color("a7b68a"),0.35)
@@ -286,8 +299,8 @@ func show_outside(value: bool) -> void:
  outside = value
  overview_mode = value
  if not value:
-  view_center = Vector3(-2,0,0.8)
-  close_size = 15.5
+  view_center = Vector3(-0.35,0,-0.5)
+  close_size = 12.7
  interior.visible = not value
  exterior.visible = value
  frame_camera()

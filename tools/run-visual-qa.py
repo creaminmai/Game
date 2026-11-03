@@ -40,11 +40,11 @@ with (runtime / 'xorg.log').open('w') as log:
         script = 'tests/record_play.gd' if args.movie else ('tests/capture_art.gd' if args.art_capture else 'tests/test_scene.gd')
         command = ['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', script]
         if args.movie:
-            command += ['--resolution', '720x1280', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
+            command += ['--resolution', '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
         if args.input_check: command += ['--input-check']
         with (args.output_dir / 'engine.log').open('w') as engine_log:
-            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=600 if args.movie else 180)
+            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=900 if args.movie else 180)
         text = (args.output_dir / 'engine.log').read_text()
         print(text)
         code = result.returncode if result.returncode else (1 if 'SCRIPT ERROR' in text or 'ERROR:' in text else 0)

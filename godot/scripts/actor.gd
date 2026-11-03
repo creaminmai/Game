@@ -7,6 +7,13 @@ var right_leg: MeshInstance3D
 var selection: MeshInstance3D
 var caption: Label3D
 var clock := 0.0
+var sitting_legs: Node3D
+var standing_shoes: Array[MeshInstance3D] = []
+var arms: Array[MeshInstance3D] = []
+var hands: Array[MeshInstance3D] = []
+var book: Node3D
+var seated := false
+var pick_area: Area3D
 
 func build(id: int, staff: bool = false) -> void:
  body = Node3D.new()
@@ -33,10 +40,27 @@ func build(id: int, staff: bool = false) -> void:
  for side in [-1,1]:
   var arm := G.oval(body,Vector3(side*0.34,0.76,0),Vector3(0.18,0.41,0.2),shirt)
   arm.rotation.z = side*0.15
-  G.oval(body,Vector3(side*0.36,0.49,0.015),Vector3(0.15,0.23,0.16),skin)
-  G.rounded_box(body,Vector3(side*0.14,0.09,0.09),Vector3(0.22,0.16,0.36),Color("ece2ce") if staff else Color("5b554c"),0.07)
+  arms.append(arm)
+  hands.append(G.oval(body,Vector3(side*0.36,0.49,0.015),Vector3(0.15,0.23,0.16),skin))
+  standing_shoes.append(G.rounded_box(body,Vector3(side*0.14,0.09,0.09),Vector3(0.22,0.16,0.36),Color("ece2ce") if staff else Color("5b554c"),0.07))
  left_leg = G.rounded_box(body,Vector3(-0.14,0.3,0),Vector3(0.19,0.44,0.23),shirt.darkened(0.15),0.07)
  right_leg = G.rounded_box(body,Vector3(0.14,0.3,0),Vector3(0.19,0.44,0.23),shirt.darkened(0.15),0.07)
+ sitting_legs = Node3D.new()
+ body.add_child(sitting_legs)
+ for side in [-1,1]:
+  G.rounded_box(sitting_legs,Vector3(side*0.14,0.56,0.16),Vector3(0.2,0.2,0.48),shirt.darkened(0.12),0.08)
+  G.rounded_box(sitting_legs,Vector3(side*0.14,0.32,0.35),Vector3(0.18,0.4,0.2),shirt.darkened(0.12),0.07)
+  G.rounded_box(sitting_legs,Vector3(side*0.14,0.1,0.43),Vector3(0.22,0.16,0.34),Color("796452"),0.07)
+ sitting_legs.hide()
+ book = Node3D.new()
+ body.add_child(book)
+ book.position = Vector3(0,0.68,0.43)
+ book.rotation.x = -0.2
+ for side in [-1,1]:
+  var page := G.rounded_box(book,Vector3(side*0.12,0,0),Vector3(0.24,0.04,0.28),Color("fff1cf"),0.01)
+  page.rotation.z = side*0.13
+ book.visible = false
+ book.set_meta("reader",id == 1 and not staff)
  for side in [-1,1]:
   var collar := G.rounded_box(body,Vector3(side*0.09,0.98,0.2),Vector3(0.14,0.12,0.025),Color("e9e2d0"),0.02)
   collar.rotation.z = side*-0.4
@@ -45,6 +69,7 @@ func build(id: int, staff: bool = false) -> void:
   G.box(body,Vector3(0.15,0.82,0.23),Vector3(0.085,0.035,0.01),Color("d8af64"))
  else:
   var area := Area3D.new()
+  pick_area = area
   var collision := CollisionShape3D.new()
   var capsule := CapsuleShape3D.new()
   capsule.radius = 0.42
@@ -72,12 +97,23 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  clock += delta
  var moving: bool = p.state in ["entering","walk_ct","walk_plan","walk_treatment","leaving"]
  var lying: bool = p.state in ["ct_scan","treatment"]
+ seated = p.state in ["waiting","ct_queue"]
  body.rotation.x = -PI/2 if lying else 0.0
- body.position = Vector3(0,1.25,0.45) if lying else Vector3.ZERO
+ body.position = Vector3(0,1.25,0.45) if lying else (Vector3(0,0.14,-0.45) if seated else Vector3.ZERO)
+ if pick_area != null: pick_area.position = body.position if seated else Vector3.ZERO
  if moving and before.distance_to(position) > 0.001:
   var direction := position-before
   body.rotation.y = atan2(direction.x,direction.z)
- elif lying: body.rotation.y = 0
+ elif lying or seated: body.rotation.y = 0
+ sitting_legs.visible = seated
+ left_leg.visible = not seated
+ right_leg.visible = not seated
+ for shoe in standing_shoes: shoe.visible = not seated
+ book.visible = seated and book.get_meta("reader",false)
+ for i in range(arms.size()):
+  arms[i].rotation.x = -0.65 if seated else (sin(clock*10+i*PI)*0.25 if moving else 0.0)
+  hands[i].position.z = 0.16 if seated else 0.015
+  hands[i].position.y = 0.52 if seated else 0.49
  left_leg.rotation.x = sin(clock*10)*0.35 if moving else 0.0
  right_leg.rotation.x = -left_leg.rotation.x
  selection.visible = selected

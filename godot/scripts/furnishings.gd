@@ -1,17 +1,18 @@
 class_name HospitalFurnishings
 extends RefCounted
 const G = preload("res://scripts/geometry.gd")
-const WOOD := Color("b2916e")
-const CREAM := Color("e5ddc9")
-const TEAL := Color("62968c")
+const WOOD := Color("cda77c")
+const CREAM := Color("f6eddf")
+const TEAL := Color("91bdb1")
 
-static func chair(parent: Node3D, at: Vector3, color: Color = Color("cc9380")) -> void:
+static func chair(parent: Node3D, at: Vector3, color: Color = Color("eeb09a")) -> void:
  G.shadow(parent,at+Vector3(0,0.055,0),Vector2(1.2,1.1))
  for x in [-0.36,0.36]:
   for z in [-0.3,0.3]: G.cylinder(parent,at+Vector3(x,0.18,z),0.055,0.35,WOOD)
- G.rounded_box(parent,at+Vector3(0,0.49,0),Vector3(0.95,0.22,0.88),color,0.1)
- G.rounded_box(parent,at+Vector3(0,0.89,-0.34),Vector3(1,0.8,0.25),color,0.12)
- for x in [-0.48,0.48]: G.rounded_box(parent,at+Vector3(x,0.66,0),Vector3(0.2,0.45,0.9),color,0.09)
+ G.rounded_box(parent,at+Vector3(0,0.47,0),Vector3(1.05,0.28,0.98),color,0.13)
+ G.rounded_box(parent,at+Vector3(0,0.97,-0.36),Vector3(1.08,0.94,0.34),color,0.16)
+ G.rounded_box(parent,at+Vector3(0,0.63,0.04),Vector3(0.78,0.16,0.76),color.lightened(0.06),0.075)
+ for x in [-0.5,0.5]: G.rounded_box(parent,at+Vector3(x,0.72,0),Vector3(0.25,0.5,1.0),color,0.12)
 
 static func cabinet(parent: Node3D, at: Vector3, width: float = 1.8) -> void:
  G.rounded_box(parent,at+Vector3(0,0.55,0),Vector3(width,1.1,0.65),CREAM,0.04)
@@ -37,6 +38,42 @@ static func wall_light(parent: Node3D, at: Vector3) -> void:
  G.rounded_box(parent,at,Vector3(0.5,0.15,0.22),Color("dab980"),0.04)
  var lamp := G.rounded_box(parent,at+Vector3(0,-0.045,0.05),Vector3(0.41,0.08,0.18),Color("fff0c5"),0.03)
  lamp.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+ var light := OmniLight3D.new()
+ light.position = at+Vector3(0,-0.05,0.32)
+ light.light_color = Color("ffe1a4")
+ light.light_energy = 0.28
+ light.omni_range = 2.2
+ light.omni_attenuation = 1.6
+ parent.add_child(light)
+
+static func framed_art(parent: Node3D, at: Vector3) -> void:
+ G.rounded_box(parent,at,Vector3(0.9,0.78,0.08),WOOD,0.03)
+ G.box(parent,at+Vector3(0,0,0.05),Vector3(0.78,0.66,0.025),Color("f9efd9"))
+ G.box(parent,at+Vector3(0,0.03,0.07),Vector3(0.66,0.49,0.015),Color("bfdad6"))
+ G.oval(parent,at+Vector3(-0.14,-0.13,0.09),Vector3(0.4,0.22,0.018),Color("94af7d"))
+ G.oval(parent,at+Vector3(0.17,-0.14,0.1),Vector3(0.32,0.18,0.018),Color("6f9d82"))
+ G.oval(parent,at+Vector3(0.2,0.17,0.1),Vector3(0.13,0.13,0.02),Color("f8d17f"))
+
+static func floor_lamp(parent: Node3D, at: Vector3) -> void:
+ G.cylinder(parent,at+Vector3(0,0.08,0),0.24,0.1,WOOD)
+ G.cylinder(parent,at+Vector3(0,0.95,0),0.035,1.8,Color("ceac6d"))
+ var mesh := CylinderMesh.new()
+ mesh.top_radius = 0.25
+ mesh.bottom_radius = 0.4
+ mesh.height = 0.48
+ var shade := G.shape(parent,mesh,at+Vector3(0,1.92,0),Color("ffedba"))
+ shade.material_override.emission_enabled = true
+ shade.material_override.emission = Color("b49c61")
+ shade.material_override.emission_energy_multiplier = 0.4
+
+static func tea_table(parent: Node3D, at: Vector3) -> void:
+ G.shadow(parent,at+Vector3(0,0.06,0),Vector2(1.2,1.1))
+ G.cylinder(parent,at+Vector3(0,0.34,0),0.08,0.62,WOOD)
+ var top := G.cylinder(parent,at+Vector3(0,0.69,0),0.57,0.1,Color("dbb78b"))
+ G.wood(top,Color("dbb78b"))
+ G.rounded_box(parent,at+Vector3(0.2,0.76,0.05),Vector3(0.3,0.055,0.38),Color("8fae9e"),0.02)
+ G.cylinder(parent,at+Vector3(-0.17,0.8,0.15),0.085,0.17,CREAM)
+ G.cylinder(parent,at+Vector3(-0.17,0.89,0.15),0.06,0.008,Color("9f7657"))
 
 static func bookshelf(parent: Node3D, at: Vector3) -> void:
  G.box(parent,at,Vector3(1.45,1.85,0.16),WOOD)

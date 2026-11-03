@@ -10,6 +10,7 @@ func hold(seconds: float) -> void:
 func click(control: Control) -> void:
  var window_id := control.get_window().get_window_id()
  var point := control.get_global_rect().get_center()
+ point *= Vector2(root.size)/root.get_visible_rect().size
  if control.get_window() != root and control.get_window().is_embedded():
   point += Vector2(control.get_window().position)
  var motion := InputEventMouseMotion.new()
@@ -30,7 +31,7 @@ func run() -> void:
  for arg in OS.get_cmdline_user_args():
   if arg.begins_with("--output-dir="): output = arg.trim_prefix("--output-dir=")
  if output.is_empty(): quit(1); return
- root.size = Vector2i(720,1280)
+ root.size = Vector2i(1280,720)
  game = load("res://main.tscn").instantiate()
  root.add_child(game)
  await process_frame
