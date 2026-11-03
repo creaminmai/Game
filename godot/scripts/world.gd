@@ -13,6 +13,9 @@ var outside := false
 var ct_light: MeshInstance3D
 var exterior_annex: Node3D
 var expansion_sign: Label3D
+var view_center := Vector3(-2,0,0.8)
+var close_size := 15.5
+var overview_mode := false
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
@@ -42,14 +45,52 @@ func _ready() -> void:
  build_interior()
  build_exterior()
  exterior.visible = false
+ get_viewport().size_changed.connect(frame_camera)
  frame_camera()
 
 func frame_camera() -> void:
- var center := Vector3(2.5 if wing_built else 0,0,0.3)
- if outside: center = Vector3(2 if wing_built else 0,0,0)
- camera.position = center + Vector3(10,21,27)
- camera.look_at(center)
- camera.size = 25.0 if outside else (19.5 if wing_built else 17.0)
+ if overview_mode:
+  view_center = Vector3(2.5 if wing_built else -0.3,0,0.3)
+  if outside: view_center = Vector3(1,0,0)
+ camera.position = view_center + Vector3(10,21,27)
+ camera.look_at(view_center)
+ if overview_mode:
+  var aspect := maxf(0.35,get_viewport().get_visible_rect().size.x/get_viewport().get_visible_rect().size.y)
+  var width := 25.0 if outside else (22.0 if wing_built else 17.5)
+  camera.size = maxf(17,width/aspect)*1.06
+ else:
+  camera.size = close_size
+
+func zoom_by(factor: float) -> void:
+ if overview_mode: close_size = camera.size
+ overview_mode = false
+ close_size = clampf(close_size*factor,8.0,50.0)
+ frame_camera()
+
+func show_overview() -> void:
+ overview_mode = true
+ frame_camera()
+
+func focus_patient(at: Vector3) -> void:
+ overview_mode = false
+ close_size = 14.5
+ view_center = at+Vector3(0,0,-0.8)
+ frame_camera()
+
+func ground_point(pixel: Vector2) -> Vector3:
+ var origin := camera.project_ray_origin(pixel)
+ var direction := camera.project_ray_normal(pixel)
+ return origin+direction*(-origin.y/direction.y)
+
+func pan_by(delta: Vector2) -> void:
+ var center := get_viewport().get_visible_rect().size*0.5
+ var movement := ground_point(center)-ground_point(center+delta)
+ if overview_mode: close_size = camera.size
+ overview_mode = false
+ view_center += movement
+ view_center.x = clampf(view_center.x,-6.0,11.0 if wing_built else 6.0)
+ view_center.z = clampf(view_center.z,-4.0,5.0)
+ frame_camera()
 
 func floor_room(center: Vector3, color: Color, name_text: String) -> void:
  G.rounded_box(interior,center+Vector3(0,-0.16,0),Vector3(6,0.3,5.5),Color("b7b09b"),0.08)
@@ -243,6 +284,10 @@ func add_wing() -> void:
 
 func show_outside(value: bool) -> void:
  outside = value
+ overview_mode = value
+ if not value:
+  view_center = Vector3(-2,0,0.8)
+  close_size = 15.5
  interior.visible = not value
  exterior.visible = value
  frame_camera()

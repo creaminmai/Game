@@ -17,6 +17,7 @@ func settle() -> void:
 
 func click(control: Control) -> void:
  var point := control.get_global_rect().get_center()
+ point *= Vector2(root.size)/root.get_visible_rect().size
  var move := InputEventMouseMotion.new()
  move.position = point
  Input.parse_input_event(move)
@@ -43,13 +44,16 @@ func check_layout(caption: String) -> void:
  var good := true
  var controls: Array[Control] = []
  for row in game.rows: controls.append(row)
- controls.append_array([game.pause_button,game.outside_button,game.expansion_button,game.action_button,game.next_button,game.notice])
+ controls.append_array([game.pause_button,game.outside_button,game.expansion_button,game.action_button,game.next_button,game.notice,
+  game.patient_button,game.zoom_in_button,game.zoom_out_button,game.overview_button,game.selection_panel,game.detail,game.dismiss_button,
+  game.money_panel,game.goal,game.next_day_button,game.roster_close])
  for control in controls:
-  if not screen.encloses(control.get_global_rect()):
+  if control.is_visible_in_tree() and not screen.encloses(control.get_global_rect()):
    printerr("Outside viewport: ",control.name," ",control.get_global_rect()," screen ",screen)
    good = false
  check(good,caption + " controls fit viewport")
- check(game.scene_container.size.y >= 280,caption + " 3D view remains usable")
+ check(game.scene_container.get_global_rect() == screen,caption + " 3D fills the whole viewport")
+ check(absf(screen.size.aspect()-Vector2(root.size).aspect()) < 0.01,caption + " viewport expands without letterboxing")
 
 func run() -> void:
  for arg in OS.get_cmdline_user_args():
@@ -63,15 +67,27 @@ func run() -> void:
  game.set_process(false)
  check(game.no_save,"QA never reads or writes user save")
  check(game.rows.size() == 4 and game.rows[1].disabled,"future arrivals visible but not selectable")
+ check(not game.roster.visible and not game.selection_panel.visible,"HUD starts without list or patient card")
+ await click(game.patient_button)
+ check(game.roster.visible,"patient roster opens on request")
  await click(game.rows[2])
- check(game.selected_id == 1,"future arrival click preserves selection")
+ check(game.selected_id == -1,"future arrival click preserves selection")
+ await click(game.roster_close)
  game.sim.tick(24)
  game.refresh()
  await settle()
  check_layout("720x1280")
- await shot("01-patient-list")
+ await shot("01-fullscreen-game")
+ var initial_zoom: float = game.world.camera.size
+ await click(game.zoom_in_button)
+ check(game.world.camera.size < initial_zoom,"zoom button enlarges actual 3D")
+ await click(game.overview_button)
+ check(game.world.overview_mode,"overview returns to full hospital")
+ await click(game.patient_button)
+ await shot("02-patient-roster")
  await click(game.rows[2])
  check(game.selected_id == 3,"patient list selection via real input")
+ check(not game.roster.visible and game.selection_panel.visible,"selection closes roster and shows contextual action")
  selected_by_input += 1
  game.sim.tick(0.5); game.refresh()
  check(game.selected_id == 3,"refresh never steals selection")
@@ -97,6 +113,27 @@ func run() -> void:
  Input.parse_input_event(event)
  await settle()
  check(game.selected_id == 1,"3D patient selection via real input ray")
+ # Dragging moves the camera, without treating the gesture as a patient tap.
+ var old_center: Vector3 = game.world.view_center
+ var old_selection: int = game.selected_id
+ var press := InputEventMouseButton.new()
+ press.button_index = MOUSE_BUTTON_LEFT
+ press.pressed = true
+ press.position = Vector2(200,500)
+ Input.parse_input_event(press)
+ await settle()
+ var drag := InputEventMouseMotion.new()
+ drag.position = Vector2(270,530)
+ drag.relative = Vector2(70,30)
+ drag.button_mask = MOUSE_BUTTON_MASK_LEFT
+ Input.parse_input_event(drag)
+ await settle()
+ press = InputEventMouseButton.new()
+ press.button_index = MOUSE_BUTTON_LEFT
+ press.position = Vector2(270,530)
+ Input.parse_input_event(press)
+ await settle()
+ check(game.world.view_center != old_center and game.selected_id == old_selection,"world drag pans without selecting")
  await click(game.pause_button)
  var frozen: Dictionary = game.sim.snapshot()
  game.sim.tick(3)
@@ -115,6 +152,7 @@ func run() -> void:
  for iteration in range(600):
   for p in game.sim.patients:
    if game.sim.needs_action(p):
+    await click(game.patient_button)
     await click(game.rows[p.id-1])
     selected_by_input += 1
     await click(game.action_button)
@@ -136,6 +174,8 @@ func run() -> void:
    await click(game.outside_button)
    expanded = true
   if game.sim.count_state("treatment") == 2 and not dual_seen:
+   await click(game.dismiss_button)
+   await click(game.overview_button)
    await settle()
    await shot("05-two-treatments")
    dual_seen = true
@@ -151,12 +191,21 @@ func run() -> void:
  check(game.sim.day == 2 and game.sim.patients.size() == 1,"next day through real input")
  game.refresh(); await settle()
  check(game.world.actors.size() == 1,"previous day actors removed")
- for dimensions in [Vector2i(360,640),Vector2i(720,1560),Vector2i(720,1080)]:
+ for dimensions in [Vector2i(360,640),Vector2i(720,1560),Vector2i(720,1080),Vector2i(1280,800)]:
   root.size = dimensions
   await settle()
   game.refresh()
   await settle()
   check_layout(str(dimensions))
+  game.select_patient(1)
+  await settle()
+  check_layout(str(dimensions)+" patient action")
+  await click(game.patient_button)
+  check(game.roster.visible,str(dimensions)+" roster opens after resize")
+  check_layout(str(dimensions)+" roster")
+  await click(game.roster_close)
+  await click(game.dismiss_button)
+  check(not game.selection_panel.visible,str(dimensions)+" patient action closes after resize")
   await shot("layout-%dx%d" % [dimensions.x,dimensions.y])
  var report := {"checks": checks,"failures": failures,"passed": failures.is_empty(),"selected_by_real_input": selected_by_input,
   "completed":4,"money_after_day_one":1100,"dual_treatment_captured":dual_seen,"android_ios_tested":false,

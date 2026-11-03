@@ -8,7 +8,7 @@ const MUTED := Color("71847a")
 var sim = Sim.new()
 var store = Store.new()
 var world: HospitalWorld
-var selected_id := 1
+var selected_id := -1
 var outside := false
 var previous_pause := false
 var stats: Label
@@ -23,10 +23,26 @@ var expansion_button: Button
 var next_day_button: Button
 var detail: Label
 var progress: ProgressBar
-var confirmation: ConfirmationDialog
+var confirmation: HospitalGameDialog
 var viewport: SubViewport
 var scene_container: SubViewportContainer
-var root_column: VBoxContainer
+var hud: Control
+var title: Label
+var day_label: Label
+var goal: Label
+var money_panel: PanelContainer
+var patient_button: Button
+var zoom_in_button: Button
+var zoom_out_button: Button
+var overview_button: Button
+var dismiss_button: Button
+var selection_panel: PanelContainer
+var roster: PanelContainer
+var roster_close: Button
+var tool_buttons: Array[Button] = []
+var tool_labels: Array[Label] = []
+var drag_start := Vector2.ZERO
+var dragging := false
 var save_time := 0.0
 var ui_time := 0.0
 var no_save := false
@@ -81,114 +97,230 @@ func button(text_value: String, callback: Callable, primary: bool = false) -> Bu
  result.pressed.connect(callback)
  return result
 
+func icon_button(symbol: String, caption: String, callback: Callable) -> Button:
+ var b := preload("res://scripts/hud_button.gd").new()
+ b.symbol = symbol
+ b.custom_minimum_size = Vector2(66,66)
+ b.tooltip_text = caption
+ b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+ b.add_theme_stylebox_override("normal",style(Color("36675b"),Color("cfbd8a"),22))
+ b.add_theme_stylebox_override("hover",style(Color("497c68"),Color("f2d890"),22))
+ b.add_theme_stylebox_override("pressed",style(Color("204e46"),Color("f2d890"),22))
+ b.add_theme_stylebox_override("disabled",style(Color("63796b"),Color("aab39b"),22))
+ b.add_theme_stylebox_override("focus",style(Color.TRANSPARENT,Color("efcb78"),22))
+ b.pressed.connect(callback)
+ return b
+
+func place(control: Control, rect: Rect2) -> void:
+ control.position = rect.position
+ control.size = rect.size
+
+func panel(parent: Node, color: Color = Color("f2ead5")) -> PanelContainer:
+ var node := PanelContainer.new()
+ node.add_theme_stylebox_override("panel",style(color,Color("b5a679"),20))
+ parent.add_child(node)
+ return node
+
 func build_ui() -> void:
- var background := ColorRect.new()
- background.color = Color("f6f2e7")
- background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- background.mouse_filter = Control.MOUSE_FILTER_IGNORE
- add_child(background)
- var margin := MarginContainer.new()
- margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- for side in ["left","right","top","bottom"]: margin.add_theme_constant_override("margin_"+side,20)
- add_child(margin)
- root_column = VBoxContainer.new()
- root_column.add_theme_constant_override("separation",10)
- margin.add_child(root_column)
- var heading := HBoxContainer.new()
- root_column.add_child(heading)
- var title_column := VBoxContainer.new()
- title_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- title_column.add_theme_constant_override("separation",0)
- heading.add_child(title_column)
- title_column.add_child(label_text("SUNSHINE  /  작은 병원의 하루",15,MUTED))
- title_column.add_child(label_text("햇살병원",35))
- pause_button = button("일시정지",toggle_pause)
- heading.add_child(pause_button)
- stats = label_text("",23)
- root_column.add_child(stats)
- var separator := HSeparator.new()
- root_column.add_child(separator)
- scene_caption = label_text("방사선과  ·  환자를 누르거나 아래 목록에서 선택하세요",17,MUTED)
- root_column.add_child(scene_caption)
  scene_container = SubViewportContainer.new()
  scene_container.name = "HospitalView"
  scene_container.stretch = true
- scene_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
- scene_container.custom_minimum_size.y = 280
+ scene_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  scene_container.gui_input.connect(scene_input)
- root_column.add_child(scene_container)
+ add_child(scene_container)
  viewport = SubViewport.new()
- viewport.size = Vector2i(680,500)
+ viewport.size = Vector2i(720,1280)
  viewport.handle_input_locally = false
  viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
  viewport.own_world_3d = true
+ viewport.msaa_3d = Viewport.MSAA_2X
  scene_container.add_child(viewport)
- var view_actions := HBoxContainer.new()
- view_actions.add_theme_constant_override("separation",10)
- root_column.add_child(view_actions)
- outside_button = button("병원 밖",toggle_outside)
- view_actions.add_child(outside_button)
- expansion_button = button("치료별관 · 600만",open_expansion)
- expansion_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- view_actions.add_child(expansion_button)
- var list_title := HBoxContainer.new()
- root_column.add_child(list_title)
- var list_label := label_text("오늘의 환자",22)
- list_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- list_title.add_child(list_label)
- next_button = button("조작 필요한 환자 →",select_next_action)
- next_button.add_theme_font_size_override("font_size",18)
- list_title.add_child(next_button)
+ # UI floats over the world. Transparent regions never intercept world gestures.
+ hud = Control.new()
+ hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ add_child(hud)
+ title = label_text("햇살병원",25)
+ title.add_theme_color_override("font_shadow_color",Color("fff5db"))
+ title.add_theme_constant_override("shadow_outline_size",4)
+ hud.add_child(title)
+ day_label = label_text("",18)
+ hud.add_child(day_label)
+ money_panel = panel(hud,Color("f4e5b8"))
+ stats = label_text("",24)
+ stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ money_panel.add_child(stats)
+ pause_button = icon_button("pause","일시정지 / 재생",toggle_pause)
+ hud.add_child(pause_button)
+ goal = label_text("",19,Color("36584a"))
+ goal.add_theme_color_override("font_shadow_color",Color("f9edd1"))
+ goal.add_theme_constant_override("shadow_outline_size",4)
+ hud.add_child(goal)
+ scene_caption = label_text("",17)
+ hud.add_child(scene_caption)
+ patient_button = icon_button("people","오늘의 환자 목록",toggle_roster)
+ next_button = icon_button("attention","지시가 필요한 환자 찾기",select_next_action)
+ expansion_button = icon_button("build","치료별관 증축 · 600만",open_expansion)
+ outside_button = icon_button("outside","병원 안 / 밖",toggle_outside)
+ tool_buttons = [patient_button,next_button,expansion_button,outside_button]
+ for i in range(tool_buttons.size()):
+  hud.add_child(tool_buttons[i])
+  var caption := label_text(["환자","지시 필요","증축","병원 밖"][i],15)
+  caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  caption.add_theme_color_override("font_shadow_color",Color("fff4dc"))
+  caption.add_theme_constant_override("shadow_outline_size",4)
+  hud.add_child(caption)
+  tool_labels.append(caption)
+ zoom_in_button = icon_button("plus","확대",func(): world.zoom_by(0.82))
+ zoom_out_button = icon_button("minus","축소",func(): world.zoom_by(1.22))
+ overview_button = icon_button("overview","병원 전체 보기",func(): world.show_overview())
+ for b in [zoom_in_button,zoom_out_button,overview_button]: hud.add_child(b)
+ selection_panel = panel(hud)
+ var content := VBoxContainer.new()
+ content.add_theme_constant_override("separation",8)
+ selection_panel.add_child(content)
+ var info := HBoxContainer.new()
+ content.add_child(info)
+ detail = label_text("",22)
+ detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ info.add_child(detail)
+ dismiss_button = button("닫기",clear_selection)
+ dismiss_button.custom_minimum_size = Vector2(70,42)
+ dismiss_button.add_theme_font_size_override("font_size",17)
+ info.add_child(dismiss_button)
+ progress = ProgressBar.new()
+ progress.custom_minimum_size.y = 8
+ progress.show_percentage = false
+ progress.add_theme_stylebox_override("background",style(Color("d7d8bd"),Color.TRANSPARENT,4))
+ progress.add_theme_stylebox_override("fill",style(Color("6f9c79"),Color.TRANSPARENT,4))
+ content.add_child(progress)
+ action_button = button("접수하기",perform_action,true)
+ action_button.custom_minimum_size.y = 58
+ content.add_child(action_button)
+ notice = label_text("환자를 누르면 진료할 수 있어요",18)
+ notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+ notice.add_theme_color_override("font_shadow_color",Color("fff4dc"))
+ notice.add_theme_constant_override("shadow_outline_size",4)
+ hud.add_child(notice)
+ next_day_button = button("오늘 진료 완료 · 다음 날 시작",start_day,true)
+ hud.add_child(next_day_button)
+ roster = panel(hud)
+ var list := VBoxContainer.new()
+ list.add_theme_constant_override("separation",10)
+ roster.add_child(list)
+ var list_heading := HBoxContainer.new()
+ list.add_child(list_heading)
+ var list_title := label_text("오늘의 환자",26)
+ list_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ list_heading.add_child(list_title)
+ roster_close = button("닫기",toggle_roster)
+ list_heading.add_child(roster_close)
  for id in range(1,5):
   var row := button("",select_patient.bind(id))
   row.name = "Patient%d" % id
   row.alignment = HORIZONTAL_ALIGNMENT_LEFT
-  row.custom_minimum_size.y = 52
-  row.add_theme_font_size_override("font_size",20)
+  row.custom_minimum_size.y = 68
+  row.add_theme_font_size_override("font_size",21)
   rows.append(row)
-  root_column.add_child(row)
- detail = label_text("",19)
- detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
- detail.custom_minimum_size.y = 30
- root_column.add_child(detail)
- progress = ProgressBar.new()
- progress.custom_minimum_size.y = 7
- progress.show_percentage = false
- progress.add_theme_stylebox_override("background",style(Color("e0e1d3"),Color.TRANSPARENT,4))
- progress.add_theme_stylebox_override("fill",style(Color("73a78f"),Color.TRANSPARENT,4))
- root_column.add_child(progress)
- var commands := HBoxContainer.new()
- commands.add_theme_constant_override("separation",10)
- root_column.add_child(commands)
- action_button = button("접수하기",perform_action,true)
- action_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- commands.add_child(action_button)
- next_day_button = button("다음 날 시작",start_day)
- next_day_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
- commands.add_child(next_day_button)
- notice = label_text("환자를 선택하고 접수해 주세요. 첫 치료 후 별관을 지을 수 있어요.",16,MUTED)
- notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
- notice.custom_minimum_size.y = 42
- root_column.add_child(notice)
- confirmation = ConfirmationDialog.new()
- confirmation.title = "치료별관 증축"
- confirmation.dialog_text = "600만으로 치료실을 하나 더 만듭니다.\n두 환자를 동시에 치료할 수 있어요."
- confirmation.ok_button_text = "600만 지불 · 증축"
- confirmation.cancel_button_text = "취소"
- confirmation.min_size = Vector2i(500,220)
- confirmation.confirmed.connect(confirm_expansion)
- confirmation.canceled.connect(func(): notice.text = "증축을 취소했어요. 자금은 그대로예요.")
+  list.add_child(row)
+ roster.hide()
+ confirmation = preload("res://scripts/game_dialog.gd").new()
+ confirmation.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ confirmation.mouse_filter = Control.MOUSE_FILTER_STOP
  add_child(confirmation)
+ var shade := ColorRect.new()
+ shade.color = Color(0.07,0.15,0.12,0.55)
+ shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ confirmation.add_child(shade)
+ confirmation.card = panel(confirmation)
+ var dialog_content := VBoxContainer.new()
+ dialog_content.add_theme_constant_override("separation",18)
+ confirmation.card.add_child(dialog_content)
+ var heading := label_text("치료별관",32)
+ heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ dialog_content.add_child(heading)
+ var message := label_text("치료실을 하나 더 열어요
+두 환자를 동시에 치료할 수 있어요",21)
+ message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ dialog_content.add_child(message)
+ var cost := label_text("증축 비용   600만",28,TEAL)
+ cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ dialog_content.add_child(cost)
+ var actions := HBoxContainer.new()
+ actions.add_theme_constant_override("separation",12)
+ dialog_content.add_child(actions)
+ confirmation.cancel_button = button("다음에",confirmation.cancel)
+ confirmation.ok_button = button("별관 짓기",confirmation.accept,true)
+ for b in [confirmation.cancel_button,confirmation.ok_button]:
+  b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  actions.add_child(b)
+ confirmation.confirmed.connect(confirm_expansion)
+ confirmation.canceled.connect(func(): notice.text = "증축을 취소했어요")
+ confirmation.hide()
+ resized.connect(layout_hud)
+ layout_hud.call_deferred()
+
+func layout_hud() -> void:
+ var w := size.x
+ var h := size.y
+ place(title,Rect2(24,28,220,40))
+ place(day_label,Rect2(25,72,280,28))
+ place(money_panel,Rect2(w-304,26,196,66))
+ place(pause_button,Rect2(w-90,26,66,66))
+ place(goal,Rect2(24,112,w-120,32))
+ place(scene_caption,Rect2(24,151,w-120,26))
+ for i in range(tool_buttons.size()):
+  place(tool_buttons[i],Rect2(w-90,204+i*96,66,66))
+  place(tool_labels[i],Rect2(w-100,271+i*96,86,24))
+ var bottom := h-102
+ if selection_panel.visible: bottom = h-292
+ if next_day_button.visible: bottom = h-178
+ place(zoom_in_button,Rect2(24,bottom,66,66))
+ place(zoom_out_button,Rect2(102,bottom,66,66))
+ place(overview_button,Rect2(180,bottom,66,66))
+ var action_width := minf(w-40,680)
+ place(selection_panel,Rect2((w-action_width)*0.5,h-208,action_width,178))
+ var next_width := minf(w-48,680)
+ place(next_day_button,Rect2((w-next_width)*0.5,h-94,next_width,64))
+ place(notice,Rect2(24,h-29,w-48,26))
+ var roster_width := minf(w-128,592)
+ place(roster,Rect2(w-roster_width-104,maxf(180,h*0.26),roster_width,400))
+ place(confirmation.card,Rect2((w-540)*0.5,(h-310)*0.5,540,310))
+
+func toggle_roster() -> void:
+ roster.visible = not roster.visible
+
+func clear_selection() -> void:
+ selected_id = -1
+ refresh()
 
 func scene_input(event: InputEvent) -> void:
- if outside: return
- if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-  var id := world.pick(event.position)
-  if id > 0: select_patient(id)
+ if confirmation.visible: return
+ if event is InputEventMouseButton:
+  if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed: world.zoom_by(0.88)
+  elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed: world.zoom_by(1.14)
+  elif event.button_index == MOUSE_BUTTON_LEFT:
+   if event.pressed:
+    drag_start = event.position
+    dragging = false
+   else:
+    if not dragging and not outside:
+     var id := world.pick(event.position)
+     if id > 0: select_patient(id)
+    dragging = false
+ elif event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+  if event.position.distance_to(drag_start) > 8: dragging = true
+  if dragging: world.pan_by(event.relative)
+ elif event is InputEventMagnifyGesture:
+  world.zoom_by(1.0/event.factor)
 
 func select_patient(id: int) -> void:
  if sim.get_patient(id).is_empty(): return
  selected_id = id
+ roster.hide()
+ world.focus_patient(sim.get_patient(id).position)
  refresh()
 
 func select_next_action() -> void:
@@ -210,6 +342,7 @@ func toggle_pause() -> void:
 
 func toggle_outside() -> void:
  if not outside:
+  roster.hide()
   previous_pause = sim.paused
   sim.paused = true
   outside = true
@@ -222,11 +355,13 @@ func toggle_outside() -> void:
 func open_expansion() -> void:
  var reason: String = sim.expansion_reason()
  if not reason.is_empty(): notice.text = reason; return
+ roster.hide()
  confirmation.popup_centered()
 
 func confirm_expansion() -> void:
  if sim.purchase_expansion():
   world.add_wing()
+  world.show_overview()
   notice.text = "치료별관이 열렸어요. 이제 두 환자를 동시에 치료합니다."
  else: notice.text = sim.expansion_reason()
  refresh()
@@ -234,17 +369,20 @@ func confirm_expansion() -> void:
 func start_day() -> void:
  if outside: return
  if sim.start_next_day():
-  selected_id = 1
+  selected_id = -1
   notice.text = "%d일차를 시작해요. 자금과 치료별관은 유지됩니다." % sim.day
  refresh()
 
 func refresh() -> void:
- stats.text = "%d일차   /   자금 %s만   /   치료 %d/4" % [sim.day,sim.money,sim.completed()]
- pause_button.text = "재생" if sim.paused else "일시정지"
+ stats.text = "%s만" % sim.money
+ day_label.text = "%d일차 · 치료 %d/4" % [sim.day,sim.completed()]
+ goal.text = "첫 환자를 치료하면 별관이 열려요" if sim.lifetime_completed == 0 else ("오늘의 환자를 모두 돌봐주세요" if not sim.all_done() else "오늘의 진료를 모두 마쳤어요")
+ pause_button.symbol = "play" if sim.paused else "pause"
+ pause_button.queue_redraw()
  pause_button.disabled = outside
- outside_button.text = "병원 안으로" if outside else "병원 밖"
- scene_caption.text = "병원 외관  ·  진료는 잠시 멈춰 있어요" if outside else "방사선과  ·  환자 또는 목록을 눌러 선택"
- expansion_button.text = "치료별관 운영 중 · 치료실 2개" if sim.expanded else "치료별관 증축 · 600만"
+ tool_labels[3].text = "병원 안" if outside else "병원 밖"
+ scene_caption.text = "진료 일시정지" if sim.paused else ""
+ expansion_button.tooltip_text = "치료별관 운영 중" if sim.expanded else "치료별관 · 600만"
  expansion_button.disabled = sim.expanded
  for i in range(4):
   var id := i+1
@@ -269,9 +407,11 @@ func refresh() -> void:
   if not outside and not sim.paused:
    if p.state == "waiting": action_button.text = "선택 환자 접수"
    elif p.state == "plan_ready": action_button.text = "박 선생에게 계획 맡기기"
+ selection_panel.visible = not p.is_empty() and not outside and not sim.all_done()
  next_day_button.visible = sim.all_done()
  next_day_button.disabled = outside
  if sim.all_done(): notice.text = "오늘 모두 귀가했어요! 다음 날에도 병원을 이어 운영해요."
+ layout_hud()
  if is_instance_valid(world): world.sync(sim,selected_id,0)
 
 func on_change() -> void:

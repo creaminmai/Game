@@ -81,5 +81,5 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  left_leg.rotation.x = sin(clock*10)*0.35 if moving else 0.0
  right_leg.rotation.x = -left_leg.rotation.x
  selection.visible = selected
- caption.visible = selected
- caption.text = p.name
+ caption.visible = selected or p.state in ["waiting","plan_ready"]
+ caption.text = p.name if selected else ("접수" if p.state == "waiting" else "계획")

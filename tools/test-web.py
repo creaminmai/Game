@@ -29,16 +29,25 @@ try:
         page.screenshot(path=str(output/'before-admission.png'))
         canvas=page.locator('#canvas').bounding_box()
         assert canvas, 'Game canvas missing'
-        click=page.touchscreen.tap if args.touch else page.mouse.click
+        assert abs(canvas['width']-width)<1 and abs(canvas['height']-height)<1, 'Game does not fill browser viewport'
+        def click(x,y):
+            if args.touch: page.touchscreen.tap(x,y)
+            else: page.mouse.click(x,y,delay=100)
+            # Software WebGL may render slowly; let the new UI receive a frame before the next action.
+            page.wait_for_timeout(2000)
+        # Godot expands the logical viewport instead of adding portrait letterboxing.
         scale=min(canvas['width']/720,canvas['height']/1280)
-        ox=canvas['x']+(canvas['width']-720*scale)/2
-        oy=canvas['y']+(canvas['height']-1280*scale)/2
-        click(ox+300*scale,oy+864*scale)
-        click(ox+330*scale,oy+1180*scale)
+        logical_w,logical_h=canvas['width']/scale,canvas['height']/scale
+        ox,oy=canvas['x'],canvas['y']
+        click(ox+(logical_w-57)*scale,oy+237*scale) # Patient roster HUD icon.
+        page.screenshot(path=str(output/'patient-roster.png'))
+        click(ox+300*scale,oy+(max(180,logical_h*.26)+106)*scale)
+        page.screenshot(path=str(output/'patient-selected.png'))
+        click(ox+330*scale,oy+(logical_h-100)*scale) # Contextual admission action.
         page.wait_for_timeout(3000)
         page.screenshot(path=str(output/'after-admission.png'))
         # Inspect this fresh test browser's own IndexedDB filesystem, never the user's profile.
-        snapshots = page.evaluate('''async () => {
+        read_saves = '''async () => {
           const results=[];
           for (const info of await indexedDB.databases()) {
             const db=await new Promise((resolve,reject)=>{const r=indexedDB.open(info.name);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
@@ -49,13 +58,13 @@ try:
             db.close();
           }
           return results;
-        }''')
+        }'''
         (output/'console.log').write_text('\n'.join(messages))
-        assert snapshots, 'No persistent Godot save in browser'
-        state=snapshots[-1]
-        assert state['patients'][0]['state'] not in ['waiting','entering'], 'Actual canvas admission did not change patient state'
+        # IDBFS synchronizes asynchronously. Wait for evidence of the action in persistent storage.
+        saved=page.wait_for_function('async () => (await ('+read_saves+')()).find(s => s.patients?.[0] && !["waiting","entering"].includes(s.patients[0].state))',timeout=60000,polling=1000)
+        state=saved.json_value()
         assert not any('SCRIPT ERROR' in m or m.startswith('pageerror:') for m in messages), 'Browser runtime error'
-        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'mobile_tested':False}
+        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'mobile_tested':False}
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()
