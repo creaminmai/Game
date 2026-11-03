@@ -10,7 +10,13 @@ repo = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--output-dir', type=Path, default=repo / 'artifacts' / 'validation')
 p.add_argument('--art-capture', action='store_true', help='Render the actual 3D scenes at larger size, without the HUD')
+p.add_argument('--movie', action='store_true', help='Record an actual engine playthrough and encode MP4')
+p.add_argument('--input-check', action='store_true', help='Quick Movie Maker input regression check')
 args = p.parse_args()
+if args.input_check and not args.movie:
+    p.error('--input-check requires --movie')
+if args.art_capture and args.movie:
+    p.error('--art-capture and --movie are mutually exclusive')
 args.output_dir = args.output_dir.resolve()
 args.output_dir.mkdir(parents=True, exist_ok=True)
 runtime = repo / '.runtime'
@@ -31,11 +37,25 @@ with (runtime / 'xorg.log').open('w') as log:
             time.sleep(.1)
         else:
             raise RuntimeError('Xorg did not become ready')
+        script = 'tests/record_play.gd' if args.movie else ('tests/capture_art.gd' if args.art_capture else 'tests/test_scene.gd')
+        command = ['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', script]
+        if args.movie:
+            command += ['--resolution', '720x1280', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
+        command += ['--', '--qa', f'--output-dir={args.output_dir}']
+        if args.input_check: command += ['--input-check']
         with (args.output_dir / 'engine.log').open('w') as engine_log:
-            result = subprocess.run(['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', ('tests/capture_art.gd' if args.art_capture else 'tests/test_scene.gd'), '--', '--qa', f'--output-dir={args.output_dir}'], env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=180)
+            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=600 if args.movie else 180)
         text = (args.output_dir / 'engine.log').read_text()
         print(text)
-        raise SystemExit(result.returncode if result.returncode else (1 if 'SCRIPT ERROR' in text or 'ERROR:' in text else 0))
+        code = result.returncode if result.returncode else (1 if 'SCRIPT ERROR' in text or 'ERROR:' in text else 0)
+        if code == 0 and args.movie and not args.input_check:
+            import json
+            report = json.loads((args.output_dir / 'movie-results.json').read_text())
+            if not report['passed']:
+                raise SystemExit('Movie scenario failed')
+            subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-i', str(args.output_dir / 'playthrough.avi'), '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', str(args.output_dir / 'playthrough.mp4')], check=True)
+            subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration,size:stream=codec_name,width,height,r_frame_rate', '-of', 'json', str(args.output_dir / 'playthrough.mp4')], check=True)
+        raise SystemExit(code)
     finally:
         xorg.terminate()
         try:
