@@ -29,7 +29,7 @@ CLI가 준비된 Linux 환경에서는 다음을 실행합니다.
 
 초기 자금 900만, 환자당 200만, 증축 600만은 운영 검증용 임시 밸런스입니다. 환자·성과는 게임 내 가상 설정입니다.
 
-[실제 엔진 화면](docs/images/patient-list.png) · [동시 치료 화면](docs/images/two-treatments.png) · [검증 기록](docs/validation.md) · [성장 세계관](docs/world-progression.md)
+[아트 방향과 현재 차이](docs/art-direction.md) · [실제 엔진 화면](docs/images/patient-list.png) · [동시 치료 화면](docs/images/two-treatments.png) · [검증 기록](docs/validation.md) · [성장 세계관](docs/world-progression.md)
 
 ## 검증
 

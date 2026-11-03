@@ -9,6 +9,7 @@ import time
 repo = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--output-dir', type=Path, default=repo / 'artifacts' / 'validation')
+p.add_argument('--art-capture', action='store_true', help='Render the actual 3D scenes at larger size, without the HUD')
 args = p.parse_args()
 args.output_dir = args.output_dir.resolve()
 args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -31,7 +32,7 @@ with (runtime / 'xorg.log').open('w') as log:
         else:
             raise RuntimeError('Xorg did not become ready')
         with (args.output_dir / 'engine.log').open('w') as engine_log:
-            result = subprocess.run(['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', 'tests/test_scene.gd', '--', '--qa', f'--output-dir={args.output_dir}'], env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=180)
+            result = subprocess.run(['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', ('tests/capture_art.gd' if args.art_capture else 'tests/test_scene.gd'), '--', '--qa', f'--output-dir={args.output_dir}'], env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=180)
         text = (args.output_dir / 'engine.log').read_text()
         print(text)
         raise SystemExit(result.returncode if result.returncode else (1 if 'SCRIPT ERROR' in text or 'ERROR:' in text else 0))
