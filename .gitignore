@@ -1,0 +1,6 @@
+godot/.godot/
+.runtime/
+artifacts/
+__pycache__/
+*.tmp
+.DS_Store

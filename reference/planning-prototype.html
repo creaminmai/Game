@@ -1,0 +1,988 @@
+<title>햇살병원 방사선과</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a small hospital floor seen from above — four rooms in a 2x2 grid that patients move through, a status bar on top, sheets slide up from the bottom. */
+:root {
+  --bg: #e7efec;
+  --panel: #ffffff;
+  --ink: #1c2a2e;
+  --muted: #64757a;
+  --line: #d3dedb;
+  --accent: #1d7686;
+  --accent-ink: #ffffff;
+  --gold: #c9951a;
+  --good: #339060;
+  --warn: #c98a12;
+  --bad: #cf5248;
+  --r-wait: #f7efe1;
+  --r-ct: #e4edf8;
+  --r-plan: #eee8f6;
+  --r-treat: #e2f2ea;
+  --viewer: #0d1315;
+  --ct-body: #8c9897; --ct-soft2: #7c8988; --ct-lung: #2c3639; --ct-bone: #e9e6dc; --ct-fluid: #5d6c74;
+  --s-ptv: #ff5b4f; --s-cord: #f4c430; --s-heart: #e070bd; --s-lung: #5ec0e2;
+  --f-disp: "Jua", "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101719; --panel: #182326; --ink: #e3ecea; --muted: #94a5a8; --line: #2a3b3f;
+    --accent: #3fb2c2; --accent-ink: #0d1a1d; --gold: #e2b545; --good: #55b982; --warn: #dea43c; --bad: #e86d62;
+    --r-wait: #262219; --r-ct: #182330; --r-plan: #211c2c; --r-treat: #16271f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101719; --panel: #182326; --ink: #e3ecea; --muted: #94a5a8; --line: #2a3b3f;
+  --accent: #3fb2c2; --accent-ink: #0d1a1d; --gold: #e2b545; --good: #55b982; --warn: #dea43c; --bad: #e86d62;
+  --r-wait: #262219; --r-ct: #182330; --r-plan: #211c2c; --r-treat: #16271f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.45;
+  padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px));
+  padding-block: 0 24px; -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+@media (min-width: 380px) { body { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
+.app { max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.disp { font-family: var(--f-disp); font-weight: 400; }
+.tab { font-variant-numeric: tabular-nums; }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px 4px; display: flex; flex-direction: column; gap: 8px; }
+.bar1 { display: flex; align-items: center; gap: 10px; }
+.brand { font-family: var(--f-disp); font-size: 19px; line-height: 1; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand small { font-family: var(--f-body); font-size: 11px; color: var(--muted); display: block; margin-top: 3px; }
+.speed { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.speed button { border: 0; background: transparent; padding: 6px 10px; font-size: 12px; cursor: pointer; min-width: 36px; }
+.speed button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.iconbtn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; min-width: 0; }
+.stat span { display: block; font-size: 10.5px; color: var(--muted); letter-spacing: .02em; }
+.stat b { font-family: var(--f-disp); font-weight: 400; font-size: 17px; white-space: nowrap; }
+.stat.money b { color: var(--gold); }
+.clockbar { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.clockbar i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+.goal { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.goal .ch { font-family: var(--f-disp); font-size: 12px; color: var(--accent); white-space: nowrap; }
+.goal .gt { flex: 1; min-width: 0; font-size: 13px; }
+.goal .gt b { font-weight: 600; }
+.goal .gp { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* floor */
+.floor { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 400px) { .floor { grid-template-columns: 1fr; } }
+.room { border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 140px; min-width: 0; border: 1px solid var(--line); }
+.room.wait { background: var(--r-wait); } .room.ct { background: var(--r-ct); } .room.plan { background: var(--r-plan); } .room.treat { background: var(--r-treat); }
+.room h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-family: var(--f-disp); font-weight: 400; font-size: 16px; }
+.room h3 small { font-family: var(--f-body); font-size: 11px; color: var(--muted); text-align: right; }
+.room h3 small.alert { color: var(--bad); font-weight: 600; }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.empty { font-size: 12px; color: var(--muted); padding: 6px 0; }
+.tok { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; cursor: pointer; min-width: 0; }
+.tok.need { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.av { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-disp); font-size: 14px; color: #fff; }
+.av.lung { background: #4a9fc2; } .av.prostate { background: #c78a3c; } .av.brain { background: #9a6fc4; }
+.tinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tinfo b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tinfo b small { font-weight: 400; color: var(--muted); font-size: 11px; margin-left: 2px; }
+.tinfo .st { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pbar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.pbar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s linear; }
+.pbar.pat i { background: var(--good); } .pbar.pat.low i { background: var(--bad); } .pbar.pat.mid i { background: var(--warn); }
+.act { flex: none; border: 0; border-radius: 7px; padding: 6px 10px; font-size: 12.5px; font-weight: 600; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.act[hidden] { display: none; }
+
+.log { list-style: none; margin: 0; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; font-size: 12.5px; display: flex; flex-direction: column; gap: 3px; }
+.log li { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log li:first-child { color: var(--ink); }
+.log time { font-variant-numeric: tabular-nums; margin-right: 6px; color: var(--muted); }
+.fine { color: var(--muted); font-size: 11px; text-align: center; margin: 4px 0 0; }
+
+/* toast */
+.toasts { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 50; pointer-events: none;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.toast { background: var(--ink); color: var(--bg); border-radius: 999px; padding: 7px 14px; font-size: 13px; max-width: 100%; animation: tin .2s ease-out; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+@keyframes tin { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* sheets */
+.modal { position: fixed; inset: 0; z-index: 45; background: rgba(8, 14, 16, .5); display: flex; align-items: flex-end; justify-content: center;
+  padding: 12px max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.sheet { background: var(--panel); color: var(--ink); width: 100%; max-width: 560px; max-height: 100%; overflow-y: auto; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; animation: up .22s ease-out; }
+@keyframes up { from { transform: translateY(18px); opacity: .5; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .toast { animation: none; } .pbar i { transition: none; } }
+.sheet h2 { margin: 0; font-family: var(--f-disp); font-weight: 400; font-size: 21px; }
+.sheet p { margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.btn { border: 0; border-radius: 10px; padding: 11px 16px; font-weight: 600; font-size: 15px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.wide { flex: 1; }
+
+/* dialogue */
+.talk { display: flex; gap: 12px; align-items: flex-start; }
+.face { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: var(--f-disp); font-size: 22px; }
+.talk .who { font-family: var(--f-disp); font-size: 15px; }
+.talk .who small { font-family: var(--f-body); font-size: 11.5px; color: var(--muted); margin-left: 6px; }
+.talk .line { font-size: 15.5px; margin-top: 4px; text-wrap: pretty; }
+.next-hint { font-size: 11.5px; color: var(--muted); text-align: right; }
+
+/* patient card */
+.pcard { display: flex; gap: 12px; align-items: center; }
+.pcard .av { width: 48px; height: 48px; font-size: 20px; }
+.story { background: var(--r-wait); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice button { text-align: left; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--panel); cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
+.choice button b { font-family: var(--f-disp); font-weight: 400; font-size: 16px; }
+.choice button span { font-size: 12px; color: var(--muted); }
+.choice button.main { border-color: var(--accent); background: var(--r-plan); }
+
+/* shop */
+.items { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.item div { flex: 1; min-width: 0; }
+.item b { font-weight: 600; display: block; }
+.item span { font-size: 12px; color: var(--muted); }
+.item .price { font-family: var(--f-disp); color: var(--gold); white-space: nowrap; font-size: 15px; }
+
+/* summary */
+.sum { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.sum li { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.sum li:first-child { border-top: 0; }
+.sum .pos { color: var(--good); } .sum .neg { color: var(--bad); }
+.reviews { display: flex; flex-direction: column; gap: 6px; }
+.review { font-size: 13px; background: var(--r-treat); border-radius: 10px; padding: 8px 10px; }
+.review b { font-weight: 600; }
+
+/* puzzle */
+.pz { position: fixed; inset: 0; z-index: 35; background: var(--bg); overflow-y: auto;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.pz-in { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.pz-head { display: flex; align-items: center; gap: 10px; }
+.pz-head .t { flex: 1; min-width: 0; }
+.pz-head .t b { font-family: var(--f-disp); font-weight: 400; font-size: 18px; display: block; }
+.pz-head .t span { font-size: 12px; color: var(--muted); }
+.viewer { position: relative; border-radius: 12px; overflow: hidden; background: var(--viewer); touch-action: none; }
+.viewer canvas { display: block; width: 100%; aspect-ratio: 4 / 3; max-width: 100%; cursor: crosshair; }
+.vtip { position: absolute; left: 10px; right: 10px; bottom: 8px; color: #c8d3d2; font-size: 12px; pointer-events: none; text-shadow: 0 1px 2px #000; }
+.tumorbar { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.tumorbar b { font-family: var(--f-disp); font-weight: 400; font-size: 15px; white-space: nowrap; }
+.tumorbar .pbar { flex: 1; height: 8px; position: relative; }
+.tumorbar .pbar i { background: var(--s-ptv); }
+.tumorbar .pbar::after { content: ""; position: absolute; left: 95%; top: -2px; bottom: -2px; width: 2px; background: var(--ink); }
+.tumorbar em { font-style: normal; font-size: 13px; font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
+.organs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.organ { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; min-width: 0; }
+.organ.m2 { border-color: var(--bad); }
+.organ svg { width: 46px; height: 46px; }
+.organ b { font-family: var(--f-disp); font-weight: 400; font-size: 14px; }
+.organ small { font-size: 10.5px; color: var(--muted); }
+.organ .say { font-size: 11.5px; min-height: 2.6em; display: flex; align-items: center; }
+.organ .num { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.beamrow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip.dash { border-style: dashed; color: var(--accent); }
+.chip:disabled { opacity: .4; cursor: default; }
+.toggle { margin-left: auto; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.grade { font-family: var(--f-disp); font-size: 64px; line-height: 1; text-align: center; }
+.grade.S, .grade.A { color: var(--good); } .grade.B { color: var(--accent); } .grade.C { color: var(--warn); } .grade.D { color: var(--bad); }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="bar1">
+      <div class="brand">햇살병원 방사선과<small id="dayline">1일차 · 09:00</small></div>
+      <div class="speed" role="group" aria-label="게임 속도">
+        <button id="sp0" aria-label="일시정지">II</button>
+        <button id="sp1" aria-label="보통 속도">▶</button>
+        <button id="sp2" aria-label="빠르게">▶▶</button>
+      </div>
+      <button class="iconbtn" id="shopbtn">상점</button>
+    </div>
+    <div class="stats">
+      <div class="stat money"><span>자금</span><b class="tab" id="money"></b></div>
+      <div class="stat"><span>평판</span><b class="tab" id="rep"></b></div>
+      <div class="stat"><span>치료 완료</span><b class="tab" id="done"></b></div>
+      <div class="stat"><span>근무 시간</span><b class="tab" id="clock"></b><div class="clockbar"><i id="clockfill"></i></div></div>
+    </div>
+    <div class="goal"><span class="ch" id="gch"></span><span class="gt" id="gtext"></span><span class="gp tab" id="gprog"></span></div>
+  </header>
+
+  <main class="floor" id="floor">
+    <section class="room wait"><h3>대기실 <small id="h-wait">접수를 눌러 받아요</small></h3><div class="list" id="l-wait"></div></section>
+    <section class="room ct"><h3>CT실 <small id="h-ct"></small></h3><div class="list" id="l-ct"></div></section>
+    <section class="room plan"><h3>계획실 <small id="h-plan"></small></h3><div class="list" id="l-plan"></div></section>
+    <section class="room treat"><h3>치료실 <small id="h-treat"></small></h3><div class="list" id="l-treat"></div></section>
+  </main>
+
+  <ul class="log" id="log" aria-live="polite"></ul>
+  <p class="fine">교육·오락용 프로토타입입니다. 선량 계산은 단순화한 모델이며 임상과 무관합니다.</p>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+
+<div class="pz" id="pz" hidden>
+  <div class="pz-in">
+    <div class="pz-head">
+      <span class="av" id="pz-av"></span>
+      <div class="t"><b id="pz-name"></b><span id="pz-sub"></span></div>
+      <button class="iconbtn" id="pz-cancel">나가기</button>
+    </div>
+    <div class="viewer"><canvas id="pz-cv" aria-label="환자 단면 영상과 빛의 분포"></canvas><div class="vtip" id="pz-tip"></div></div>
+    <div class="tumorbar"><b>종양 제압</b><div class="pbar"><i id="pz-cov"></i></div><em id="pz-covn"></em></div>
+    <div class="organs" id="pz-organs"></div>
+    <div class="beamrow" id="pz-beams"></div>
+    <div class="btns">
+      <span class="muted" id="pz-q" style="margin-right:auto;align-self:center"></span>
+      <button class="btn" id="pz-ok">이 계획으로 치료</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Units: cm. Image coords: x right = patient left, y down = posterior. Grid 32 x 24 cm at 0.4 cm.
+const G = { x0: -16, y0: -12, d: 0.4, nx: 80, ny: 60 };
+const N = G.nx * G.ny;
+const RX = 60;
+const ell = (cx, cy, a, b) => ({ cx, cy, a, b: b ?? a });
+const inside = (s, x, y) => ((x - s.cx) / s.a) ** 2 + ((y - s.cy) / s.b) ** 2 <= 1;
+const CASES = {
+  lung: {
+    label: '폐', body: ell(0, 0, 15, 10.5), iso: { x: -3.5, y: -0.5 }, ptvR: 2.2,
+    tissues: [
+      { s: ell(-7.2, -0.5, 5.6, 7.2), dens: 0.25, fill: 'lung' },
+      { s: ell(7.4, -0.5, 5.0, 6.8), dens: 0.25, fill: 'lung' },
+      { s: ell(2.6, -2.6, 4.2, 3.6), dens: 1, fill: 'soft' },
+      { s: ell(0, 7.2, 1.9), dens: 1.6, fill: 'bone' },
+      { s: ell(0, 6.8, 0.9), dens: 1, fill: 'soft' },
+    ],
+    oars: [
+      { key: 'cord', name: '척수', who: '까칠이', in: [ell(0, 6.8, 0.9)], metric: 'max', lim: 45, color: 'cord',
+        line: ['건드리기만 해봐', '조금 따끔한데?', '아 진짜 화났어'] },
+      { key: 'lung', name: '폐', who: '숨숨이', in: [ell(-7.2, -0.5, 5.6, 7.2), ell(7.4, -0.5, 5.0, 6.8)], not: [ell(2.6, -2.6, 4.2, 3.6)], metric: 'v20', lim: 30, color: 'lung',
+        line: ['숨쉬기 편해요', '좀 숨차요...', '헉헉, 못 버티겠어'] },
+      { key: 'heart', name: '심장', who: '콩닥이', in: [ell(2.6, -2.6, 4.2, 3.6)], metric: 'mean', lim: 20, color: 'heart',
+        line: ['두근두근 괜찮아', '심장 떨려요', '무서워요!'] },
+    ],
+  },
+  prostate: {
+    label: '전립선', body: ell(0, 0, 16, 11), iso: { x: 0, y: -0.3 }, ptvR: 2.3,
+    tissues: [
+      { s: ell(-9, 0.8, 2.3), dens: 1.6, fill: 'bone' },
+      { s: ell(9, 0.8, 2.3), dens: 1.6, fill: 'bone' },
+      { s: ell(0, -4.6, 3.4, 2.4), dens: 1, fill: 'fluid' },
+      { s: ell(0, 3.7, 1.5), dens: 1, fill: 'soft' },
+    ],
+    oars: [
+      { key: 'rectum', name: '직장', who: '꾸룩이', in: [ell(0, 3.7, 1.5)], metric: 'mean', lim: 30, color: 'cord',
+        line: ['배 속 평화로워요', '꾸룩꾸룩...', '화장실 급해!'] },
+      { key: 'bladder', name: '방광', who: '찰랑이', in: [ell(0, -4.6, 3.4, 2.4)], metric: 'mean', lim: 28, color: 'lung',
+        line: ['찰랑찰랑 좋아요', '좀 따가워요', '으악 쓰라려!'] },
+      { key: 'hips', name: '대퇴골두', who: '튼튼이', in: [ell(-9, 0.8, 2.3), ell(9, 0.8, 2.3)], metric: 'mean', lim: 12, color: 'heart',
+        line: ['뼈 튼튼!', '시큰시큰해요', '뼈가 삐걱대요'] },
+    ],
+  },
+  brain: {
+    label: '뇌', body: ell(0, 0.5, 8.2, 10), iso: { x: 1.6, y: 0 }, ptvR: 1.8,
+    tissues: [
+      { s: ell(0, 3.2, 1.4), dens: 1, fill: 'soft2' },
+      { s: ell(-3, -8, 1.1), dens: 1, fill: 'fluid' },
+      { s: ell(3, -8, 1.1), dens: 1, fill: 'fluid' },
+    ],
+    oars: [
+      { key: 'stem', name: '뇌간', who: '대장님', in: [ell(0, 3.2, 1.4)], metric: 'max', lim: 45, color: 'cord',
+        line: ['다 내 지휘 아래', '어이, 조심해', '여긴 절대 안 돼!'] },
+      { key: 'eyes', name: '눈', who: '반짝이', in: [ell(-3, -8, 1.1), ell(3, -8, 1.1)], metric: 'max', lim: 15, color: 'lung',
+        line: ['앞이 잘 보여요', '눈이 침침해요', '눈부셔요!'] },
+      { key: 'brain', name: '정상 뇌', who: '말랑이', in: [ell(0, 0.5, 8.2, 10)], metric: 'mean', lim: 16, color: 'heart',
+        line: ['생각이 맑아요', '머리가 지끈', '아무 생각이 안 나요'] },
+    ],
+  },
+};
+function buildCase(c) {
+  if (c.built) return c.built;
+  const VX = new Float32Array(N), VY = new Float32Array(N), DENS = new Float32Array(N);
+  const body = [], ptv = [], oar = {};
+  c.oars.forEach(o => oar[o.key] = []);
+  for (let j = 0; j < G.ny; j++) for (let i = 0; i < G.nx; i++) {
+    const k = j * G.nx + i, x = G.x0 + (i + 0.5) * G.d, y = G.y0 + (j + 0.5) * G.d;
+    VX[k] = x; VY[k] = y;
+    if (!inside(c.body, x, y)) continue;
+    body.push(k);
+    let d = 1;
+    for (const t of c.tissues) if (inside(t.s, x, y)) d = t.dens;
+    const inPtv = Math.hypot(x - c.iso.x, y - c.iso.y) <= c.ptvR;
+    if (inPtv) { ptv.push(k); d = 1; }
+    DENS[k] = d;
+    for (const o of c.oars) {
+      if (inPtv) continue;
+      if (o.in.some(s => inside(s, x, y)) && !(o.not || []).some(s => inside(s, x, y))) oar[o.key].push(k);
+    }
+  }
+  c.built = { VX, VY, DENS, body, ptv, oar, cache: new Map() };
+  return c.built;
+}
+const HWM = 0.5;
+function beamDose(c, deg) {
+  const B = buildCase(c);
+  if (B.cache.has(deg)) return B.cache.get(deg);
+  const t = deg * Math.PI / 180, ux = Math.sin(t), uy = -Math.cos(t), hw = c.ptvR + HWM;
+  const dens = (x, y) => {
+    const i = Math.floor((x - G.x0) / G.d), j = Math.floor((y - G.y0) / G.d);
+    return i < 0 || j < 0 || i >= G.nx || j >= G.ny ? 0 : B.DENS[j * G.nx + i];
+  };
+  const at = (x, y) => {
+    let rad = 0, qx = x, qy = y;
+    for (let s = 0; s < 70; s++) {
+      qx += ux * 0.4; qy += uy * 0.4;
+      if (!inside(c.body, qx, qy)) break;
+      rad += dens(qx, qy) * 0.4;
+    }
+    const lat = Math.abs((x - c.iso.x) * uy - (y - c.iso.y) * ux);
+    const prof = 1 / (1 + Math.exp((lat - hw) / 0.3));
+    const scat = lat > hw ? 0.04 * Math.exp(-(lat - hw) / 2) : 0;
+    return Math.exp(-0.05 * rad) * (1 - 0.6 * Math.exp(-rad / 0.6)) * (prof + scat);
+  };
+  const out = new Float32Array(N), iv = at(c.iso.x, c.iso.y);
+  for (const k of B.body) out[k] = at(B.VX[k], B.VY[k]) / iv;
+  B.cache.set(deg, out);
+  return out;
+}
+function planDose(c, angles) {
+  const B = buildCase(c), dose = new Float32Array(N);
+  if (!angles.length) return dose;
+  for (const a of angles) { const bd = beamDose(c, a); for (const k of B.body) dose[k] += bd[k]; }
+  const p = B.ptv.map(k => dose[k]).sort((a, b) => a - b), sc = RX / p[Math.floor(p.length / 2)];
+  for (const k of B.body) dose[k] *= sc;
+  return dose;
+}
+function assess(c, dose, nBeams) {
+  const B = buildCase(c);
+  const ptv = B.ptv.map(k => dose[k]);
+  const cov = nBeams ? 100 * ptv.filter(v => v >= 57).length / ptv.length : 0;
+  const hot = nBeams ? Math.max(...ptv) : 0;
+  const organs = c.oars.map(o => {
+    const a = B.oar[o.key].map(k => dose[k]);
+    const v = o.metric === 'max' ? Math.max(...a) : o.metric === 'mean' ? a.reduce((s, x) => s + x, 0) / a.length : 100 * a.filter(x => x >= 20).length / a.length;
+    const r = nBeams ? v / o.lim : 0;
+    const mood = r <= 0.8 ? 0 : r <= 1 ? 1 : 2;
+    const pts = r <= 0.8 ? 1 : r <= 1 ? 1 - (r - 0.8) * 1.5 : Math.max(0, 0.7 - (r - 1) * 3);
+    return { ...o, v, r, mood, pts };
+  });
+  const covPts = Math.max(0, Math.min(1, (cov - 70) / 25));
+  let q = 50 * covPts + 50 * organs.reduce((s, o) => s + o.pts, 0) / organs.length;
+  if (hot > 66) q -= 10;
+  q -= Math.max(0, nBeams - 3) * 3;
+  q = nBeams ? Math.round(Math.max(0, Math.min(100, q))) : 0;
+  const pass = cov >= 95 && hot <= 66 && organs.every(o => o.r <= 1);
+  return { cov, hot, organs, q, pass };
+}
+
+
+
+// ================= GAME DATA =================
+const DAY = 540; // 09:00–18:00
+const PEOPLE = {
+  won: { name: '박 원장', role: '병원장', c: '#6474c9' },
+  minji: { name: '민지', role: '치료사', c: '#d9804f' },
+  kim: { name: '김 교수', role: '방사선종양학과 교수', c: '#378a73' },
+  park: { name: '박 선생', role: '선배 계획자', c: '#9466bf' },
+  han: { name: '한 선생', role: '의학물리사', c: '#c25275' },
+  sys: { name: '안내', role: '', c: '#5d6c70' },
+};
+const CHAPTERS = [
+  { name: '문 닫기 직전', goal: '환자 4명 치료 완료', prog: s => [s.treated, 4], ok: s => s.treated >= 4 },
+  { name: '소문이 나다', goal: '평판 3.0 · 누적 12명', prog: s => [Math.min(s.treated, 12) + Math.min(s.rep, 3) * 4, 24], ok: s => s.rep >= 3 && s.treated >= 12 },
+  { name: '인증 심사', goal: '평판 4.0 · 2번 치료기 도입', prog: s => [Math.min(s.rep, 4) * 2 + (s.up.linac2 ? 2 : 0), 10], ok: s => s.rep >= 4 && s.up.linac2 },
+  { name: '자유 운영', goal: '더 많은 환자를 웃게 하세요', prog: s => [s.treated, s.treated], ok: () => false },
+];
+const STORY = {
+  intro: [
+    ['won', '어서 와요. 여기가 우리 햇살병원 방사선과예요.'],
+    ['won', '솔직히 말할게요. 이번 분기에 살아나지 못하면 문을 닫아야 해요.'],
+    ['minji', '치료사 민지예요! 치료기는 한 대, 저 혼자지만... 잘 부탁드려요.'],
+    ['park', '계획실은 제가 지켜요. 바쁘면 맡기세요. 실력은... 보통입니다.'],
+    ['kim', '흐름은 간단해요. 접수, CT, 치료계획, 치료. 어려운 환자는 직접 계획해 보세요.'],
+    ['won', '첫 목표는 환자 4명 치료 완료. 할 수 있죠?'],
+  ],
+  1: [
+    ['won', '벌써 4명! 본원에서도 연락이 왔어요. 문은 안 닫아도 되겠네요.'],
+    ['kim', '이제 뇌종양 환자도 의뢰가 올 거예요. 눈이랑 뇌간, 아주 예민합니다.'],
+    ['won', '다음은 평판 3점, 누적 12명. 상점에서 장비도 하나씩 들여 봐요.'],
+  ],
+  2: [
+    ['kim', '인증 심사 일정이 잡혔어요. 평판 4점은 기본이고요.'],
+    ['kim', '치료기 한 대로는 부족하다고 할 겁니다. 2번 치료기가 필요해요.'],
+    ['minji', '2번 치료기... 들어오면 저 울지도 몰라요.'],
+  ],
+  3: [
+    ['won', '인증 통과! 이제 우리 과가 동네에서 제일 믿을 만한 곳이에요.'],
+    ['minji', '처음 왔을 때 기억나요? 치료기 한 대에 저 혼자였잖아요.'],
+    ['kim', '수고했어요. 다음 환자가 기다립니다.'],
+    ['sys', '프로토타입의 마지막 챕터예요. 계속 자유롭게 운영할 수 있어요.'],
+  ],
+};
+const NAMES = { m: ['김영수', '이정호', '박상철', '최민석', '정대현', '강태준', '조성훈', '윤재민', '임동규', '한상우'], f: ['김순자', '이미경', '박지혜', '최은정', '정수연', '한예린', '오세영', '서다은', '문경희', '배윤아'] };
+const SITES = {
+  lung: { label: '폐암', fx: 4, pay: 220, age: [58, 77], sex: 'mf', stories: [
+    ['등산이 취미, 백두대간 완주가 꿈', '다음 달에 북한산 다시 올라가요'],
+    ['손주랑 공원에서 공 차는 게 낙', '손주랑 공원에서 축구했어요'],
+    ['30년 택시 기사, 숨찬 게 제일 걱정', '다시 핸들 잡았습니다'],
+    ['시장에서 떡집을 운영함', '가게 문 다시 열었어요'] ] },
+  prostate: { label: '전립선암', fx: 5, pay: 200, age: [62, 80], sex: 'm', stories: [
+    ['주말마다 낚시 가는 은퇴 교사', '이번 주말에 낚싯대 챙깁니다'],
+    ['동네 합창단 테너', '정기공연 무대에 섰어요'],
+    ['아파트 경비원, 개근이 자랑', '다시 출근합니다'],
+    ['노래교실 반장님', '노래교실 다시 나가요'] ] },
+  brain: { label: '뇌종양', fx: 3, pay: 280, age: [33, 61], sex: 'mf', stories: [
+    ['다음 달 딸 결혼식에 꼭 가고 싶음', '결혼식에서 딸 손을 잡았어요'],
+    ['마감에 쫓기는 웹툰 작가', '연재 다시 시작했어요'],
+    ['초등학교 피아노 선생님', '아이들 발표회 반주를 했어요'],
+    ['배달 라이더, 두 아이 아빠', '아이들이랑 놀이공원 갔어요'] ] },
+};
+const SHOP = [
+  { key: 'coffee', name: '커피머신', price: 150, desc: '박 선생 계획 품질 +6' },
+  { key: 'deco', name: '대기실 리모델링', price: 350, desc: '환자 인내심이 천천히 줄어요' },
+  { key: 'ct2', name: '신형 CT', price: 600, desc: 'CT 촬영 60분에서 30분으로' },
+  { key: 'phys', name: '의학물리사 채용', price: 900, desc: '자동 계획 1명 추가, 품질 +14 · 일급 60만' },
+  { key: 'linac2', name: '2번 치료기', price: 2500, desc: '치료실에서 두 명을 동시에 치료' },
+];
+const EVENTS = [
+  { key: 'down', w: 2, run: s => { s.downUntil = 180; return ['minji', '치료기 정기 점검이래요. 오전에는 치료실을 못 써요.']; } },
+  { key: 'tv', w: 1, run: s => { s.rep = Math.min(5, s.rep + 0.15); return ['won', '지역 방송에서 우리 과를 취재해 갔어요! 평판이 조금 올랐어요.']; } },
+  { key: 'rush', w: 2, run: s => { s.extra = 2; return ['won', '건강검진센터에서 환자를 한꺼번에 보낸대요. 오늘 바빠질 거예요.']; } },
+  { key: 'rx', w: 2, run: s => {
+      const p = s.pts.find(p => p.stage === 'treat' && p.done === 0 && p.on == null);
+      if (!p) return null;
+      p.stage = 'plan'; p.patience = 100; p.quality = null;
+      return ['kim', `${p.name}님 처방을 조금 바꿔야겠어요. 계획을 다시 세워 주세요.`]; } },
+  { key: 'snack', w: 1, run: s => { s.pts.forEach(p => p.patience = Math.min(100, p.patience + 25)); return ['minji', '오늘 제가 간식 돌렸어요! 기다리는 분들 표정이 좋아졌어요.']; } },
+];
+
+// ================= STATE =================
+const SAVE_KEY = 'sunshine-rt-v1';
+let S;
+function fresh() {
+  return { day: 1, t: 0, money: 900, rep: 1.5, treated: 0, chapter: 0, nextId: 1, pts: [], up: {}, schedule: [], extra: 0, downUntil: 0,
+    ct: null, planners: [], linacs: [], today: newToday(), usedStories: {}, seenPuzzle: false, started: false, over: false };
+}
+function newToday() { return { arrived: 0, fx: 0, completed: 0, income: 0, left: 0, reviews: [] }; }
+let speed = 1, queue = [];
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const $ = id => document.getElementById(id);
+const fmtT = t => { const m = 540 + Math.min(t, DAY); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+const won = n => `${Math.round(n).toLocaleString()}만`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ctMin = () => S.up.ct2 ? 30 : 60;
+const nPlanners = () => 1 + (S.up.phys ? 1 : 0);
+const nLinacs = () => 1 + (S.up.linac2 ? 1 : 0);
+const planMin = () => S.up.phys ? 90 : 120;
+const autoQ = () => Math.round(Math.max(30, Math.min(95, 58 + rand(-12, 12) + (S.up.coffee ? 6 : 0) + (S.up.phys ? 14 : 0))));
+const grade = q => q >= 90 ? 'S' : q >= 80 ? 'A' : q >= 65 ? 'B' : q >= 50 ? 'C' : 'D';
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY)); return v && v.day ? v : null; } catch (e) { return null; } }
+
+// ================= PATIENTS =================
+function spawn() {
+  const sites = S.chapter >= 1 ? ['lung', 'prostate', 'brain', 'lung', 'prostate', 'brain'] : ['lung', 'prostate'];
+  const site = pick(sites), def = SITES[site];
+  const sex = def.sex === 'm' ? 'm' : pick(['m', 'f']);
+  const used = S.usedStories[site] || [];
+  let idx = def.stories.map((_, i) => i).filter(i => !used.includes(i));
+  if (!idx.length) { S.usedStories[site] = []; idx = def.stories.map((_, i) => i); }
+  const si = pick(idx); (S.usedStories[site] = S.usedStories[site] || []).push(si);
+  const here = new Set(S.pts.map(x => x.name)), pool = NAMES[sex].filter(n => !here.has(n));
+  const p = { id: S.nextId++, name: pick(pool.length ? pool : NAMES[sex]), age: Math.round(rand(...def.age)), site, story: def.stories[si][0], hope: def.stories[si][1],
+    fx: def.fx, done: 0, stage: 'arrive', patience: 100, left: 0, total: 0, quality: null, manual: false, todayDone: false, on: null, waitHit: 0 };
+  S.pts.push(p); S.today.arrived++;
+  logMsg(`${p.name}님(${def.label}) 도착`);
+  if (S.day === 1 && S.today.arrived === 1) toast('대기실에 첫 환자가 왔어요. 접수를 눌러보세요');
+}
+function accept(p) {
+  if (p.stage !== 'arrive') return;
+  p.stage = 'ctq'; logMsg(`${p.name}님 접수, CT 대기`); render();
+}
+function sendAuto(p) {
+  if (p.stage !== 'plan') return;
+  p.stage = 'autoq'; logMsg(`${p.name}님 계획을 ${S.up.phys ? '계획팀' : '박 선생'}에게 맡김`); render();
+}
+function leave(p, why) {
+  S.pts = S.pts.filter(x => x !== p); S.rep = Math.max(0, S.rep - (why === 'plan' ? 0.3 : 0.15)); S.today.left++;
+  logMsg(`${p.name}님이 기다리다 돌아갔어요 (평판 하락)`); toast(`${p.name}님이 기다리다 돌아갔어요`);
+  dropTok(p.id);
+}
+function complete(p) {
+  p.stage = 'done';
+  const q = p.quality, dRep = (q - 50) / 120 - (p.waitHit > 1 ? 0.06 * (p.waitHit - 1) : 0);
+  S.rep = Math.max(0, Math.min(5, S.rep + dRep));
+  S.treated++; S.today.completed++;
+  const say = q >= 85 ? `${p.hope}. 정말 감사합니다!` : q >= 65 ? '치료 잘 받았어요. 조금 힘들었지만 괜찮아요.' : '부작용 때문에 고생 좀 했어요...';
+  S.today.reviews.push({ name: p.name, site: p.site, q, say });
+  logMsg(`${p.name}님 치료 종료 · 품질 ${grade(q)}`);
+  toast(`${p.name}님 치료 완료! ${q >= 85 ? '아주 만족' : q >= 65 ? '만족' : '아쉬움'}`);
+  S.pts = S.pts.filter(x => x !== p); dropTok(p.id);
+  checkChapter();
+}
+
+// ================= TIME =================
+function minute() {
+  S.t++;
+  while (S.schedule.length && S.schedule[0] <= S.t) { S.schedule.shift(); spawn(); }
+  const decay = S.up.deco ? 0.2 : 0.33;
+  for (const p of [...S.pts]) {
+    if (p.stage === 'arrive') { p.patience -= decay; if (p.patience <= 0) leave(p, 'arrive'); }
+    else if (p.stage === 'plan') { p.patience -= decay * 0.5; if (p.patience <= 0) leave(p, 'plan'); }
+  }
+  // CT
+  if (S.ct) { const p = S.pts.find(x => x.id === S.ct); if (!p) S.ct = null; else if (--p.left <= 0) { p.stage = 'plan'; p.patience = 100; S.ct = null; logMsg(`${p.name}님 CT 완료, 계획 필요`); } }
+  if (!S.ct) { const p = S.pts.find(x => x.stage === 'ctq'); if (p) { p.stage = 'ct'; p.left = p.total = ctMin(); S.ct = p.id; } }
+  // planners
+  while (S.planners.length < nPlanners()) S.planners.push(null);
+  S.planners.forEach((id, i) => {
+    if (id != null) { const p = S.pts.find(x => x.id === id); if (!p) S.planners[i] = null; else if (--p.left <= 0) { p.quality = autoQ(); p.stage = 'treat'; S.planners[i] = null; logMsg(`${p.name}님 계획 완료 · 품질 ${grade(p.quality)}`); } }
+    if (S.planners[i] == null) { const p = S.pts.find(x => x.stage === 'autoq'); if (p) { p.stage = 'auto'; p.left = p.total = planMin(); S.planners[i] = p.id; } }
+  });
+  // linacs
+  while (S.linacs.length < nLinacs()) S.linacs.push(null);
+  S.linacs.forEach((id, i) => {
+    if (i === 0 && S.t < S.downUntil) return;
+    if (id != null) {
+      const p = S.pts.find(x => x.id === id);
+      if (!p) S.linacs[i] = null;
+      else if (--p.left <= 0) {
+        p.done++; p.todayDone = true; p.on = null; S.linacs[i] = null; S.today.fx++;
+        const inc = SITES[p.site].pay / p.fx * (0.6 + 0.4 * p.quality / 100);
+        S.money += inc; S.today.income += inc;
+        if (p.done >= p.fx) complete(p);
+      }
+    }
+    if (S.linacs[i] == null && S.t < DAY - 20) {
+      const p = S.pts.find(x => x.stage === 'treat' && !x.todayDone && x.on == null);
+      if (p) { p.on = i; p.left = p.total = 45; S.linacs[i] = p.id; }
+    }
+  });
+  if (S.t >= DAY) endDay();
+}
+let last = 0, acc = 0;
+function loop(ts) {
+  requestAnimationFrame(loop);
+  if (!last) last = ts;
+  const dt = Math.min(250, ts - last); last = ts;
+  if (!S || !S.started || S.over || speed === 0 || blocking()) { acc = 0; return; }
+  acc += dt;
+  const per = 100; // ms per tick
+  let changed = false;
+  while (acc >= per) { acc -= per; const n = speed === 1 ? 1 : 3; for (let k = 0; k < n && S.t < DAY && !blocking(); k++) { minute(); changed = true; } }
+  if (changed) render();
+}
+const blocking = () => !$('modal').hidden || !$('pz').hidden || S.t >= DAY;
+
+function startDay() {
+  S.t = 0; S.closed = false; S.today = newToday(); S.downUntil = 0; S.extra = 0;
+  S.pts.forEach(p => { p.todayDone = false; });
+  let ev = null;
+  if (S.day > 1 && Math.random() < 0.55) {
+    const pool = EVENTS.flatMap(e => Array(e.w).fill(e));
+    ev = pick(pool).run(S);
+  }
+  const n = Math.min(7, 2 + Math.round(S.rep * 0.8)) + S.extra;
+  S.schedule = Array.from({ length: n }, () => Math.round(rand(5, 400)));
+  if (S.day === 1) S.schedule[0] = 8;
+  S.schedule.sort((a, b) => a - b);
+  logMsg(`${S.day}일차 시작`);
+  render(); save();
+  if (ev) talk([ev]);
+}
+function endDay() {
+  S.t = DAY;
+  if (!S.closed) {
+    S.closed = true;
+    S.salary = 150 + (S.up.phys ? 60 : 0);
+    S.money -= S.salary;
+    S.missed = S.pts.filter(p => p.stage === 'treat' && !p.todayDone).length;
+    S.pts.forEach(p => { if (p.stage === 'treat' && !p.todayDone) p.waitHit++; });
+    if (S.money < -300) S.over = true;
+    save();
+  }
+  render();
+  if (!queue.length) showSummary();
+}
+function showSummary() {
+  const T = S.today, salary = S.salary, net = T.income - salary, missed = { length: S.missed };
+  const rv = T.reviews.map(r => `<div class="review"><b>${esc(r.name)}</b> · ${SITES[r.site].label} · 품질 ${grade(r.q)}<br>“${esc(r.say)}”</div>`).join('');
+  const broke = S.over;
+  openSheet(`
+    <h2>${S.day}일차 마감</h2>
+    <ul class="sum">
+      <li><span>새로 온 환자</span><span>${T.arrived}명${T.left ? ` (돌아간 환자 ${T.left}명)` : ''}</span></li>
+      <li><span>치료 횟수</span><span>${T.fx}회</span></li>
+      <li><span>치료 완료</span><span>${T.completed}명</span></li>
+      <li><span>치료 수입</span><span class="pos">+${won(T.income)}</span></li>
+      <li><span>인건비</span><span class="neg">−${won(salary)}</span></li>
+      <li><b>오늘 순이익</b><b class="${net >= 0 ? 'pos' : 'neg'}">${net >= 0 ? '+' : '−'}${won(Math.abs(net))}</b></li>
+    </ul>
+    ${missed.length ? `<p class="muted">오늘 치료를 못 받은 환자 ${missed.length}명이 불만이에요. 치료기가 부족하면 상점을 확인해 보세요.</p>` : ''}
+    ${rv ? `<div class="reviews">${rv}</div>` : ''}
+    ${broke ? `<p style="color:var(--bad)"><b>자금이 바닥났어요.</b> 원장님이 결국 과를 닫기로 했어요.</p>` : ''}
+    <div class="btns">${broke ? '<button class="btn wide" data-a="restart">처음부터 다시</button>' : '<button class="btn ghost" data-a="shop">상점</button><button class="btn wide" data-a="nextday">다음 날</button>'}</div>`);
+}
+function checkChapter() {
+  const ch = CHAPTERS[S.chapter];
+  if (ch && ch.ok(S)) {
+    S.chapter++;
+    render(); save();
+    talk(STORY[S.chapter] || []);
+  }
+}
+
+// ================= RENDER =================
+const toks = new Map();
+const roomOf = st => ({ arrive: 'wait', ctq: 'ct', ct: 'ct', plan: 'plan', autoq: 'plan', auto: 'plan', treat: 'treat' }[st]);
+function tokEl(p) {
+  let el = toks.get(p.id);
+  if (!el) {
+    el = document.createElement('div'); el.className = 'tok'; el.dataset.id = p.id;
+    el.innerHTML = `<span class="av ${p.site}">${esc(p.name[0])}</span><div class="tinfo"><b>${esc(p.name)} <small>${SITES[p.site].label}·${p.age}</small></b><span class="st"></span><div class="pbar"><i></i></div></div><button class="act" hidden></button>`;
+    toks.set(p.id, el);
+  }
+  return el;
+}
+function dropTok(id) { const el = toks.get(id); if (el) { el.remove(); toks.delete(id); } }
+function render() {
+  if (!S) return;
+  $('dayline').textContent = `${S.day}일차 · ${fmtT(S.t)}${S.t >= DAY ? ' 마감' : ''}`;
+  $('money').textContent = won(S.money);
+  $('rep').textContent = `★ ${S.rep.toFixed(1)}`;
+  $('done').textContent = `${S.treated}명`;
+  $('clock').textContent = fmtT(S.t);
+  $('clockfill').style.width = `${S.t / DAY * 100}%`;
+  const ch = CHAPTERS[Math.min(S.chapter, CHAPTERS.length - 1)], [a, b] = ch.prog(S);
+  $('gch').textContent = S.chapter < 3 ? `챕터 ${S.chapter + 1}` : '엔딩 이후';
+  $('gtext').innerHTML = `<b>${ch.name}</b> · ${ch.goal}`;
+  $('gprog').textContent = S.chapter < 3 ? (S.chapter === 0 ? `${Math.min(a, b)}/${b}` : `${Math.round(Math.min(a / b, 1) * 100)}%`) : '';
+  $('h-ct').textContent = `${S.up.ct2 ? '신형' : '구형'} · ${ctMin()}분`;
+  $('h-plan').textContent = `${S.up.phys ? '박 선생 + 한 선생' : '박 선생'} · ${planMin()}분`;
+  const h = $('h-treat');
+  h.textContent = S.t < S.downUntil ? '1번 점검 중' : `치료기 ${nLinacs()}대 · 회당 45분`;
+  h.className = S.t < S.downUntil ? 'alert' : '';
+  const lists = { wait: $('l-wait'), ct: $('l-ct'), plan: $('l-plan'), treat: $('l-treat') };
+  const seen = new Set();
+  for (const p of S.pts) {
+    const el = tokEl(p), room = roomOf(p.stage); seen.add(p.id);
+    if (!room) continue;
+    if (el.parentNode !== lists[room]) lists[room].appendChild(el);
+    const st = el.querySelector('.st'), bar = el.querySelector('.pbar'), fill = bar.firstChild, act = el.querySelector('.act');
+    let txt = '', w = 0, pat = false, btn = '';
+    switch (p.stage) {
+      case 'arrive': txt = '접수 대기'; w = p.patience; pat = true; btn = '접수'; break;
+      case 'ctq': txt = 'CT 대기 중'; w = 0; break;
+      case 'ct': txt = 'CT 촬영 중'; w = 100 * (1 - p.left / p.total); break;
+      case 'plan': txt = '치료계획이 필요해요'; w = p.patience; pat = true; btn = '계획'; break;
+      case 'autoq': txt = '계획 대기 중'; w = 0; break;
+      case 'auto': txt = `${S.up.phys ? '계획팀' : '박 선생'}이 계획 중`; w = 100 * (1 - p.left / p.total); break;
+      case 'treat':
+        txt = p.on != null ? `치료 중 · ${p.done + 1}/${p.fx}회` : p.todayDone ? `오늘 치료 끝 · ${p.done}/${p.fx}회` : `오늘 차례 대기 · ${p.done}/${p.fx}회`;
+        w = p.on != null ? 100 * (1 - p.left / p.total) : 100 * p.done / p.fx; break;
+    }
+    if (p.stage === 'treat' && p.quality != null) txt += ` · ${grade(p.quality)}`;
+    st.textContent = txt;
+    bar.className = 'pbar' + (pat ? ' pat' + (w < 30 ? ' low' : w < 60 ? ' mid' : '') : '');
+    fill.style.width = `${Math.max(0, w)}%`;
+    act.hidden = !btn; act.textContent = btn; act.dataset.a = p.stage === 'arrive' ? 'accept' : 'plan';
+    el.classList.toggle('need', !!btn);
+  }
+  for (const [id, el] of toks) if (!seen.has(id)) { el.remove(); toks.delete(id); }
+  for (const [k, l] of Object.entries(lists)) {
+    let e = l.querySelector('.empty');
+    const has = l.querySelector('.tok');
+    if (!has && !e) { e = document.createElement('div'); e.className = 'empty'; e.textContent = { wait: '아직 아무도 없어요', ct: '비어 있어요', plan: '계획할 환자가 없어요', treat: '치료 중인 환자가 없어요' }[k]; l.appendChild(e); }
+    if (has && e) e.remove();
+  }
+  ['sp0', 'sp1', 'sp2'].forEach((id, i) => $(id).setAttribute('aria-pressed', speed === i));
+}
+function logMsg(m) {
+  const ul = $('log'), li = document.createElement('li');
+  li.innerHTML = `<time>${fmtT(S.t)}</time>${esc(m)}`;
+  ul.prepend(li);
+  while (ul.children.length > 4) ul.lastChild.remove();
+}
+function toast(m) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = m;
+  $('toasts').appendChild(t); setTimeout(() => t.remove(), 2600);
+  while ($('toasts').children.length > 3) $('toasts').firstChild.remove();
+}
+
+// ================= SHEETS =================
+let sheetCtx = null;
+function openSheet(html, ctx) { $('sheet').innerHTML = html; $('modal').hidden = false; sheetCtx = ctx || null; const b = $('sheet').querySelector('.btn:not(.ghost), button'); if (b) b.focus({ preventScroll: true }); }
+function closeSheet() { $('modal').hidden = true; sheetCtx = null; if (queue.length) nextLine(); else if (S && S.started && S.t >= DAY) showSummary(); }
+function talk(lines) { queue.push(...lines); if ($('modal').hidden) nextLine(); }
+function nextLine() {
+  const l = queue.shift();
+  if (!l) { closeSheet(); return; }
+  const P = PEOPLE[l[0]];
+  openSheet(`<div class="talk"><span class="face" style="background:${P.c}">${P.name.replace(/[^가-힣]/g, '')[0] || '안'}</span>
+    <div><div class="who">${P.name}<small>${P.role}</small></div><div class="line">${esc(l[1])}</div></div></div>
+    <div class="btns"><span class="next-hint" style="margin-right:auto;align-self:center">${queue.length ? `${queue.length}마디 더` : ''}</span><button class="btn" data-a="talknext">${queue.length ? '다음' : '알겠어요'}</button></div>`, { talk: true });
+}
+function patientSheet(p) {
+  const def = SITES[p.site];
+  const stageTxt = { arrive: '접수 대기', ctq: 'CT 대기', ct: 'CT 촬영 중', plan: '치료계획 필요', autoq: '계획 대기', auto: '계획 중', treat: `치료 ${p.done}/${p.fx}회` }[p.stage];
+  let actions = '';
+  if (p.stage === 'arrive') actions = `<div class="btns"><button class="btn ghost" data-a="close">닫기</button><button class="btn" data-a="accept" data-id="${p.id}">접수하기</button></div>`;
+  else if (p.stage === 'plan') actions = `<div class="choice">
+      <button class="main" data-a="puzzle" data-id="${p.id}"><b>직접 계획하기</b><span>빔 퍼즐을 풀어요. 잘하면 최고 품질, 시간은 멈춰요</span></button>
+      <button data-a="auto" data-id="${p.id}"><b>${S.up.phys ? '계획팀' : '박 선생'}에게 맡기기</b><span>${planMin()}분 소요 · 예상 품질 ${grade(58 + (S.up.coffee ? 6 : 0) + (S.up.phys ? 14 : 0))} 안팎</span></button>
+    </div><div class="btns"><button class="btn ghost" data-a="close">닫기</button></div>`;
+  else actions = `<div class="btns"><button class="btn" data-a="close">닫기</button></div>`;
+  openSheet(`<div class="pcard"><span class="av ${p.site}">${esc(p.name[0])}</span><div><h2>${esc(p.name)}</h2><div class="muted">${p.age}세 · ${def.label} · ${stageTxt}</div></div></div>
+    <div class="story">“${esc(p.story)}”</div>
+    <dl class="kv"><dt>처방</dt><dd>60 Gy · 치료 ${p.fx}회 (게임 내 축약)</dd>
+    <dt>예상 수입</dt><dd>${won(def.pay)} (품질에 따라 60~100%)</dd>
+    ${p.quality != null ? `<dt>계획 품질</dt><dd>${grade(p.quality)} (${p.quality}점)${p.manual ? ' · 직접 계획' : ''}</dd>` : ''}</dl>
+    ${actions}`, { pid: p.id });
+}
+function shopSheet() {
+  const items = SHOP.map(it => {
+    const own = S.up[it.key], can = S.money >= it.price;
+    return `<div class="item"><div><b>${it.name}</b><span>${it.desc}</span></div>
+      ${own ? '<span class="muted">보유</span>' : `<span class="price">${won(it.price)}</span><button class="btn" style="padding:8px 12px;font-size:13px" data-a="buy" data-k="${it.key}" ${can ? '' : 'disabled'}>구매</button>`}</div>`;
+  }).join('');
+  openSheet(`<h2>상점</h2><p class="muted">자금 ${won(S.money)} · 인건비는 하루 끝에 나가요</p><div class="items">${items}</div>
+    <div class="btns"><button class="btn ghost" data-a="newgame" style="margin-right:auto">새 게임</button><button class="btn" data-a="close">닫기</button></div>`, { shop: true });
+}
+$('modal').addEventListener('click', e => {
+  const b = e.target.closest('[data-a]');
+  if (!b) { if (e.target.id === 'modal' && !sheetCtx?.talk && S.t < DAY) closeSheet(); return; }
+  const a = b.dataset.a, p = b.dataset.id ? S.pts.find(x => x.id === +b.dataset.id) : null;
+  if (a === 'talknext') nextLine();
+  else if (a === 'close') closeSheet();
+  else if (a === 'accept' && p) { accept(p); closeSheet(); }
+  else if (a === 'auto' && p) { sendAuto(p); closeSheet(); }
+  else if (a === 'puzzle' && p) { $('modal').hidden = true; sheetCtx = null; openPuzzle(p); }
+  else if (a === 'buy') {
+    const it = SHOP.find(i => i.key === b.dataset.k);
+    if (it && !S.up[it.key] && S.money >= it.price) {
+      S.money -= it.price; S.up[it.key] = true; logMsg(`${it.name} 구매`); toast(`${it.name} 들어왔어요!`);
+      if (it.key === 'phys') queue.push(['han', '의학물리사 한 선생입니다. 계획 검토는 저한테 맡기세요.']);
+      if (it.key === 'linac2') queue.push(['minji', '2번 치료기다... 진짜 왔어요!']);
+      render(); checkChapter(); save();
+      if (queue.length && !sheetCtx?.talk) { nextLine(); } else shopSheet();
+    }
+  }
+  else if (a === 'shop') shopSheet();
+  else if (a === 'nextday') { S.day++; $('modal').hidden = true; sheetCtx = null; startDay(); }
+  else if (a === 'newgame') openSheet(`<h2>새 게임을 시작할까요?</h2><p class="muted">지금까지의 진행이 사라져요.</p><div class="btns"><button class="btn ghost" data-a="shop">취소</button><button class="btn" data-a="restart">새로 시작</button></div>`);
+  else if (a === 'restart') { queue = []; $('modal').hidden = true; sheetCtx = null; newGame(); }
+});
+$('floor').addEventListener('click', e => {
+  const t = e.target.closest('.tok'); if (!t) return;
+  const p = S.pts.find(x => x.id === +t.dataset.id); if (!p) return;
+  const act = e.target.closest('.act');
+  if (act && act.dataset.a === 'accept') accept(p);
+  else patientSheet(p);
+});
+$('shopbtn').addEventListener('click', () => { if ($('modal').hidden) shopSheet(); });
+['sp0', 'sp1', 'sp2'].forEach((id, i) => $(id).addEventListener('click', () => { speed = i; render(); }));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('modal').hidden && !sheetCtx?.talk && S.t < DAY) closeSheet();
+  if (e.key === ' ' && $('modal').hidden && $('pz').hidden && e.target === document.body) { e.preventDefault(); speed = speed ? 0 : 1; render(); }
+});
+
+// ================= PUZZLE =================
+let PZ = null;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function openPuzzle(p) {
+  const c = CASES[p.site];
+  PZ = { p, c, angles: [0], sel: 0, nums: false };
+  $('pz-av').className = `av ${p.site}`; $('pz-av').textContent = p.name[0];
+  $('pz-name').textContent = `${p.name}님 치료계획`;
+  $('pz-sub').textContent = `${SITES[p.site].label} · 빛 3~5개로 종양만 잡아요`;
+  $('pz-tip').textContent = S.seenPuzzle ? '' : '영상을 드래그하면 선택한 빛이 그 방향에서 들어와요. 빛이 겹치는 곳에 종양이 녹아요.';
+  $('pz').hidden = false;
+  pzUpdate();
+  if (!S.seenPuzzle) { S.seenPuzzle = true; talk([['kim', '종양 제압을 95% 넘기고, 장기 친구들이 화나지 않게 하면 성공이에요.'], ['kim', '빛 하나로는 어림없어요. 여러 방향에서 나눠 쏘면 종양에만 겹치죠.']]); }
+}
+function pzUpdate() {
+  const { c, angles } = PZ;
+  PZ.dose = planDose(c, angles);
+  PZ.res = assess(c, PZ.dose, angles.length);
+  pzDraw(); pzPanel();
+}
+function pzPanel() {
+  const r = PZ.res;
+  $('pz-cov').style.width = `${Math.min(100, r.cov)}%`;
+  $('pz-covn').textContent = `${Math.round(r.cov)}%`;
+  const col = { cord: '--s-cord', lung: '--s-lung', heart: '--s-heart' };
+  $('pz-organs').innerHTML = r.organs.map(o => `<div class="organ m${o.mood}">${faceSVG(css(col[o.color]), o.mood)}<b>${o.who}</b><small>${o.name}</small><span class="say">${o.line[o.mood]}</span>
+    ${PZ.nums ? `<span class="num">${o.metric === 'v20' ? 'V20' : o.metric === 'max' ? '최대' : '평균'} ${o.v.toFixed(1)}${o.metric === 'v20' ? '%' : ' Gy'} / ${o.lim}${o.metric === 'v20' ? '%' : ''}</span>` : ''}</div>`).join('');
+  const box = $('pz-beams');
+  box.innerHTML = PZ.angles.map((a, i) => `<button class="chip" data-i="${i}" aria-pressed="${i === PZ.sel}">빛 ${i + 1} · ${a}°</button>`).join('')
+    + `<button class="chip dash" data-add="1" ${PZ.angles.length >= 5 ? 'disabled' : ''}>+ 빛 추가</button>`
+    + `<button class="chip" data-del="1" ${PZ.angles.length <= 1 ? 'disabled' : ''}>선택한 빛 빼기</button>`
+    + `<label class="toggle"><input type="checkbox" id="pz-nums" ${PZ.nums ? 'checked' : ''}> 수치 보기</label>`;
+  const hot = r.hot > 66 ? ' · 종양 안에 너무 뜨거운 곳이 있어요' : '';
+  $('pz-q').textContent = `예상 품질 ${grade(r.q)} (${r.q}점)${hot}`;
+}
+$('pz-beams').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.i) { PZ.sel = +b.dataset.i; pzUpdate(); }
+  else if (b.dataset.add) { const lastA = PZ.angles.at(-1); PZ.angles.push((lastA + 120) % 360); PZ.sel = PZ.angles.length - 1; pzUpdate(); }
+  else if (b.dataset.del) { PZ.angles.splice(PZ.sel, 1); PZ.sel = Math.max(0, PZ.sel - 1); pzUpdate(); }
+});
+$('pz-beams').addEventListener('change', e => { if (e.target.id === 'pz-nums') { PZ.nums = e.target.checked; pzPanel(); } });
+$('pz-cancel').addEventListener('click', () => { $('pz').hidden = true; PZ = null; if (queue.length) nextLine(); });
+$('pz-ok').addEventListener('click', () => {
+  const { p, res } = PZ, nb = PZ.angles.length;
+  if (!S.pts.includes(p) || p.stage !== 'plan') { $('pz').hidden = true; PZ = null; return; }
+  p.quality = res.q; p.manual = true; p.stage = 'treat';
+  logMsg(`${p.name}님 직접 계획 · 품질 ${grade(res.q)}`);
+  $('pz').hidden = true; PZ = null;
+  const g = grade(res.q), exp = 58 + (S.up.coffee ? 6 : 0) + (S.up.phys ? 14 : 0);
+  const line = res.pass ? (nb <= 3 ? '깔끔해요. 교과서에 실어도 되겠어요.' : '모든 기준 통과! 훌륭합니다.') : res.cov < 95 ? '종양에 빛이 덜 모였어요. 그래도 일단 치료는 진행할게요.' : '장기 친구 중에 화난 애가 있어요. 부작용이 좀 걱정되네요.';
+  openSheet(`<div class="grade ${g}">${g}</div><h2 style="text-align:center">${res.q}점</h2>
+    <p class="muted" style="text-align:center">${res.q > exp ? `맡겼다면 ${grade(exp)} 정도였을 거예요. 직접 하길 잘했네요!` : `맡겼어도 ${grade(exp)} 정도였을 거예요.`}</p>
+    <div class="talk"><span class="face" style="background:${PEOPLE.kim.c}">김</span><div><div class="who">김 교수</div><div class="line">${line}</div></div></div>
+    <div class="btns"><button class="btn wide" data-a="close">치료실로 보내기</button></div>`);
+  render(); save();
+});
+function faceSVG(color, mood) {
+  const eyes = mood === 0 ? '<path d="M14 21q3-4 6 0M26 21q3-4 6 0" stroke="#1b1b1b" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    : mood === 1 ? '<circle cx="17" cy="21" r="2" fill="#1b1b1b"/><circle cx="29" cy="21" r="2" fill="#1b1b1b"/>'
+    : '<path d="M13 16l7 3M33 16l-7 3" stroke="#1b1b1b" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="22" r="2" fill="#1b1b1b"/><circle cx="29" cy="22" r="2" fill="#1b1b1b"/>';
+  const mouth = mood === 0 ? '<path d="M16 28q7 7 14 0" stroke="#1b1b1b" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    : mood === 1 ? '<path d="M16 30q3.5-3 7 0t7 0" stroke="#1b1b1b" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    : '<path d="M16 32q7-7 14 0" stroke="#1b1b1b" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  const extra = mood === 1 ? '<path d="M36 12q3 5 0 7q-3-2 0-7z" fill="#7cc6f0"/>' : mood === 2 ? '<circle cx="12" cy="27" r="3" fill="#ff6b6b" opacity=".6"/><circle cx="34" cy="27" r="3" fill="#ff6b6b" opacity=".6"/>' : '';
+  return `<svg viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="24" r="19" fill="${color}"/>${eyes}${mouth}${extra}</svg>`;
+}
+const cv = $('pz-cv');
+function sizeCanvas(c) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx, w, h };
+}
+const wash = document.createElement('canvas'); wash.width = G.nx; wash.height = G.ny;
+function cmap(t) {
+  const st = [[0, [40, 70, 200]], [0.3, [40, 170, 220]], [0.55, [60, 190, 90]], [0.78, [240, 210, 50]], [1, [235, 60, 40]]];
+  t = Math.max(0, Math.min(1, t));
+  for (let i = 1; i < st.length; i++) if (t <= st[i][0]) { const [a, ca] = st[i - 1], [b, cb] = st[i], f = (t - a) / (b - a); return ca.map((v, k) => Math.round(v + (cb[k] - v) * f)); }
+  return st.at(-1)[1];
+}
+const MS = [[], [[3, 2]], [[2, 1]], [[3, 1]], [[0, 1]], [[3, 0], [2, 1]], [[0, 2]], [[3, 0]], [[3, 0]], [[0, 2]], [[0, 1], [3, 2]], [[0, 1]], [[3, 1]], [[2, 1]], [[3, 2]], []];
+function pzDraw() {
+  if (!PZ) return;
+  const { c, dose, angles, sel, res } = PZ;
+  const { ctx, w, h } = sizeCanvas(cv);
+  const s = w / 32, X = x => (x + 16) * s, Y = y => (y + 12) * s;
+  ctx.fillStyle = css('--viewer'); ctx.fillRect(0, 0, w, h);
+  const el = (e, fill, stroke, lw) => { ctx.beginPath(); ctx.ellipse(X(e.cx), Y(e.cy), e.a * s, e.b * s, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1.5; ctx.stroke(); } };
+  el(c.body, css('--ct-body'));
+  const fills = { lung: '--ct-lung', bone: '--ct-bone', soft: '--ct-body', soft2: '--ct-soft2', fluid: '--ct-fluid' };
+  for (const t of c.tissues) el(t.s, css(fills[t.fill]));
+  if (angles.length) {
+    const wc = wash.getContext('2d'), img = wc.createImageData(G.nx, G.ny);
+    for (let k = 0; k < N; k++) { const d = dose[k]; if (d < 18) continue; const [r, g, b] = cmap((d - 18) / 48); img.data.set([r, g, b, 125], k * 4); }
+    wc.putImageData(img, 0, 0); ctx.imageSmoothingEnabled = true; ctx.drawImage(wash, 0, 0, w, h);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.beginPath();
+    for (let j = 0; j < G.ny - 1; j++) for (let i = 0; i < G.nx - 1; i++) {
+      const tl = dose[j * G.nx + i], tr = dose[j * G.nx + i + 1], br = dose[(j + 1) * G.nx + i + 1], bl = dose[(j + 1) * G.nx + i], t = 57;
+      const cs = (tl >= t) * 8 + (tr >= t) * 4 + (br >= t) * 2 + (bl >= t); if (cs === 0 || cs === 15) continue;
+      const x0 = G.x0 + (i + 0.5) * G.d, y0 = G.y0 + (j + 0.5) * G.d, d = G.d, f = (a, b) => (t - a) / (b - a);
+      const e = [[x0 + f(tl, tr) * d, y0], [x0 + d, y0 + f(tr, br) * d], [x0 + f(bl, br) * d, y0 + d], [x0, y0 + f(tl, bl) * d]];
+      for (const [a, b] of MS[cs]) { ctx.moveTo(X(e[a][0]), Y(e[a][1])); ctx.lineTo(X(e[b][0]), Y(e[b][1])); }
+    }
+    ctx.stroke();
+  }
+  const col = { cord: '--s-cord', lung: '--s-lung', heart: '--s-heart' };
+  for (const o of c.oars) {
+    if (o.key === 'brain') continue;
+    for (const e of o.in) el(e, null, css(col[o.color]), o.metric === 'max' ? 1.8 : 1.3);
+  }
+  if (c.oars.some(o => o.key === 'brain')) el(c.body, null, css('--s-heart'), 1.2);
+  el({ cx: c.iso.x, cy: c.iso.y, a: c.ptvR, b: c.ptvR }, null, css('--s-ptv'), 2);
+  // tumor face
+  const tx = X(c.iso.x), ty = Y(c.iso.y), u = c.ptvR * s;
+  ctx.fillStyle = '#2a0e0c'; ctx.strokeStyle = '#2a0e0c'; ctx.lineWidth = Math.max(1.5, u * 0.09); ctx.lineCap = 'round';
+  if (res.cov >= 95) {
+    for (const dx of [-0.35, 0.35]) { const ex = tx + dx * u, ey = ty - 0.15 * u, r = 0.14 * u; ctx.beginPath(); ctx.moveTo(ex - r, ey - r); ctx.lineTo(ex + r, ey + r); ctx.moveTo(ex + r, ey - r); ctx.lineTo(ex - r, ey + r); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(tx, ty + 0.35 * u, 0.12 * u, 0, Math.PI * 2); ctx.stroke();
+  } else {
+    for (const dx of [-0.35, 0.35]) { ctx.beginPath(); ctx.arc(tx + dx * u, ty - 0.1 * u, 0.09 * u, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath(); ctx.moveTo(tx - 0.55 * u, ty - 0.42 * u); ctx.lineTo(tx - 0.2 * u, ty - 0.28 * u); ctx.moveTo(tx + 0.55 * u, ty - 0.42 * u); ctx.lineTo(tx + 0.2 * u, ty - 0.28 * u); ctx.stroke();
+    ctx.beginPath();
+    if (res.cov >= 80) { ctx.moveTo(tx - 0.3 * u, ty + 0.4 * u); ctx.quadraticCurveTo(tx, ty + 0.2 * u, tx + 0.3 * u, ty + 0.4 * u); }
+    else { ctx.moveTo(tx - 0.3 * u, ty + 0.3 * u); ctx.quadraticCurveTo(tx, ty + 0.55 * u, tx + 0.3 * u, ty + 0.3 * u); }
+    ctx.stroke();
+  }
+  // beams
+  const hw = c.ptvR + HWM;
+  angles.forEach((a, i) => {
+    const t = a * Math.PI / 180, ux = Math.sin(t), uy = -Math.cos(t), nx = Math.cos(t), ny = Math.sin(t), L = 26, on = i === sel;
+    const ix = c.iso.x, iy = c.iso.y;
+    ctx.beginPath();
+    ctx.moveTo(X(ix + nx * hw + ux * L), Y(iy + ny * hw + uy * L)); ctx.lineTo(X(ix + nx * hw), Y(iy + ny * hw));
+    ctx.lineTo(X(ix - nx * hw), Y(iy - ny * hw)); ctx.lineTo(X(ix - nx * hw + ux * L), Y(iy - ny * hw + uy * L)); ctx.closePath();
+    ctx.fillStyle = `rgba(255,250,220,${on ? 0.22 : 0.1})`; ctx.fill();
+    ctx.setLineDash(on ? [] : [4, 4]); ctx.strokeStyle = on ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.35)'; ctx.lineWidth = on ? 1.5 : 1;
+    ctx.beginPath(); ctx.moveTo(X(ix + ux * L), Y(iy + uy * L)); ctx.lineTo(X(ix), Y(iy)); ctx.stroke(); ctx.setLineDash([]);
+    const lr = 11.5, lx = Math.max(14, Math.min(w - 14, X(ix + ux * lr))), ly = Math.max(14, Math.min(h - 14, Y(iy + uy * lr)));
+    ctx.beginPath(); ctx.arc(lx, ly, 12, 0, Math.PI * 2); ctx.fillStyle = on ? css('--accent') : 'rgba(20,30,32,.85)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '13px ' + css('--f-disp'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(i + 1, lx, ly + 1);
+  });
+  ctx.font = '11px ' + css('--f-body'); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left'; ctx.fillText('오른쪽', 6, h / 2); ctx.textAlign = 'right'; ctx.fillText('왼쪽', w - 6, h / 2);
+  ctx.textAlign = 'center'; ctx.fillText('앞', w / 2, 12); ctx.fillText('뒤', w / 2, h - 12);
+}
+let dragging = false;
+function pzAim(e) {
+  const r = cv.getBoundingClientRect(), s = r.width / 32, x = (e.clientX - r.left) / s - 16, y = (e.clientY - r.top) / s - 12;
+  const vx = x - PZ.c.iso.x, vy = y - PZ.c.iso.y; if (Math.hypot(vx, vy) < 1) return;
+  const a = (Math.round(Math.atan2(vx, -vy) * 180 / Math.PI / 5) * 5 + 360) % 360;
+  if (a !== PZ.angles[PZ.sel]) { PZ.angles[PZ.sel] = a; pzUpdate(); }
+}
+cv.addEventListener('pointerdown', e => { if (!PZ) return; dragging = true; cv.setPointerCapture(e.pointerId); $('pz-tip').textContent = ''; pzAim(e); });
+cv.addEventListener('pointermove', e => { if (dragging && PZ) pzAim(e); });
+cv.addEventListener('pointerup', () => dragging = false);
+cv.addEventListener('pointercancel', () => dragging = false);
+new ResizeObserver(() => PZ && pzDraw()).observe(cv);
+
+// ================= BOOT =================
+function newGame() {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  for (const [, el] of toks) el.remove(); toks.clear(); $('log').innerHTML = '';
+  S = fresh(); S.started = true; speed = 1;
+  render(); startDay();
+  talk(STORY.intro);
+}
+window.claude?.hot?.snapshot?.(() => ({ S, speed }));
+function start(d) {
+  if (d && d.S) { S = d.S; speed = d.speed ?? 1; }
+  else { const saved = load(); if (saved) { S = saved; } }
+  if (!S) { newGame(); }
+  else {
+    S.started = true; render();
+    if (S.t >= DAY || S.over) endDay();
+    else { logMsg(`${S.day}일차 이어하기`); toast('저장된 게임을 이어서 해요'); }
+  }
+  requestAnimationFrame(loop);
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
