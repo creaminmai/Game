@@ -1,7 +1,6 @@
 class_name HospitalWorld
 extends Node3D
 const G = preload("res://scripts/geometry.gd")
-const F = preload("res://scripts/furnishings.gd")
 const Actor = preload("res://scripts/actor.gd")
 var interior: Node3D
 var exterior: Node3D
@@ -16,6 +15,7 @@ var expansion_sign: Label3D
 var view_center := Vector3(-0.35,0,-0.5)
 var close_size := 12.7
 var overview_mode := false
+var staff_models: Array[HospitalActor] = []
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
@@ -24,21 +24,21 @@ func _ready() -> void:
  config.background_color = Color("e5e9d7")
  config.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
  config.ambient_light_color = Color("eff4ee")
- config.ambient_light_energy = 0.32
+ config.ambient_light_energy = 0.5
  config.tonemap_mode = Environment.TONE_MAPPER_LINEAR
  env.environment = config
  add_child(env)
  var sun := DirectionalLight3D.new()
  sun.rotation_degrees = Vector3(-48,-38,0)
  sun.light_color = Color("fff3df")
- sun.light_energy = 0.26
+ sun.light_energy = 0.17
  sun.shadow_enabled = true
  sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
  add_child(sun)
  var fill := DirectionalLight3D.new()
  fill.rotation_degrees = Vector3(-35,140,0)
  fill.light_color = Color("d6e7ec")
- fill.light_energy = 0.06
+ fill.light_energy = 0.08
  add_child(fill)
  camera = Camera3D.new()
  camera.projection = Camera3D.PROJECTION_ORTHOGONAL
@@ -97,103 +97,28 @@ func pan_by(delta: Vector2) -> void:
  view_center.z = clampf(view_center.z,-4.0,5.0)
  frame_camera()
 
-func floor_room(center: Vector3, color: Color, name_text: String) -> void:
- G.rounded_box(interior,center+Vector3(0,-0.16,0),Vector3(6,0.3,5.5),Color("b7b09b"),0.08)
- for x in range(6):
-  for z in range(6):
-   var tint := color.darkened(0.025*((x+z)%3))
-   G.box(interior,center+Vector3(-2.5+x,0.015,-2.3+z*0.91),Vector3(0.985,0.05,0.895),tint)
- G.box(interior,center+Vector3(0,1.05,-2.75),Vector3(6,2.1,0.16),Color("f5ecdf"))
- G.box(interior,center+Vector3(0,0.55,-2.65),Vector3(5.9,1.05,0.08),Color("d6b28a"))
- for i in range(25):
-  G.box(interior,center+Vector3(-2.85+i*0.235,0.55,-2.59),Vector3(0.018,1.05,0.025),Color("c6a079"))
- G.box(interior,center+Vector3(0,1.1,-2.57),Vector3(6,0.09,0.12),Color("c9af87"))
- G.box(interior,center+Vector3(0,2.13,-2.75),Vector3(6.05,0.12,0.22),Color("fff5e7"))
- for x in [-2.1,2.1]: F.wall_light(interior,center+Vector3(x,1.82,-2.55))
- G.label(interior,name_text,center+Vector3(0,2.55,-2.7),30)
-
-func bed(parent: Node3D, at: Vector3) -> void:
- F.bed(parent,at)
-
 func build_interior() -> void:
- G.rounded_box(interior,Vector3(0,-0.34,0.2),Vector3(14.4,0.4,12.5),Color("acac8a"),0.18)
- G.box(interior,Vector3(0,-0.08,0),Vector3(2,0.15,12),Color("d2c5a8"))
- for z in range(12): G.box(interior,Vector3(0,0.025,-5.5+z),Vector3(1.94,0.045,0.97),Color("f5ead4") if z%2 else Color("ecdfc4"))
- floor_room(Vector3(-4,0,3),Color("e9d7b9"),"대기 · 접수")
- floor_room(Vector3(-4,0,-3),Color("c9dcd2"),"CT 촬영")
- floor_room(Vector3(4,0,-3),Color("e5d9bf"),"계획실")
- floor_room(Vector3(4,0,3),Color("d3e2d5"),"치료실")
- # Waiting patients sit in these chairs; simulation paths stay unchanged.
- for id in range(1,5):
-  var at := Vector3(-4.5+((id-1)%2)*1.3,0,1.85+floori((id-1)/2.0)*1.5)
-  F.chair(interior,at)
- F.tea_table(interior,Vector3(-5.95,0,3.1))
- F.floor_lamp(interior,Vector3(-6.25,0,1.2))
- for x in [-5.5,-2.6]: F.framed_art(interior,Vector3(x,1.55,0.47))
- # Rounded wood reception counter with vertical slats and the sunshine emblem.
- var counter := G.rounded_box(interior,Vector3(-4.8,0.65,5.05),Vector3(3.2,1.2,0.9),Color("d3aa7c"),0.3)
- G.wood(counter,Color("d3aa7c"))
- for i in range(22): G.box(interior,Vector3(-6.15+i*0.13,0.65,5.46),Vector3(0.04,0.9,0.035),Color("e6c69e"))
- G.rounded_box(interior,Vector3(-4.8,1.28,5.05),Vector3(3.35,0.15,0.94),Color("fff2dd"),0.07)
- G.logo(interior,Vector3(-4.8,0.75,5.51),0.85)
- F.monitor(interior,Vector3(-5.6,1.36,5.1))
- G.plant(interior,Vector3(-3.5,1.36,5.05))
- var ct := Node3D.new()
- interior.add_child(ct)
- ct.position = Vector3(-4,0,-2.8)
- bed(ct,Vector3.ZERO)
- G.shadow(ct,Vector3(0,0.055,-0.8),Vector2(3,2))
- G.rounded_box(ct,Vector3(0,0.45,-0.85),Vector3(2.5,0.9,0.85),Color("ced6cb"),0.22)
- G.scanner_shell(ct,Vector3(0,1.55,-0.85))
- G.ring(ct,Vector3(0,1.55,-0.46),0.65,0.74,Color("9ed6ce"))
- G.rounded_box(ct,Vector3(0,2.55,-0.43),Vector3(0.42,0.21,0.045),Color("77a9b0"),0.025)
- ct_light = G.rounded_box(ct,Vector3(0,2.61,-0.47),Vector3(0.48,0.09,0.08),Color("74bbaa"),0.03)
- for x in [-0.98,0.98]:
-  G.rounded_box(ct,Vector3(x,1.32,-0.37),Vector3(0.25,0.32,0.08),Color("b0bdb4"),0.03)
- F.cart(interior,Vector3(-5.7,0,-1.7))
- F.cabinet(interior,Vector3(-2.2,0,-5.15),1.35)
- F.monitor(interior,Vector3(-2.2,1.17,-5.15))
- G.plant(interior,Vector3(-6.1,0,-4.5))
- F.cabinet(interior,Vector3(4.75,0,-4.65),3.3)
- for x in [4.0,5.3]: F.monitor(interior,Vector3(x,1.18,-4.55),x>5)
- F.bookshelf(interior,Vector3(2.05,1.1,-5.3))
- G.plant(interior,Vector3(6.0,1.18,-4.65))
- staff(Vector3(4.8,0.05,-3.4),"박 선생")
+ var model: Node3D = load("res://assets/models/hospital-interior.glb").instantiate()
+ interior.add_child(model)
+ for room in [[Vector3(-4,2.6,-5.7),"CT 촬영"],[Vector3(-4,2.45,0.3),"대기 · 접수"],[Vector3(4,2.65,-5.7),"계획실"],[Vector3(4,2.45,0.3),"치료실"]]:
+  G.label(interior,room[1],room[0],23)
  staff(Vector3(-4.65,0.05,4.25),"민지")
- build_linac(Vector3(4,0,3))
- F.cabinet(interior,Vector3(6.1,0,1),1.35)
- F.cart(interior,Vector3(5.9,0,4.5))
- for at in [Vector3(-6.3,0,0.9),Vector3(6.2,0,-2.4)]: G.plant(interior,at)
- # Back windows, framed in wood; small panes retain warm interior contrast.
- for x in [-5.8,-2.1,4.8]:
-  G.rounded_box(interior,Vector3(x,1.5,-5.62),Vector3(1.25,0.94,0.08),Color("a98c68"),0.03)
-  G.box(interior,Vector3(x,1.5,-5.56),Vector3(1.08,0.77,0.025),Color("99b9b3"))
-  G.box(interior,Vector3(x,1.5,-5.53),Vector3(0.045,0.8,0.03),Color("ddd0b5"))
- # Left glazing catches daylight; the camera-facing edge stays cut away.
- G.box(interior,Vector3(-7,0.22,0.1),Vector3(0.18,0.44,11.8),Color("b69870"))
- G.box(interior,Vector3(-7,2.4,0.1),Vector3(0.2,0.14,11.8),Color("dcd1b8"))
- for i in range(8):
-  var z := -5.25+i*1.5
-  G.box(interior,Vector3(-7,1.3,z),Vector3(0.18,2.2,0.09),Color("b69870"))
-  if i < 7:
-   var glass := G.box(interior,Vector3(-7,1.4,z+0.75),Vector3(0.035,1.85,1.4),Color(0.64,0.79,0.76,0.22))
-   glass.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-   glass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
- G.box(interior,Vector3(0,1.15,-5.8),Vector3(1.95,2.3,0.16),Color("b7976c"))
- for x in [-0.48,0.48]:
-  G.box(interior,Vector3(x,1.2,-5.69),Vector3(0.83,2,0.04),Color("e0d1b4"))
-  G.box(interior,Vector3(x,1.55,-5.66),Vector3(0.52,0.76,0.02),Color("9bb6aa"))
-  G.box(interior,Vector3(x*0.45,0.95,-5.62),Vector3(0.04,0.25,0.03),Color("a38c64"))
- for side in [-1,1]:
-  for z in [-4.2,0.9]:
-   G.box(interior,Vector3(side*1.02,0.4,z),Vector3(0.14,0.8,1.4),Color("d7c8a9"))
-   G.rounded_box(interior,Vector3(side*1.02,0.85,z),Vector3(0.18,0.1,1.5),Color("af8a5f"),0.04)
- G.logo(interior,Vector3(-4,1.6,0.45),0.8)
- for z in [-4.5,-2,1,4.5]: G.flowers(interior,Vector3(-7.6,-0.5,z),Color("efb0bc"))
- G.rounded_box(interior,Vector3(0,-0.63,0.4),Vector3(19,0.24,16),Color("c1cda4"),0.4)
- for x in [-6.5,-4.8,4.9,6.6]: G.flowers(interior,Vector3(x,-0.5,7),Color("efc66b") if x>0 else Color("eeb0bb"))
- tree(Vector3(-8.5,-0.5,-4.8),true,interior)
- tree(Vector3(7.8,-0.5,-6.8),false,interior)
+ staff(Vector3(4.8,0.05,-3.4),"박 선생")
+ ct_light = G.rounded_box(interior,Vector3(-4,2.7,-3.17),Vector3(0.36,0.055,0.025),Color("74bbaa"),0.015)
+ add_treatment_beam(Vector3(4,0,3))
+ # These small local lights complement the baked contact shading in the GLB.
+ for at in [Vector3(-6.1,1.8,0.5),Vector3(-1.9,2.6,-5.4),Vector3(1.9,2.6,-5.4),Vector3(6.1,1.8,0.5)]:
+  var light := OmniLight3D.new()
+  light.position = at
+  light.light_color = Color("ffe6bb")
+  light.light_energy = 0.16
+  light.omni_range = 2.5
+  interior.add_child(light)
+
+func add_treatment_beam(at: Vector3) -> void:
+ var beam := G.cylinder(interior,at+Vector3(0,1.66,0),0.045,0.66,Color("7bcbb3"))
+ beam.visible = false
+ beams.append(beam)
 
 func staff(at: Vector3, caption_text: String) -> void:
  var a := Actor.new()
@@ -204,23 +129,8 @@ func staff(at: Vector3, caption_text: String) -> void:
  a.caption.text = caption_text
  if caption_text == "박 선생": a.body.rotation.y = PI*0.9
  if caption_text == "민지": a.scale = Vector3.ONE*1.16
-
-func build_linac(at: Vector3) -> void:
- var node := Node3D.new()
- interior.add_child(node)
- node.position = at
- bed(node,Vector3.ZERO)
- G.shadow(node,Vector3(0,0.06,-1.3),Vector2(2.8,2.6))
- G.rounded_box(node,Vector3(0,0.9,-1.75),Vector3(1.6,1.8,0.95),Color("d1d8cb"),0.22)
- G.ring(node,Vector3(0,1.55,-1.55),0.7,1.2,Color("b4c9bf"))
- # Curved overhead arm modeled as a rounded assembly, with a collimator head.
- G.rounded_box(node,Vector3(0,2.25,-1.25),Vector3(0.85,0.85,0.95),Color("dfe1d5"),0.28)
- G.rounded_box(node,Vector3(0,2.62,-0.62),Vector3(0.85,0.55,1.45),Color("dfe1d5"),0.24)
- G.rounded_box(node,Vector3(0,2.35,0.0),Vector3(1.05,0.55,0.85),Color("d6dfd2"),0.18)
- G.rounded_box(node,Vector3(0,2.1,0),Vector3(0.85,0.09,0.65),Color("689c8c"),0.03)
- var beam := G.cylinder(node,Vector3(0,1.66,0),0.055,0.8,Color("7bcbb3"))
- beam.visible = false
- beams.append(beam)
+ a.set_meta("reception",caption_text == "민지")
+ staff_models.append(a)
 
 func exterior_window(parent: Node3D, at: Vector3, width: float = 1.1) -> void:
  G.rounded_box(parent,at,Vector3(width+0.16,1.25,0.1),Color("ab8b61"),0.03)
@@ -286,11 +196,11 @@ func build_exterior() -> void:
 func add_wing() -> void:
  if wing_built: return
  wing_built = true
- floor_room(Vector3(10,0,3),Color("d7e7e3"),"05  별관 · 2번 치료실")
- G.box(interior,Vector3(7,0,5.2),Vector3(2.5,0.12,1.2),Color("ede5d3"))
- build_linac(Vector3(10,0,3))
+ var annex: Node3D = load("res://assets/models/treatment-annex.glb").instantiate()
+ interior.add_child(annex)
+ add_treatment_beam(Vector3(10,0,3))
  staff(Vector3(11.8,0,1),"별관 치료사")
- G.plant(interior,Vector3(12,0,4.8))
+ G.label(interior,"별관 · 2번 치료실",Vector3(10,2.45,0.3),23)
  exterior_annex.visible = true
  expansion_sign.visible = false
  frame_camera()
@@ -307,6 +217,7 @@ func show_outside(value: bool) -> void:
 
 func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
  if sim.expanded: add_wing()
+ for model in staff_models: model.animate_staff(delta,model.get_meta("reception",false))
  for id in actors.keys():
   if sim.get_patient(id).is_empty():
    actors[id].queue_free()

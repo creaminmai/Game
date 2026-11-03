@@ -4,3 +4,5 @@ artifacts/
 __pycache__/
 *.tmp
 .DS_Store
+*.blend1
+*.blend2

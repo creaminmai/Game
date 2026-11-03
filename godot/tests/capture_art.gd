@@ -21,6 +21,7 @@ func run() -> void:
   return
  root.content_scale_size = Vector2i.ZERO
  root.size = Vector2i(1280,720)
+ root.msaa_3d = Viewport.MSAA_2X
  var world = load("res://scripts/world.gd").new()
  root.add_child(world)
  var sim = load("res://scripts/hospital_simulation.gd").new()

@@ -2,93 +2,79 @@ class_name HospitalActor
 extends Node3D
 const G = preload("res://scripts/geometry.gd")
 var body: Node3D
-var left_leg: MeshInstance3D
-var right_leg: MeshInstance3D
+var left_leg: Node3D
+var right_leg: Node3D
 var selection: MeshInstance3D
 var caption: Label3D
 var clock := 0.0
 var sitting_legs: Node3D
-var standing_shoes: Array[MeshInstance3D] = []
-var arms: Array[MeshInstance3D] = []
-var hands: Array[MeshInstance3D] = []
+var arms: Array[Node3D] = []
 var book: Node3D
+var head: Node3D
 var seated := false
 var pick_area: Area3D
+
+func apply_palette(node: Node, shirt: Color, hair: Color, copies: Dictionary) -> void:
+ if node is MeshInstance3D:
+  for surface in range(node.mesh.get_surface_count()):
+   var original: Material = node.get_active_material(surface)
+   if original is StandardMaterial3D:
+    var name_text := original.resource_name.to_lower()
+    if name_text.begins_with("outfit") or name_text.begins_with("hair"):
+     var key := original.get_instance_id()
+     if not copies.has(key):
+      var material: StandardMaterial3D = original.duplicate()
+      material.albedo_color = shirt if name_text.begins_with("outfit") else (hair.lightened(0.1) if "highlight" in name_text else hair)
+      copies[key] = material
+     node.set_surface_override_material(surface,copies[key])
+ for child in node.get_children(): apply_palette(child,shirt,hair,copies)
 
 func build(id: int, staff: bool = false) -> void:
  body = Node3D.new()
  add_child(body)
- var shirt: Color = Color("609c94") if staff else [Color("d99c88"),Color("89a7bf"),Color("ad9ebc"),Color("bfaf7e")][(id-1)%4]
- var skin := Color("edbc97")
- var hair_color: Color = Color("644736") if staff else [Color("83766b"),Color("a09d98"),Color("73604e"),Color("a8a2ad")][(id-1)%4]
- G.oval(body,Vector3(0,0.72,0),Vector3(0.57,0.67,0.4),shirt)
- G.oval(body,Vector3(0,1.3,0.02),Vector3(0.77,0.77,0.66),skin)
- for side in [-1,1]:
-  G.sphere(body,Vector3(side*0.38,1.28,0.02),0.09,skin)
-  G.oval(body,Vector3(side*0.13,1.31,0.335),Vector3(0.085,0.115,0.04),Color("443a31"))
-  G.sphere(body,Vector3(side*0.13-0.016,1.335,0.36),0.018,Color("fff5df"))
-  G.oval(body,Vector3(side*0.23,1.19,0.29),Vector3(0.12,0.055,0.025),Color("d99586"))
-  G.rounded_box(body,Vector3(side*0.13,1.42,0.32),Vector3(0.11,0.025,0.035),hair_color,0.01)
- G.sphere(body,Vector3(0,1.23,0.36),0.052,skin)
- G.oval(body,Vector3(0,1.13,0.323),Vector3(0.085,0.036,0.025),Color("aa7161"))
- G.oval(body,Vector3(0,1.57,-0.06),Vector3(0.8,0.35,0.66),hair_color)
- for i in range(5):
-  var fringe := G.oval(body,Vector3(-0.29+i*0.13,1.53-0.025*(i%2),0.23),Vector3(0.25,0.25,0.19),hair_color)
-  fringe.rotation.z = -0.25
- if staff:
-  G.sphere(body,Vector3(0.28,1.46,-0.33),0.22,hair_color)
- for side in [-1,1]:
-  var arm := G.oval(body,Vector3(side*0.34,0.76,0),Vector3(0.18,0.41,0.2),shirt)
-  arm.rotation.z = side*0.15
-  arms.append(arm)
-  hands.append(G.oval(body,Vector3(side*0.36,0.49,0.015),Vector3(0.15,0.23,0.16),skin))
-  standing_shoes.append(G.rounded_box(body,Vector3(side*0.14,0.09,0.09),Vector3(0.22,0.16,0.36),Color("ece2ce") if staff else Color("5b554c"),0.07))
- left_leg = G.rounded_box(body,Vector3(-0.14,0.3,0),Vector3(0.19,0.44,0.23),shirt.darkened(0.15),0.07)
- right_leg = G.rounded_box(body,Vector3(0.14,0.3,0),Vector3(0.19,0.44,0.23),shirt.darkened(0.15),0.07)
- sitting_legs = Node3D.new()
- body.add_child(sitting_legs)
- for side in [-1,1]:
-  G.rounded_box(sitting_legs,Vector3(side*0.14,0.56,0.16),Vector3(0.2,0.2,0.48),shirt.darkened(0.12),0.08)
-  G.rounded_box(sitting_legs,Vector3(side*0.14,0.32,0.35),Vector3(0.18,0.4,0.2),shirt.darkened(0.12),0.07)
-  G.rounded_box(sitting_legs,Vector3(side*0.14,0.1,0.43),Vector3(0.22,0.16,0.34),Color("796452"),0.07)
+ var model: Node3D = load("res://assets/models/nurse.glb" if staff else "res://assets/models/patient.glb").instantiate()
+ body.add_child(model)
+ left_leg = model.find_child("Leg_L",true,false)
+ right_leg = model.find_child("Leg_R",true,false)
+ sitting_legs = model.find_child("SeatedLegs",true,false)
+ book = model.find_child("Book",true,false)
+ head = model.find_child("Head",true,false)
+ arms.assign([model.find_child("Arm_L",true,false),model.find_child("Arm_R",true,false)])
  sitting_legs.hide()
- book = Node3D.new()
- body.add_child(book)
- book.position = Vector3(0,0.68,0.43)
- book.rotation.x = -0.2
- for side in [-1,1]:
-  var page := G.rounded_box(book,Vector3(side*0.12,0,0),Vector3(0.24,0.04,0.28),Color("fff1cf"),0.01)
-  page.rotation.z = side*0.13
- book.visible = false
+ book.hide()
  book.set_meta("reader",id == 1 and not staff)
- for side in [-1,1]:
-  var collar := G.rounded_box(body,Vector3(side*0.09,0.98,0.2),Vector3(0.14,0.12,0.025),Color("e9e2d0"),0.02)
-  collar.rotation.z = side*-0.4
- if staff:
-  G.rounded_box(body,Vector3(0.15,0.77,0.205),Vector3(0.1,0.16,0.03),Color("f0e5cf"),0.015)
-  G.box(body,Vector3(0.15,0.82,0.23),Vector3(0.085,0.035,0.01),Color("d8af64"))
- else:
-  var area := Area3D.new()
-  pick_area = area
+ var glasses: Node3D = model.find_child("Glasses",true,false)
+ glasses.visible = not staff and id in [1,2]
+ var shirt: Color = Color("79b4aa") if staff else [Color("d6a38e"),Color("8dabbc"),Color("b3a0bf"),Color("b8b28c")][(id-1)%4]
+ var hair: Color = Color("79513c") if staff else [Color("8f877b"),Color("b5b2ac"),Color("725848"),Color("aaa1ab")][(id-1)%4]
+ apply_palette(model,shirt,hair,{})
+ if not staff:
+  pick_area = Area3D.new()
   var collision := CollisionShape3D.new()
   var capsule := CapsuleShape3D.new()
-  capsule.radius = 0.42
-  capsule.height = 1.5
+  capsule.radius = 0.45
+  capsule.height = 1.8
   collision.shape = capsule
-  collision.position.y = 0.7
-  area.add_child(collision)
-  area.set_meta("patient_id",id)
-  add_child(area)
+  collision.position.y = 0.9
+  pick_area.add_child(collision)
+  pick_area.set_meta("patient_id",id)
+  add_child(pick_area)
  var ring := TorusMesh.new()
  ring.inner_radius = 0.38
  ring.outer_radius = 0.47
- ring.rings = 20
+ ring.rings = 24
  ring.ring_segments = 8
  selection = G.shape(self,ring,Vector3(0,0.055,0),Color("d99a45"))
- selection.visible = false
- G.shadow(self,Vector3(0,0.015,0),Vector2(0.95,0.65))
- caption = G.label(self,"",Vector3(0,2.05,0),25)
- caption.visible = false
+ selection.hide()
+ G.shadow(self,Vector3(0,0.015,0),Vector2(1.0,0.7))
+ caption = G.label(self,"",Vector3(0,2.2,0),23)
+ caption.hide()
+
+func animate_staff(delta: float, reception: bool) -> void:
+ clock += delta
+ head.rotation.y = sin(clock*0.8)*0.08
+ arms[0].rotation.x = -1.3 if reception else -0.75
+ arms[1].rotation.x = (-1.3 if reception else -0.8)+sin(clock*1.5)*0.09
 
 func sync(p: Dictionary, selected: bool, delta: float) -> void:
  var before := position
@@ -99,7 +85,9 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  var lying: bool = p.state in ["ct_scan","treatment"]
  seated = p.state in ["waiting","ct_queue"]
  body.rotation.x = -PI/2 if lying else 0.0
- body.position = Vector3(0,1.25,0.45) if lying else (Vector3(0,0.14,-0.45) if seated else Vector3.ZERO)
+ body.position = Vector3(0,1.3,0.45) if lying else (Vector3(0,0.14,-0.45) if seated else Vector3.ZERO)
+ head.position.z = 0.14 if lying else 0.0
+ head.rotation.y = sin(clock*0.8)*0.045 if seated else 0.0
  if pick_area != null: pick_area.position = body.position if seated else Vector3.ZERO
  if moving and before.distance_to(position) > 0.001:
   var direction := position-before
@@ -108,13 +96,9 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  sitting_legs.visible = seated
  left_leg.visible = not seated
  right_leg.visible = not seated
- for shoe in standing_shoes: shoe.visible = not seated
  book.visible = seated and book.get_meta("reader",false)
- for i in range(arms.size()):
-  arms[i].rotation.x = -0.65 if seated else (sin(clock*10+i*PI)*0.25 if moving else 0.0)
-  hands[i].position.z = 0.16 if seated else 0.015
-  hands[i].position.y = 0.52 if seated else 0.49
- left_leg.rotation.x = sin(clock*10)*0.35 if moving else 0.0
+ for i in range(arms.size()): arms[i].rotation.x = -0.72 if seated else (sin(clock*10+i*PI)*0.35 if moving else 0.0)
+ left_leg.rotation.x = sin(clock*10)*0.3 if moving else 0.0
  right_leg.rotation.x = -left_leg.rotation.x
  selection.visible = selected
  caption.visible = selected or p.state in ["waiting","plan_ready"]

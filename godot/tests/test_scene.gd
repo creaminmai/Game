@@ -15,6 +15,16 @@ func settle() -> void:
  await process_frame
  await process_frame
 
+func model_bounds(model: Node3D) -> AABB:
+ var found := false
+ var bounds := AABB()
+ for mesh in model.find_children("*","MeshInstance3D",true,false):
+  if not mesh.is_visible_in_tree(): continue
+  var local_bounds: AABB = (model.global_transform.affine_inverse()*mesh.global_transform)*mesh.get_aabb()
+  bounds = bounds.merge(local_bounds) if found else local_bounds
+  found = true
+ return bounds
+
 func click(control: Control) -> void:
  var point := control.get_global_rect().get_center()
  point *= Vector2(root.size)/root.get_visible_rect().size
@@ -78,6 +88,19 @@ func run() -> void:
  await settle()
  check_layout("960x540 landscape")
  check(game.world.actors[1].seated and game.world.actors[1].book.visible,"waiting patient sits and reads at the chair")
+ var patient_bounds := model_bounds(game.world.actors[1].body)
+ check(patient_bounds.position.y > -0.05 and patient_bounds.end.y < 2.1 and patient_bounds.size.y > 1.7,"imported patient parts stay within the intended body proportions")
+ var nurse_bounds := model_bounds(game.world.staff_models[0].body)
+ check(nurse_bounds.position.y > -0.05 and nurse_bounds.end.y < 2.1 and nurse_bounds.size.y > 1.7,"imported nurse working pose keeps connected body proportions")
+ var ao_correct := true
+ var ao_count := 0
+ for instance in game.world.interior.find_children("*","MeshInstance3D",true,false):
+  for surface in range(instance.mesh.get_surface_count()):
+   var material: Material = instance.get_active_material(surface)
+   if material is StandardMaterial3D and material.ao_enabled:
+    ao_count += 1
+    ao_correct = ao_correct and material.ao_on_uv2
+ check(ao_correct and ao_count >= 25,"imported hospital occlusion uses its atlas coordinates")
  await shot("01-fullscreen-game")
  var initial_zoom: float = game.world.camera.size
  await click(game.zoom_in_button)

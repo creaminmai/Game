@@ -1,0 +1,18 @@
+[
+  {
+    "asset": "hospital-interior",
+    "authoring_triangles": 930288,
+    "game_triangles": 300000,
+    "vertices": 160567,
+    "material_surfaces": 26,
+    "ao_resolution": 2048
+  },
+  {
+    "asset": "treatment-annex",
+    "authoring_triangles": 32456,
+    "game_triangles": 32456,
+    "vertices": 16825,
+    "material_surfaces": 17,
+    "ao_resolution": 1024
+  }
+]
