@@ -1,0 +1,21 @@
+{
+  "received_date_utc": "2026-11-03",
+  "sources": [
+    {
+      "path": "reference/season-one-design-v1.0.md",
+      "uploaded_file_id": "file_000000007b548206b254ea76e1bce952",
+      "original_filename": "붙여넣은 텍스트.txt",
+      "bytes": 57015,
+      "sha256": "65311d93e74e61bd6598b613ecd758b5594a4d034618768720ef23f30f99c6d4",
+      "preserved_verbatim": true
+    },
+    {
+      "path": "reference/monetization-proposal-2026-11-03.md",
+      "uploaded_file_id": "file_000000001f18820696aa0bbfcf1be280",
+      "original_filename": "붙여넣은 텍스트.txt",
+      "bytes": 14930,
+      "sha256": "f1ac7c3635f686c6bfba0d8dac86fa240a519c5a73f6289bf3b834de516263d4",
+      "preserved_verbatim": true
+    }
+  ]
+}
