@@ -15,6 +15,11 @@ var expansion_sign: Label3D
 var view_center := Vector3(-0.35,0.7,-0.5)
 var close_size := 12.7
 var overview_mode := false
+var auto_frame := true
+var play_area := Rect2()
+var focus_patient_data: Dictionary = {}
+var focus_signature := ""
+var framing_bounds := AABB()
 var staff_models: Array[HospitalActor] = []
 
 func _ready() -> void:
@@ -25,19 +30,20 @@ func _ready() -> void:
  add_child(env)
  var sun := DirectionalLight3D.new()
  sun.rotation_degrees = Vector3(-42,-62,0)
- sun.light_color = Color("fff0dd")
- sun.light_energy = 0.10
+ sun.light_color = Color("fff3e6")
+ sun.light_energy = 0.14
  sun.shadow_enabled = true
  sun.shadow_bias = 4.0
  sun.shadow_normal_bias = 2.0
  sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
  sun.directional_shadow_max_distance = 75.0
- sun.shadow_blur = 1.4
+ sun.shadow_blur = 3.0
+ sun.shadow_opacity = 0.48
  add_child(sun)
  var fill := DirectionalLight3D.new()
  fill.rotation_degrees = Vector3(-35,140,0)
  fill.light_color = Color("e8f1ff")
- fill.light_energy = 0.04
+ fill.light_energy = 0.055
  add_child(fill)
  camera = Camera3D.new()
  camera.projection = Camera3D.PROJECTION_ORTHOGONAL
@@ -53,33 +59,76 @@ func _ready() -> void:
  get_viewport().size_changed.connect(frame_camera)
  frame_camera()
 
+func set_play_area(rect: Rect2) -> void:
+ if play_area.is_equal_approx(rect): return
+ play_area = rect
+ frame_camera()
+
+func subject_bounds() -> AABB:
+ if outside: return AABB(Vector3(-9,0,-5.5),Vector3(21,5.8,13.5))
+ if not overview_mode and focus_patient_data.is_empty():
+  return AABB(Vector3(-6.5,0,-5.55),Vector3(7.1,3.2,11.3))
+ if overview_mode:
+  return AABB(Vector3(-7.1,0,-5.85),Vector3(20.3 if wing_built else 14.2,3.2,11.9))
+ var p := focus_patient_data
+ match p.state:
+  "waiting", "ct_queue", "walk_ct":
+   return AABB(Vector3(-6.5,0,-5.55),Vector3(7.1,3.2,11.3))
+  "ct_scan": return AABB(Vector3(-6.4,0,-5.6),Vector3(5.5,3.2,6.2))
+  "walk_plan": return AABB(Vector3(-6.2,0,-5.55),Vector3(12.8,3.2,5.7))
+  "plan_ready", "plan_queue", "planning":
+   return AABB(Vector3(1.0,0,-5.5),Vector3(5.6,3.2,5.2))
+  "treatment_queue":
+   # Include both the waiting patient and the occupied treatment devices.
+   return AABB(Vector3(1.0,0,-5.5),Vector3(11.7 if wing_built else 5.8,3.2,11.3))
+  "walk_treatment":
+   return AABB(Vector3(0,0,-4.9),Vector3(12.7 if p.room == 1 else 6.8,3.2,10.6))
+  "treatment": return AABB(Vector3(1.25+p.room*6,0,0.0),Vector3(5.55,3.2,5.8))
+ return AABB(Vector3(-7.1,0,-5.85),Vector3(20.3 if wing_built else 14.2,3.2,12.9))
+
 func frame_camera() -> void:
- if overview_mode:
-  view_center = Vector3(2.5 if wing_built else -0.3,0.55,0.3)
-  if outside: view_center = Vector3(1,0,0)
- camera.position = view_center + Vector3(8,21,29)
+ if not is_instance_valid(camera): return
+ camera.position = view_center+Vector3(8,21,29)
  camera.look_at(view_center)
- if overview_mode:
-  var aspect := maxf(0.35,get_viewport().get_visible_rect().size.x/get_viewport().get_visible_rect().size.y)
-  var width := 25.0 if outside else (22.0 if wing_built else 17.5)
-  camera.size = maxf(17 if outside else 13.7,width/aspect)*1.04
- else:
+ if not auto_frame:
   camera.size = close_size
+  return
+ var pixels := get_viewport().get_visible_rect().size
+ var safe := play_area if play_area.has_area() else Rect2(Vector2.ZERO,pixels)
+ framing_bounds = subject_bounds()
+ var basis_right := camera.global_basis.x
+ var basis_up := camera.global_basis.y
+ var lo := Vector2(INF,INF)
+ var hi := Vector2(-INF,-INF)
+ for corner in range(8):
+  var point := framing_bounds.get_endpoint(corner)
+  var projection := Vector2(point.dot(basis_right),point.dot(basis_up))
+  lo = lo.min(projection); hi = hi.max(projection)
+ var span := hi-lo
+ camera.size = maxf(span.y*pixels.y/safe.size.y,span.x*pixels.y/safe.size.x)*1.04
+ var middle := framing_bounds.get_center()
+ var displacement := safe.get_center()-pixels*0.5
+ view_center = middle-basis_right*displacement.x*camera.size/pixels.y+basis_up*displacement.y*camera.size/pixels.y
+ camera.position = view_center+Vector3(8,21,29)
+ camera.look_at(view_center)
+ close_size = camera.size
 
 func zoom_by(factor: float) -> void:
- if overview_mode: close_size = camera.size
+ auto_frame = false
  overview_mode = false
- close_size = clampf(close_size*factor,8.0,50.0)
+ close_size = clampf(camera.size*factor,8.0,50.0)
  frame_camera()
 
 func show_overview() -> void:
  overview_mode = true
+ auto_frame = true
  frame_camera()
 
-func focus_patient(at: Vector3) -> void:
+func focus_patient(p: Dictionary) -> void:
  overview_mode = false
- close_size = 11.2
- view_center = Vector3(clampf(at.x*0.55,-2.5,8),0.65,clampf(at.z-2.5,-2.0,0.5))
+ auto_frame = true
+ focus_patient_data = p
+ focus_signature = "%d:%s:%d" % [p.id,p.state,p.room]
  frame_camera()
 
 func ground_point(pixel: Vector2) -> Vector3:
@@ -90,7 +139,8 @@ func ground_point(pixel: Vector2) -> Vector3:
 func pan_by(delta: Vector2) -> void:
  var center := get_viewport().get_visible_rect().size*0.5
  var movement := ground_point(center)-ground_point(center+delta)
- if overview_mode: close_size = camera.size
+ auto_frame = false
+ close_size = camera.size
  overview_mode = false
  view_center += movement
  view_center.x = clampf(view_center.x,-6.0,11.0 if wing_built else 6.0)
@@ -100,8 +150,7 @@ func pan_by(delta: Vector2) -> void:
 func build_interior() -> void:
  var model: Node3D = load("res://assets/models/hospital-interior.glb").instantiate()
  interior.add_child(model)
- for room in [[Vector3(-4,2.6,-5.7),"CT 촬영"],[Vector3(-4,2.45,0.3),"대기 · 접수"],[Vector3(4,2.65,-5.7),"계획실"],[Vector3(4,2.45,0.3),"치료실"]]:
-  G.label(interior,room[1],room[0],23)
+ model.set_meta("hospital_static",true)
  staff(Vector3(-4.65,0.05,4.25),"민지")
  staff(Vector3(4.8,0.05,-3.4),"박 선생")
  ct_light = G.rounded_box(interior,Vector3(-4,2.7,-3.17),Vector3(0.36,0.055,0.025),Color("74bbaa"),0.015)
@@ -116,7 +165,7 @@ func build_interior() -> void:
   interior.add_child(light)
 
 func add_treatment_beam(at: Vector3) -> void:
- var beam := G.cylinder(interior,at+Vector3(0,1.66,0),0.045,0.66,Color("7bcbb3"))
+ var beam := G.cylinder(interior,at+Vector3(0,1.59,-0.09).rotated(Vector3.UP,deg_to_rad(-35)),0.025,0.18,Color("7bcbb3"))
  beam.visible = false
  beams.append(beam)
 
@@ -198,16 +247,17 @@ func add_wing() -> void:
  wing_built = true
  var annex: Node3D = load("res://assets/models/treatment-annex.glb").instantiate()
  interior.add_child(annex)
+ annex.set_meta("hospital_static",true)
  add_treatment_beam(Vector3(10,0,3))
  staff(Vector3(11.8,0,1),"별관 치료사")
- G.label(interior,"별관 · 2번 치료실",Vector3(10,2.45,0.3),23)
  exterior_annex.visible = true
  expansion_sign.visible = false
  frame_camera()
 
 func show_outside(value: bool) -> void:
  outside = value
- overview_mode = value
+ overview_mode = true
+ auto_frame = true
  if not value:
   view_center = Vector3(-0.35,0,-0.5)
   close_size = 12.7
@@ -217,6 +267,10 @@ func show_outside(value: bool) -> void:
 
 func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
  if sim.expanded: add_wing()
+ var selected_patient := sim.get_patient(selected)
+ if auto_frame and not overview_mode and not selected_patient.is_empty():
+  var signature := "%d:%s:%d" % [selected,selected_patient.state,selected_patient.room]
+  if focus_signature != signature: focus_patient(selected_patient)
  for model in staff_models: model.animate_staff(delta,model.get_meta("reception",false))
  for id in actors.keys():
   if sim.get_patient(id).is_empty():

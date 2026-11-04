@@ -43,3 +43,9 @@ blender -b --factory-startup -t 8 --python tools/art/export_models.py
 모바일 GPU의 프레임 속도·발열·메모리 예산은 실기기에서 추가 확인해야 한다. 삼각형 상한과 브라우저 입력 검사는 iPhone 성능 검증을 대신하지 않는다.
 
 최신 재질·그림자 진단·UI 적용 기준과 목표 시안에 남은 차이는 [아트 검토](../docs/art-review.md), 동일 카메라 전후 화면은 [비교 페이지](../docs/art-review.html)에 정리한다. Blender 검토 카메라와 조명은 편집용이며 최종 캡처는 실제 Godot에서 만든다.
+
+## 치료 자세·표면 보정
+
+본원·별관의 치료기와 침대는 -35° 방향으로 배치한다. 원본 편집 파트·게임 메시·구운 AO가 같은 배치를 사용한다. `build_assets.py`로 새로 만들 때도 이 각도를 적용한다. `turn_treatment_couches.py`는 3119d2f의 원본을 이전하는 일회성 도구이며, 현재 원본에 다시 적용할 필요는 없다. 실행할 경우 `--python-exit-code 1`로 Blender Python 오류를 셸에 전달한다.
+
+현재 Godot 외형은 `assets/models/import_hospital.gd`의 재질별 보정도 사용한다. 원본 기본색을 보존하면서 코팅 외장·목재·직물의 거칠기와 반사, 텍스처 색의 배율을 엔진에서 구분한다. [적용 값과 검증](../docs/play-feedback.md)을 참고한다.

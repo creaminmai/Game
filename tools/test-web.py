@@ -81,7 +81,7 @@ try:
         if args.debug_captures: page.screenshot(timeout=120000,path=str(output/'patient-roster.png'))
         click(ox+(logical_w-190)*scale,oy+190*scale) # First arrived patient in the roster.
         if args.debug_captures: page.screenshot(timeout=120000,path=str(output/'patient-selected.png'))
-        click(ox+(logical_w-133)*scale,oy+333*scale) # Contextual admission action, verified in native UI QA.
+        click(ox+(logical_w-133)*scale,oy+371*scale) # Contextual admission action, verified in native UI QA.
         # Inspect this fresh test browser's own IndexedDB filesystem, never the user's profile.
         # IDBFS synchronizes asynchronously. Wait for evidence of the action in persistent storage.
         state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])

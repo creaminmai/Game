@@ -1,0 +1,26 @@
+{
+  "admissions": 2,
+  "automatic_input": true,
+  "fps": 24,
+  "mobile_performance_test": false,
+  "observed_states": [
+    "entering",
+    "waiting",
+    "walk_ct",
+    "ct_queue",
+    "ct_scan",
+    "walk_plan",
+    "plan_ready",
+    "planning",
+    "walk_treatment",
+    "treatment",
+    "treatment_queue"
+  ],
+  "passed": true,
+  "plan_instructions": 2,
+  "real_canvas_clicks": 17,
+  "recorded_frames": 1296,
+  "selected_by_ray": 2,
+  "simulation_seconds": 53.9916666666658,
+  "simulation_speed": 1
+}

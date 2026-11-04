@@ -1,0 +1,149 @@
+{
+  "date_utc": "2026-11-04T16:21:16.618684+00:00",
+  "baseline_commit": "3119d2f418b6326a4a84e5bf13aabec909373ba7",
+  "baseline_movie_sha256": "bcec31b313272a0bf9e2da8da0797fb2f35cd37fe9bc05b10fe5e1d9966b4441",
+  "engine": "Godot 4.6.3 stable official",
+  "authoring": "Blender 4.3.2",
+  "renderer": "Linux Compatibility / OpenGL / Mesa llvmpipe",
+  "simulation": {
+    "checks": 51,
+    "failures": 0
+  },
+  "engine_input": {
+    "android_ios_tested": false,
+    "checks": 158,
+    "completed": 4,
+    "dual_treatment_captured": true,
+    "failures": [],
+    "money_after_day_one": 1100,
+    "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+    "passed": true,
+    "selected_by_real_input": 7
+  },
+  "web_desktop": {
+    "passed": true,
+    "browser": "Chromium desktop / SwiftShader",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "mobile_tested": false
+  },
+  "web_touch": {
+    "passed": true,
+    "browser": "Chromium touch emulation",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "mobile_tested": false
+  },
+  "movies": {
+    "1x": {
+      "scenario": {
+        "admissions": 2,
+        "automatic_input": true,
+        "fps": 24,
+        "mobile_performance_test": false,
+        "observed_states": [
+          "entering",
+          "waiting",
+          "walk_ct",
+          "ct_queue",
+          "ct_scan",
+          "walk_plan",
+          "plan_ready",
+          "planning",
+          "walk_treatment",
+          "treatment",
+          "treatment_queue"
+        ],
+        "passed": true,
+        "plan_instructions": 2,
+        "real_canvas_clicks": 17,
+        "recorded_frames": 1296,
+        "selected_by_ray": 2,
+        "simulation_seconds": 53.9916666666658,
+        "simulation_speed": 1
+      },
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuvj420p",
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "54.041667",
+          "size": "2400738"
+        }
+      },
+      "full_decode_passed": true,
+      "sha256": "fe484671706bef7fcabbe9ac523e795b274526b3ec565b287d0ee0eed41e6791"
+    },
+    "6x": {
+      "scenario": {
+        "automatic_input": true,
+        "completed": 4,
+        "expanded": true,
+        "fps": 24,
+        "max_treating": 2,
+        "mobile_performance_test": false,
+        "money": 1100,
+        "next_day": 2,
+        "passed": true,
+        "simulation_speed": 6
+      },
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuvj420p",
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "34.791667",
+          "size": "1850903"
+        }
+      },
+      "full_decode_passed": true,
+      "sha256": "da84477c9a6a717220e5b431d2814962d08fd3cc441a42c9f727819e4866989e"
+    }
+  },
+  "source_sha256": {
+    "godot/scripts/actor.gd": "544d6422061da3dbffbb45ff9d7bfc4f82a557b4c0f5c7d882b62fccb68fdeee",
+    "godot/scripts/world.gd": "4ee711f45059767878f58520bb298a8c7b1ddb20e13263eafc5d6de31e461952",
+    "godot/scripts/main.gd": "3163516122dfa8e11c2cd1d6a737baeca67e16ea174f006cd5fe6fb5876010cf",
+    "godot/scripts/patient_feedback.gd": "c7095e80fa8128540c69c8f54dd85bb15d0ded84cbd61dc9646386a591e1abcd",
+    "godot/assets/daylight.tres": "f40b2882d0fd6358fad419108f8d2c13ca8193d304f3afd01bfba41a09608aea",
+    "godot/assets/models/import_hospital.gd": "709fa19648d761a0b2f59fd6651b655c88d644aa2469c5d9b6fb4cd953cc2761",
+    "godot/assets/models/hospital-interior.glb": "9c9974c293d84914863a257117268c9e84f0d876a0a6a768b0de92b8f8b2f149",
+    "godot/assets/models/treatment-annex.glb": "3e15be7524cd1d0d1e60549dca01de7c4a8a74e3bda6e920621e935a20461b4f",
+    "art/source/hospital-interior.blend": "4c0468a2017ffd23df8573802510e0a383452325585edfc9a50755fccc47294e",
+    "art/source/treatment-annex.blend": "fd9eaa175da482fbd91600772eb27c912471d80aab91c91d712ec0430a0d0397"
+  },
+  "treatment_pose": {
+    "couch_yaw_degrees": -35,
+    "torso_back_y": 1.08,
+    "mattress_y": 1.085,
+    "head_back_y": 1.213271,
+    "pillow_y": 1.21,
+    "torso_top_y": 1.508157,
+    "collimator_bottom_y": 1.6875,
+    "actual_device_mesh_face_visibility_checked_rooms": 2
+  },
+  "real_mac_iphone_safari_verified": false,
+  "public_pages_access_verified": false
+}

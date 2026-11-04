@@ -41,6 +41,7 @@ func run() -> void:
  root.add_child(game)
  await process_frame
  game.set_process(false)
+ game.recording_caption = "자동 입력 시연 · 진료 %d배속" % simulation_speed
  game.refresh()
  await hold(1)
  if "--input-check" in OS.get_cmdline_user_args():

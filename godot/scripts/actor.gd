@@ -13,6 +13,7 @@ var book: Node3D
 var head: Node3D
 var seated := false
 var pick_area: Area3D
+var head_pick: CollisionShape3D
 
 func apply_palette(node: Node, shirt: Color, hair: Color, copies: Dictionary) -> void:
  if node is MeshInstance3D:
@@ -58,6 +59,12 @@ func build(id: int, staff: bool = false, receptionist: bool = true) -> void:
   collision.shape = capsule
   collision.position.y = 0.9
   pick_area.add_child(collision)
+  head_pick = CollisionShape3D.new()
+  var head_sphere := SphereShape3D.new()
+  head_sphere.radius = 0.42
+  head_pick.shape = head_sphere
+  head_pick.position = Vector3(0,1.56,0)
+  pick_area.add_child(head_pick)
   pick_area.set_meta("patient_id",id)
   add_child(pick_area)
  var ring := TorusMesh.new()
@@ -85,15 +92,22 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  var moving: bool = p.state in ["entering","walk_ct","walk_plan","walk_treatment","leaving"]
  var lying: bool = p.state in ["ct_scan","treatment"]
  seated = p.state in ["waiting","ct_queue"]
+ var couch_yaw := deg_to_rad(-35) if p.state == "treatment" else 0.0
  body.rotation.x = -PI/2 if lying else 0.0
- body.position = Vector3(0,1.3,0.45) if lying else (Vector3(0,0.14,-0.45) if seated else Vector3.ZERO)
- head.position.z = 0.14 if lying else 0.0
+ # Mattress top = 1.085; torso back = 1.28 - .20. Head rests on the
+ # pillow at 1.21 and z=-.91 relative to the couch, instead of floating.
+ body.position = Vector3(0,1.22,0.65) if lying else (Vector3(0,0.14,-0.45) if seated else Vector3.ZERO)
+ if lying: body.position = body.position.rotated(Vector3.UP,couch_yaw)
+ head.position.z = 0.28 if lying else 0.0
  head.rotation.y = sin(clock*0.8)*0.045 if seated else 0.0
- if pick_area != null: pick_area.position = body.position if seated else Vector3.ZERO
+ if pick_area != null:
+  pick_area.position = body.position if seated or lying else Vector3.ZERO
+  pick_area.rotation = Vector3(-PI/2,couch_yaw,0) if lying else Vector3.ZERO
+  head_pick.position.z = head.position.z
  if moving and before.distance_to(position) > 0.001:
   var direction := position-before
   body.rotation.y = atan2(direction.x,direction.z)
- elif lying or seated: body.rotation.y = 0
+ elif lying or seated: body.rotation.y = couch_yaw
  sitting_legs.visible = seated
  left_leg.visible = not seated
  right_leg.visible = not seated
@@ -102,5 +116,5 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  left_leg.rotation.x = sin(clock*10)*0.3 if moving else 0.0
  right_leg.rotation.x = -left_leg.rotation.x
  selection.visible = selected
- caption.visible = selected or p.state == "plan_ready"
- caption.text = p.name if selected else ("접수" if p.state == "waiting" else "계획")
+ # Action bubbles are placed in screen space so they can avoid the HUD.
+ caption.hide()

@@ -4,6 +4,7 @@ var checks := 0
 var failures: Array[String] = []
 var output := ""
 var selected_by_input := 0
+var collision_models := {}
 
 func check(condition: bool, caption: String) -> void:
  checks += 1
@@ -45,6 +46,7 @@ func click(control: Control) -> void:
  await settle()
 
 func shot(name_text: String) -> void:
+ game.update_bubble()
  await RenderingServer.frame_post_draw
  var image := root.get_texture().get_image()
  check(image.save_png(output.path_join(name_text+".png")) == OK,"capture " + name_text)
@@ -57,7 +59,7 @@ func check_layout(caption: String) -> void:
  controls.append_array([game.pause_button,game.outside_button,game.expansion_button,game.action_button,game.next_button,game.notice,
   game.patient_button,game.zoom_in_button,game.zoom_out_button,game.overview_button,game.selection_panel,game.detail,game.dismiss_button,
   game.money_panel,game.goal,game.next_day_button,game.roster_close])
- controls.append(game.speed_button)
+ controls.append_array([game.speed_button,game.reason_label,game.speech_bubble])
  for stage in game.stages: controls.append(stage)
  for control in controls:
   if control.is_visible_in_tree() and not screen.encloses(control.get_global_rect()):
@@ -66,6 +68,71 @@ func check_layout(caption: String) -> void:
  check(good,caption + " controls fit viewport")
  check(game.scene_container.get_global_rect() == screen,caption + " 3D fills the whole viewport")
  check(absf(screen.size.aspect()-Vector2(root.size).aspect()) < 0.01,caption + " viewport expands without letterboxing")
+
+func check_projected(points: Array[Vector3], caption: String) -> void:
+ var clear := true
+ var scale_to_hud := game.size/Vector2(game.viewport.size)
+ for point in points:
+  var pixel: Vector2 = game.world.camera.unproject_position(point)*scale_to_hud
+  clear = clear and pixel.y > 120 and pixel.y < game.size.y-94 and pixel.x > 122
+  clear = clear and pixel.x < game.size.x-18
+  if game.selection_panel.visible:
+   clear = clear and not game.selection_panel.get_global_rect().grow(6).has_point(pixel)
+  if not clear: printerr("OCCLUDED ",caption," ",pixel)
+ check(clear,caption)
+
+func add_visibility_geometry() -> void:
+ for model in game.world.interior.get_children():
+  if not model.has_meta("hospital_static") or collision_models.has(model.get_instance_id()): continue
+  for mesh in model.find_children("*","MeshInstance3D",true,false):
+   var collider := StaticBody3D.new()
+   collider.collision_layer = 8
+   collider.collision_mask = 0
+   var shape := CollisionShape3D.new()
+   shape.shape = mesh.mesh.create_trimesh_shape()
+   collider.add_child(shape)
+   mesh.add_child(collider)
+  collision_models[model.get_instance_id()] = true
+
+func check_face_visible(p: Dictionary) -> void:
+ add_visibility_geometry()
+ await physics_frame
+ var head: Node3D = game.world.actors[p.id].head
+ var face := head.to_global(Vector3(0,.065,.34))
+ var pixel: Vector2 = game.world.camera.unproject_position(face)
+ var start: Vector3 = game.world.camera.project_ray_origin(pixel)
+ var query := PhysicsRayQueryParameters3D.create(start,face,8)
+ var hit: Dictionary = game.world.get_world_3d().direct_space_state.intersect_ray(query)
+ check(hit.is_empty(),"treatment face is visible past actual device triangles in room %d" % p.room)
+ if not hit.is_empty(): printerr("FACE OCCLUSION ",hit.position," face ",face)
+
+func couch_bounds(model: Node3D, origin: Vector3, yaw: float) -> AABB:
+ var space := Transform3D(Basis(Vector3.UP,yaw),origin).affine_inverse()
+ var bounds := AABB()
+ var found := false
+ for mesh in model.find_children("*","MeshInstance3D",true,false):
+  if not mesh.is_visible_in_tree(): continue
+  var local: AABB = (space*mesh.global_transform)*mesh.get_aabb()
+  bounds = bounds.merge(local) if found else local
+  found = true
+ return bounds
+
+func check_couch_pose(p: Dictionary) -> void:
+ var actor = game.world.actors[p.id]
+ var torso = actor.body.find_child("Torso",true,false)
+ var yaw := deg_to_rad(-35) if p.state == "treatment" else 0.0
+ var body_bounds := couch_bounds(torso,p.position,yaw)
+ var head_bounds := couch_bounds(actor.head,p.position,yaw)
+ print("COUCH ",p.state," torso ",body_bounds," head ",head_bounds)
+ check(body_bounds.position.y >= 1.055 and body_bounds.position.y < 1.14,"body rests on mattress without sinking or floating")
+ check(head_bounds.position.y >= 1.18 and head_bounds.position.y < 1.26,"head supported by pillow")
+ check(absf(head_bounds.get_center().z+.91) < .15,"head aligned with actual pillow")
+ if p.state == "treatment":
+  check(body_bounds.end.y < 1.6875-.08,"torso clears collimator aperture")
+  # The chin may project into the head footprint, but below its solid housing.
+  check(head_bounds.get_center().z < -.75 and body_bounds.end.y < 1.6075,"face behind collimator with torso clearance")
+ var bounds := couch_bounds(actor.body,p.position,yaw)
+ check(bounds.position.z >= -1.4 and bounds.end.z <= 1.4,"lying patient stays on the couch length")
 
 func run() -> void:
  for arg in OS.get_cmdline_user_args():
@@ -99,6 +166,7 @@ func run() -> void:
  var nurse_bounds := model_bounds(game.world.staff_models[0].body)
  check(nurse_bounds.position.y > -0.05 and nurse_bounds.end.y < 2.1 and nurse_bounds.size.y > 1.7,"imported nurse working pose keeps connected body proportions")
  var ao_correct := true
+ var material_response := {}
  var ao_count := 0
  for instance in game.world.interior.find_children("*","MeshInstance3D",true,false):
   for surface in range(instance.mesh.get_surface_count()):
@@ -106,7 +174,11 @@ func run() -> void:
    if material is StandardMaterial3D and material.ao_enabled:
     ao_count += 1
     ao_correct = ao_correct and material.ao_on_uv2
+    material_response[material.resource_name] = material.roughness
  check(ao_correct and ao_count >= 25,"imported hospital occlusion uses its atlas coordinates")
+ check(is_equal_approx(material_response.get("Coral woven upholstery",0.0),.82) and is_equal_approx(material_response.get("Honey oak",0.0),.46) and is_equal_approx(material_response.get("white",0.0),.26),"cloth, wood and coated equipment retain separate material responses")
+ check_projected([Vector3(-5.43,3.05,-3.7),Vector3(-2.57,3.05,-3.7),Vector3(-4,1.1,-1.53)],"default framing keeps CT clear of header and goal")
+ check(not game.notice.is_visible_in_tree(),"no persistent instruction text over the hospital")
  await shot("01-fullscreen-game")
  game.select_patient(1)
  await settle()
@@ -136,6 +208,7 @@ func run() -> void:
  await shot("02-patient-roster")
  await click(game.rows[2])
  check(game.selected_id == 3,"patient list selection via real input")
+ check_projected([Vector3(-4.5,1.9,3.8),Vector3(-4,3.05,-3.7),Vector3(-4,1.1,-1.53)],"selected patient and CT fit beside the patient card")
  check(not game.roster.visible and game.selection_panel.visible,"selection closes roster and shows contextual action")
  selected_by_input += 1
  game.sim.tick(0.5); game.refresh()
@@ -147,6 +220,8 @@ func run() -> void:
  check(game.selected_id == 4,"explicit helper cycles patients needing action")
  await click(game.action_button)
  check(game.sim.queue_rank(4) == 1 and game.rows[3].text.contains("1번째"),"queue ordinal displayed after input")
+ check(game.action_button.disabled and game.action_button.text.contains("CT 대기"),"queued patient is labeled waiting rather than undergoing care")
+ check(game.reason_label.text.contains("이동 중") and game.reason_label.text.contains("추가 지시 없이"),"reserved CT explains preceding travel and automatic queue")
  await shot("02-ct-queue")
  # Clicking actual patient geometry uses the same viewport ray query as mouse/touch input.
  var actor: Node3D = game.world.actors[1]
@@ -199,6 +274,8 @@ func run() -> void:
  var expanded := false
  var dual_seen := false
  var restore_checked := false
+ var poses_checked := {}
+ var selected_states := {}
  for iteration in range(600):
   for p in game.sim.patients:
    if game.sim.needs_action(p):
@@ -208,6 +285,33 @@ func run() -> void:
     await click(game.action_button)
   game.sim.tick(0.5)
   game.refresh()
+  for p in game.sim.patients:
+   if p.state in ["ct_scan","treatment"]:
+    var pose_key: String = p.state+str(p.room)
+    if not poses_checked.has(pose_key):
+     check_couch_pose(p)
+     poses_checked[pose_key] = true
+     game.select_patient(p.id)
+     await settle()
+     var x: float = -4.0 if p.state == "ct_scan" else 4.0+6.0*p.room
+     var z: float = -2.8 if p.state == "ct_scan" else 3.0
+     check_projected([Vector3(x,3.05,z-.9),Vector3(x,1.2,z+1.3),game.world.actors[p.id].head.global_position],"active patient and device clear the card: "+pose_key)
+     await physics_frame
+     var face: Vector3 = game.world.actors[p.id].head.to_global(Vector3(0,.065,.34))
+     check(game.world.pick(game.world.camera.unproject_position(face)) == p.id,"lying patient face remains selectable: "+pose_key)
+     if p.state == "treatment": await check_face_visible(p)
+     await shot("pose-"+pose_key)
+   if p.state in ["plan_queue","treatment_queue"] and not selected_states.has(p.state):
+    game.select_patient(p.id)
+    await settle()
+    check(game.action_button.disabled and game.action_button.text.contains("대기") and game.reason_label.text.contains("자동"),p.state+" has truthful queue feedback")
+    check(game.detail.get_line_count() == 2,"queue heading keeps patient name and status on two lines")
+    if p.state == "treatment_queue":
+     var queue_points: Array[Vector3] = [game.world.actors[p.id].head.global_position,Vector3(4,3.05,2.1),Vector3(4,1.2,4.3)]
+     if game.sim.expanded: queue_points.append_array([Vector3(10,3.05,2.1),Vector3(10,1.2,4.3)])
+     check_projected(queue_points,"waiting patient and occupied treatment devices clear the HUD")
+     await shot("treatment-queue")
+    selected_states[p.state] = true
   if game.sim.completed() > 0 and not expanded:
    await click(game.outside_button)
    var money: int = game.sim.money
@@ -232,6 +336,7 @@ func run() -> void:
    var copy = load("res://scripts/hospital_simulation.gd").new()
    restore_checked = copy.restore(game.sim.snapshot()) and copy.paused
   if game.sim.all_done(): break
+ check(poses_checked.size() == 3,"CT and both treatment couches verified")
  check(game.sim.all_done() and game.sim.completed() == 4,"four patients complete and leave")
  check(game.sim.money == 1100 and expanded,"day one economy after annex")
  check(dual_seen and restore_checked,"concurrent treatment captured and restorable")
@@ -251,6 +356,8 @@ func run() -> void:
   game.select_patient(1)
   await settle()
   check_layout(str(dimensions)+" patient action")
+  if dimensions.x >= dimensions.y:
+   check_projected([Vector3(-4,3.05,-3.7),Vector3(-4,1.1,-1.53)],str(dimensions)+" CT remains below HUD with selected card")
   await click(game.patient_button)
   check(game.roster.visible,str(dimensions)+" roster opens after resize")
   check_layout(str(dimensions)+" roster")

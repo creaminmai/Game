@@ -289,6 +289,7 @@ def scanner(at):
         for j in range(3): oval('Control key',(x+side*1.02,y+1.38+j*.08,z-.37),(.06,.045,.025),M['teal'])
 
 def linac(at):
+    before=set(scene.objects)
     x,y,z=at; bed(at)
     extrusion('Treatment base',(x,y+.3,z-1.5),2.2,1.55,.56,.5,M['ivory'])
     box('Treatment column',(x,y+1.35,z-1.75),(1.15,2.1,.83),M['white'],.32)
@@ -312,6 +313,9 @@ def linac(at):
     mesh('Continuous treatment gantry',verts,faces,M['white'])
     extrusion('Collimator housing',(x,y+2.03,z-.09),1.03,.97,.57,.29,M['ivory'])
     extrusion('Collimator aperture',(x,y+1.72,z-.09),.72,.62,.065,.18,M['darkmint'])
+    bpy.context.view_layer.update()
+    turn=Matrix.Translation(C(at)) @ Matrix.Rotation(math.radians(-35),4,'Z') @ Matrix.Translation(-C(at))
+    for part in set(scene.objects)-before: part.matrix_world=turn @ part.matrix_world
 
 def floor_room(x,z,tile='floor',back_height=2.6):
     box('Room foundation',(x,-.16,z),(6,.32,5.5),M['cream'],.08)
@@ -490,6 +494,7 @@ def bake_export(name,ao_size=2048):
     bpy.context.view_layer.objects.active=objs[0]; bpy.ops.object.join()
     obj=bpy.context.object; obj.name=name
     obj['authoring_triangles']=sum(counts.values())
+    obj['couch_yaw_degrees']=-35
     assert len(obj.data.uv_layers)==1, 'Exactly one surface UV layer is required before AO'
     uv=obj.data.uv_layers.new(name='ContactAO'); obj.data.uv_layers.active=uv; uv.active_render=True
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')

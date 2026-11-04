@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>햇살병원 · 플레이 구도와 피드백</title>
+<style>
+body{margin:0;background:#f6eee1;color:#5b4635;font:16px/1.65 system-ui,sans-serif}main{max-width:1280px;margin:auto;padding:30px 20px}h1{color:#226c5b}p{max-width:880px}a{color:#267a68}section{margin:32px 0}img,video{width:100%;border-radius:16px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}figcaption{padding:8px 0}.compare{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:16px}.compare img{position:absolute;inset:0;height:100%;object-fit:contain}.after{clip-path:inset(0 0 0 50%)}.divider{position:absolute;left:50%;top:0;bottom:0;width:3px;background:#fff9e5}.tag{position:absolute;top:12px;left:12px;padding:4px 12px;border-radius:12px;background:#fff8e8ed}.right{left:auto;right:12px}input{width:100%;accent-color:#2d9480}small{color:#7c6a55}@media(max-width:750px){.pair{grid-template-columns:1fr}}
+</style>
+<main><h1>햇살병원 · 화면 구도와 피드백</h1>
+<p>기존 운영 기능을 유지하며 환자·장비를 읽기 쉬운 구도, 상황에 맞는 안내, 치료 자세와 재질 반응을 다듬었습니다. 모든 화면과 영상은 실제 Godot 실행 결과입니다.</p>
+<section><h2>정상 1배속 · 환자 선택과 업무 지시</h2>
+<video controls preload="metadata" src="media/feedback-1x.mp4" poster="images/play-feedback/after-play.png"></video>
+<p><strong>54초 · 자동 입력 시연입니다.</strong> 게임은 정상 1배속으로 진행합니다. 화면의 포인터가 실제 캔버스 클릭으로 환자를 선택하고 접수·계획을 지시합니다. 게임 시간을 건너뛰거나 빠르게 재생한 영상이 아닙니다. 실제 Mac/iPhone 사용자의 수동 플레이테스트와는 구분합니다.</p></section>
+<section><h2>카드가 열려도 환자와 CT가 보이는 구도</h2>
+<div class="pair"><figure><img src="images/play-feedback/before-play.png" alt="이전 구도: CT가 상단 UI에 가려짐"><figcaption>변경 전 · 3119d2f</figcaption></figure><figure><img src="images/play-feedback/after-play.png" alt="변경 후 선택 환자와 CT가 HUD 아래, 카드 왼쪽에 보임"><figcaption>변경 후 · UI를 제외한 영역에 구도 배치</figcaption></figure></div>
+<p>상태와 열린 UI에 따라 구도가 달라집니다. 직접 드래그·줌하면 수동 구도를 유지하며, 환자 재선택이나 병원 전체 보기로 자동 구도로 돌아옵니다.</p></section>
+<section><h2>대기에는 대기 이유와 차례를 안내</h2>
+<div class="pair"><figure><img src="images/play-feedback/before-queue.png" alt="기존 영상에서 CT 대기 환자에게 진료 진행 중이라고 표시"><figcaption>이전 영상 8초 · CT 대기에도 ‘진료 진행 중’</figcaption></figure><figure><img src="images/play-feedback/queue.png" alt="CT 대기 차례, 앞 환자 이동과 추가 지시가 없음을 안내"><figcaption>변경 후 · 기다리는 대상·차례·자동 진행 여부</figcaption></figure></div>
+<p>별도 시연의 화면이므로 대기 순번 자체는 다를 수 있습니다. 고정 방 이름과 조작 설명 대신 필요한 환자의 짧은 말풍선, 선택 카드의 상세 이유를 사용합니다.</p></section>
+<section><h2>치료 대기 장소와 사용 중인 장비를 함께 확인</h2><img src="images/play-feedback/treatment-queue.png" alt="치료를 기다리는 환자와 사용 중인 장비가 상단 HUD와 하단 메뉴 사이에 함께 보임"><p>치료 대기 중에도 대기 환자와 장비가 하단 메뉴에 가려지지 않도록 구도를 조정합니다. 카드 제목은 짧게 유지하고 차례와 자동 진행 여부는 본문과 버튼에 표시합니다.</p></section>
+<section><h2>몸과 장비가 구분되는 치료 자세</h2>
+<div class="pair"><figure><img src="images/play-feedback/treatment.png" alt="회전한 본원 장비와 베개에 머리를 얹은 환자"><figcaption>본원 · 얼굴과 몸이 보이는 방향</figcaption></figure><figure><img src="images/play-feedback/annex-treatment.png" alt="같은 방향과 자세를 적용한 별관 치료실"><figcaption>별관 · 같은 메시·자세 기준</figcaption></figure></div>
+<p>Blender의 장비·침대와 게임의 환자 자세를 함께 -35° 돌렸습니다. 실제 메시의 지지 높이·헤드 아래 간격과 카메라에서 얼굴까지의 가림을 검사했습니다.</p></section>
+<section><h2>같은 카메라 · 재질과 조명 비교</h2>
+<div class="compare"><img src="images/play-feedback/before-materials.png" alt="변경 전 같은 카메라의 실제 엔진 화면"><img class="after" src="images/play-feedback/after-materials.png" alt="변경 후 같은 카메라의 실제 엔진 화면"><div class="divider"></div><span class="tag">변경 전</span><span class="tag right">변경 후</span></div><input aria-label="재질과 조명 전후 비교" type="range" min="0" max="100" value="50">
+<p>노출·전체 채도는 유지하고 목재·직물·코팅 외장을 각각 조정했습니다. 중립 환경광, 주광과 보조광의 비율, 그림자 불투명도·필터를 분리해 다뤘습니다.</p></section>
+<section><h2>전체 운영 확인 · 자동 6배속</h2><video controls preload="metadata" src="media/feedback-6x.mp4" poster="images/play-feedback/default-view.png"></video><p><small>접수·CT·계획·치료·증축·동시 치료·다음 날을 확인하는 자동 입력 시연입니다. 인코딩 프레임 수는 모바일 실행 성능을 뜻하지 않습니다.</small></p></section>
+<section><h2>브라우저 · 가로 터치 입력 확인</h2><img src="images/play-feedback/touch-play.png" alt="844×390 Chromium 터치 에뮬레이션에서 실제 접수 탭 후 CT로 이동하는 환자"><p>데스크톱 클릭과 844×390 터치 에뮬레이션에서 환자 선택·접수와 IndexedDB 저장을 확인했습니다. 실제 Mac/iPhone Safari의 성능과 터치 가독성은 별도로 확인해야 합니다.</p></section>
+<p><a href="play-feedback.md">변경 내용과 남은 한계</a> · <a href="validation.md">검증 기록</a> · <a href="play-feedback-results.json">이번 실행 결과</a> · <a href="../art/README.md">Blender 원본</a></p></main>
+<script>document.querySelectorAll('input').forEach(input=>input.oninput=()=>{const c=input.previousElementSibling;c.querySelector('.after').style.clipPath=`inset(0 0 0 ${input.value}%)`;c.querySelector('.divider').style.left=input.value+'%'})</script></html>
