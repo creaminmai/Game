@@ -12,36 +12,36 @@ var outside := false
 var ct_light: MeshInstance3D
 var exterior_annex: Node3D
 var expansion_sign: Label3D
-var view_center := Vector3(-0.35,0,-0.5)
+var view_center := Vector3(-0.35,0.7,-0.5)
 var close_size := 12.7
 var overview_mode := false
 var staff_models: Array[HospitalActor] = []
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
- var config := Environment.new()
- config.background_mode = Environment.BG_COLOR
- config.background_color = Color("e5e9d7")
- config.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
- config.ambient_light_color = Color("eff4ee")
- config.ambient_light_energy = 0.5
- config.tonemap_mode = Environment.TONE_MAPPER_LINEAR
- env.environment = config
+ # Compatibility/WebGL uses calibrated linear output. Neutral reflection and
+ # ambient are independent from the warm directional daylight and baked AO.
+ env.environment = load("res://assets/daylight.tres")
  add_child(env)
  var sun := DirectionalLight3D.new()
- sun.rotation_degrees = Vector3(-48,-38,0)
- sun.light_color = Color("fff3df")
- sun.light_energy = 0.17
+ sun.rotation_degrees = Vector3(-42,-62,0)
+ sun.light_color = Color("fff0dd")
+ sun.light_energy = 0.10
  sun.shadow_enabled = true
- sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+ sun.shadow_bias = 4.0
+ sun.shadow_normal_bias = 2.0
+ sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+ sun.directional_shadow_max_distance = 75.0
+ sun.shadow_blur = 1.4
  add_child(sun)
  var fill := DirectionalLight3D.new()
  fill.rotation_degrees = Vector3(-35,140,0)
- fill.light_color = Color("d6e7ec")
- fill.light_energy = 0.08
+ fill.light_color = Color("e8f1ff")
+ fill.light_energy = 0.04
  add_child(fill)
  camera = Camera3D.new()
  camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+ camera.far = 100.0
  camera.current = true
  add_child(camera)
  interior = Node3D.new()
@@ -55,9 +55,9 @@ func _ready() -> void:
 
 func frame_camera() -> void:
  if overview_mode:
-  view_center = Vector3(2.5 if wing_built else -0.3,0,0.3)
+  view_center = Vector3(2.5 if wing_built else -0.3,0.55,0.3)
   if outside: view_center = Vector3(1,0,0)
- camera.position = view_center + Vector3(9,25,29)
+ camera.position = view_center + Vector3(8,21,29)
  camera.look_at(view_center)
  if overview_mode:
   var aspect := maxf(0.35,get_viewport().get_visible_rect().size.x/get_viewport().get_visible_rect().size.y)
@@ -79,7 +79,7 @@ func show_overview() -> void:
 func focus_patient(at: Vector3) -> void:
  overview_mode = false
  close_size = 11.2
- view_center = Vector3(clampf(at.x*0.55,-2.5,8),0,clampf(at.z-2.5,-2.0,0.5))
+ view_center = Vector3(clampf(at.x*0.55,-2.5,8),0.65,clampf(at.z-2.5,-2.0,0.5))
  frame_camera()
 
 func ground_point(pixel: Vector2) -> Vector3:
@@ -111,7 +111,7 @@ func build_interior() -> void:
   var light := OmniLight3D.new()
   light.position = at
   light.light_color = Color("ffe6bb")
-  light.light_energy = 0.16
+  light.light_energy = 0.08
   light.omni_range = 2.5
   interior.add_child(light)
 
@@ -124,7 +124,7 @@ func staff(at: Vector3, caption_text: String) -> void:
  var a := Actor.new()
  interior.add_child(a)
  a.position = at
- a.build(1,true)
+ a.build(1,true,caption_text == "민지")
  a.caption.visible = false
  a.caption.text = caption_text
  if caption_text == "박 선생": a.body.rotation.y = PI*0.9

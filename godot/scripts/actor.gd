@@ -29,10 +29,10 @@ func apply_palette(node: Node, shirt: Color, hair: Color, copies: Dictionary) ->
      node.set_surface_override_material(surface,copies[key])
  for child in node.get_children(): apply_palette(child,shirt,hair,copies)
 
-func build(id: int, staff: bool = false) -> void:
+func build(id: int, staff: bool = false, receptionist: bool = true) -> void:
  body = Node3D.new()
  add_child(body)
- var model: Node3D = load("res://assets/models/nurse.glb" if staff else "res://assets/models/patient.glb").instantiate()
+ var model: Node3D = load("res://assets/models/nurse.glb" if staff and receptionist else "res://assets/models/patient.glb").instantiate()
  body.add_child(model)
  left_leg = model.find_child("Leg_L",true,false)
  right_leg = model.find_child("Leg_R",true,false)
@@ -44,9 +44,10 @@ func build(id: int, staff: bool = false) -> void:
  book.hide()
  book.set_meta("reader",id == 1 and not staff)
  var glasses: Node3D = model.find_child("Glasses",true,false)
- glasses.visible = not staff and id in [1,2]
- var shirt: Color = Color("79b4aa") if staff else [Color("d6a38e"),Color("8dabbc"),Color("b3a0bf"),Color("b8b28c")][(id-1)%4]
- var hair: Color = Color("79513c") if staff else [Color("8f877b"),Color("b5b2ac"),Color("725848"),Color("aaa1ab")][(id-1)%4]
+ glasses.visible = (not staff and id in [1,2]) or (staff and not receptionist)
+ var shirt: Color = Color("55aaa0") if staff else [Color("dca48c"),Color("a2c4d8"),Color("c2a3c8"),Color("b9c69e")][(id-1)%4]
+ var hair: Color = Color("79513c") if staff else [Color("aaa09a"),Color("c5c1bd"),Color("795944"),Color("afa6b4")][(id-1)%4]
+ if staff and not receptionist: shirt = Color("f1eee5")
  apply_palette(model,shirt,hair,{})
  if not staff:
   pick_area = Area3D.new()
@@ -101,5 +102,5 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  left_leg.rotation.x = sin(clock*10)*0.3 if moving else 0.0
  right_leg.rotation.x = -left_leg.rotation.x
  selection.visible = selected
- caption.visible = selected or p.state in ["waiting","plan_ready"]
+ caption.visible = selected or p.state == "plan_ready"
  caption.text = p.name if selected else ("접수" if p.state == "waiting" else "계획")

@@ -10,11 +10,16 @@ repo = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--output-dir', type=Path, default=repo / 'artifacts' / 'validation')
 p.add_argument('--art-capture', action='store_true', help='Render the actual 3D scenes at larger size, without the HUD')
+p.add_argument('--diagnose', action='store_true', help='Isolate AO, shadow and albedo contributions during art capture')
+p.add_argument('--portraits', action='store_true', help='Also capture transparent portraits from the actual game characters')
 p.add_argument('--movie', action='store_true', help='Record an actual engine playthrough and encode MP4')
+p.add_argument('--brief', action='store_true', help='A shorter movie with 6x simulation and shorter reading pauses')
 p.add_argument('--input-check', action='store_true', help='Quick Movie Maker input regression check')
 args = p.parse_args()
 if args.input_check and not args.movie:
     p.error('--input-check requires --movie')
+if args.brief and not args.movie:
+    p.error('--brief requires --movie')
 if args.art_capture and args.movie:
     p.error('--art-capture and --movie are mutually exclusive')
 args.output_dir = args.output_dir.resolve()
@@ -43,8 +48,11 @@ with (runtime / 'xorg.log').open('w') as log:
             command += ['--resolution', '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
         if args.input_check: command += ['--input-check']
+        if args.diagnose: command += ['--diagnose']
+        if args.portraits: command += ['--portraits']
+        if args.brief: command += ['--brief']
         with (args.output_dir / 'engine.log').open('w') as engine_log:
-            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=900 if args.movie else 180)
+            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=1200 if args.movie else 180)
         text = (args.output_dir / 'engine.log').read_text()
         print(text)
         code = result.returncode if result.returncode else (1 if 'SCRIPT ERROR' in text or 'ERROR:' in text else 0)
@@ -53,7 +61,7 @@ with (runtime / 'xorg.log').open('w') as log:
             report = json.loads((args.output_dir / 'movie-results.json').read_text())
             if not report['passed']:
                 raise SystemExit('Movie scenario failed')
-            subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-i', str(args.output_dir / 'playthrough.avi'), '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', str(args.output_dir / 'playthrough.mp4')], check=True)
+            subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-i', str(args.output_dir / 'playthrough.avi'), '-vf', 'scale=out_color_matrix=bt709', '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-an', '-movflags', '+faststart', str(args.output_dir / 'playthrough.mp4')], check=True)
             subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration,size:stream=codec_name,width,height,r_frame_rate', '-of', 'json', str(args.output_dir / 'playthrough.mp4')], check=True)
         raise SystemExit(code)
     finally:

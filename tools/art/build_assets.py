@@ -9,7 +9,7 @@ from pathlib import Path
 from mathutils import Vector, Matrix
 from math import sin, cos, pi
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from export_models import export_static
+from export_models import export_static, soften_contact_atlas
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'godot/assets/models'
@@ -36,7 +36,7 @@ def mat(name, color, rough=.65, metal=0, emit=0):
     return m
 
 def clear():
-    bpy.ops.object.select_all(action='SELECT'); bpy.ops.object.delete(use_global=False)
+    for obj in list(bpy.context.scene.objects): bpy.data.objects.remove(obj,do_unlink=True)
 
 def mesh(name, verts, faces, material, smooth=True):
     data=bpy.data.meshes.new(name); data.from_pydata([C(v) for v in verts],[],faces); data.update()
@@ -127,6 +127,7 @@ def texture_material(name,color1,color2,kind='wood'):
     links.new(noise.outputs['Fac'],ramp.inputs[0])
     emission=nodes.new('ShaderNodeEmission'); links.new(ramp.outputs['Color'],emission.inputs[0]); links.new(emission.outputs[0],out.inputs[0])
     image=bpy.data.images.new(name+' surface',width=512,height=512)
+    image.colorspace_settings.name='sRGB'
     dest=nodes.new('ShaderNodeTexImage'); dest.image=image; nodes.active=dest
     bpy.ops.mesh.primitive_plane_add(size=2); plane=bpy.context.object; plane.data.materials.append(m)
     bpy.ops.object.bake(type='EMIT')
@@ -134,27 +135,32 @@ def texture_material(name,color1,color2,kind='wood'):
     bpy.data.objects.remove(plane,do_unlink=True)
     for node in [tc,mapping,noise,ramp,emission]: nodes.remove(node)
     links.new(dest.outputs['Color'],bs.inputs['Base Color']); links.new(bs.outputs[0],out.inputs[0])
-    bs.inputs['Roughness'].default_value=.65 if kind=='wood' else .92
+    bs.inputs['Roughness'].default_value=.48 if kind=='wood' else .76
     return m
 
 clear()
 scene=bpy.context.scene; scene.render.engine='CYCLES'; scene.cycles.samples=24
 scene.cycles.device='CPU'; scene.render.bake.margin=8
 scene.world.color=(.8,.8,.8)
+scene.view_settings.view_transform='Standard'
+scene.view_settings.look='None'
+scene.view_settings.exposure=0
+scene.view_settings.gamma=1
 M={}
-M['oak']=texture_material('Honey oak','b98c60','d6af83')
-M['fabric']=texture_material('Coral woven upholstery','d68e7c','e6aa96','cloth')
-M['linen']=texture_material('Warm linen','cfc7b0','e5ddc7','cloth')
+M['oak']=texture_material('Honey oak','d4ad82','ddba90')
+M['fabric']=texture_material('Coral woven upholstery','ec9e89','eea38f','cloth')
+M['linen']=texture_material('Warm linen','ede6d6','f0eada','cloth')
 for name,color,rough,metal,emit in [
- ('ivory','f2eee4',.52,0,0),('white','f7f5ef',.32,0,0),('cream','e6dbc4',.8,0,0),
- ('mint','a8c7bf',.72,0,0),('darkmint','648f86',.5,0,0),('teal','76aaa0',.6,0,0),
+ ('ivory','f4ece2',.42,0,0),('white','f6f1e9',.29,0,0),('cream','e9dece',.65,0,0),
+ ('mint','c7dcd5',.55,0,0),('darkmint','5c9e95',.37,0,0),('teal','86c5bb',.36,0,0),
  ('gold','bca071',.34,.45,0),('metal','b7c5c3',.3,.6,0),('dark','465558',.48,.1,0),
  ('screen','1f3945',.4,0,.1),('screenblue','80b9c3',.5,0,.25),('scan','b7d0d0',.6,0,.15),
- ('lamp','ffe7b4',.45,0,.4),('grout','c9c6b6',.95,0,0),('floor','e9dfcb',.8,0,0),
- ('green','6f944e',.82,0,0),('leaf','8ca665',.85,0,0),('leafdark','4c7747',.85,0,0),
+ ('lamp','ffe7b4',.45,0,.4),('grout','ddd8cd',.65,0,0),('floor','eee6d9',.38,0,0),
+ ('green','85ac68',.62,0,0),('leaf','a7c77e',.64,0,0),('leafdark','6b9b64',.68,0,0),
+ ('garden','b7c9aa',.85,0,0),
  ('rose','e9a6b8',.85,0,0),('yellow','efc85f',.7,0,0),('soil','746346',1,0,0),
- ('pot','e2d6bc',.55,0,0),('blue','96b5ba',.68,0,0),('book','a7b09b',.9,0,0),
- ('skin','f1c7ab',.75,0,0),('hair','73503e',.75,0,0),('iris','4c3730',.55,0,0),
+ ('pot','f0e4d2',.3,0,0),('blue','aac8d2',.48,0,0),('book','a7b09b',.9,0,0),
+ ('skin','f6cfb5',.62,0,0),('hair','78503b',.48,0,0),('iris','48332b',.32,0,0),
  ('lip','b76e66',.85,0,0),('outfit','ffffff',.9,0,0),('trousers','d4d7ce',.85,0,0),
  ('sole','ae9b7d',.85,0,0),('bark','9c7a55',.9,0,0)]: M[name]=mat(name,color,rough,metal,emit)
 
@@ -201,12 +207,7 @@ def chair(at):
     back=oval('Curved padded back',(0,1.02,-.35),(1.08,1.0,.34),M['fabric'],.45)
     back.rotation_euler.x=math.radians(-7)
     for x in [-.49,.49]: oval('Rolled armrest',(x,.76,0),(.26,.56,1.02),M['fabric'],.45)
-    for y,z,w,h in [(.67,.06,.77,.71),(1.03,-.16,.88,.7)]:
-        points=[]
-        for i in range(48):
-            t=i*2*pi/48; a=math.copysign(abs(cos(t))**.4,cos(t)); b=math.copysign(abs(sin(t))**.4,sin(t))
-            points.append((a*w/2,y,z+b*h/2) if y<.7 else (a*w/2,y+b*h/2,z))
-        tube('Upholstery piping',points,.009,M['linen'],True)
+    # The silhouette and padded overlap describe the fabric, without dark piping.
     move_group(before,at)
 
 def monitor(at,yaw=0):
@@ -260,7 +261,7 @@ def bed(at):
     x,y,z=at
     extrusion('Bed footing',(x,y+.13,z),1.05,1.9,.23,.25,M['darkmint'])
     box('Lift pedestal',(x,y+.52,z-.17),(.52,.76,.7),M['white'],.13)
-    for h in [.4,.52,.64]: box('Lift seam',(x,y+h,z-.17),(.54,.025,.72),M['metal'],.01)
+    for h in [.42,.61]: box('Lift seam',(x,y+h,z-.17),(.525,.012,.705),M['cream'],.004)
     extrusion('Floating couch',(x,y+.9,z),1.02,2.72,.18,.23,M['white'])
     oval('Mattress',(x,y+1.015,z),(.89,.14,2.54),M['teal'],.35)
     oval('Linen pillow',(x,y+1.12,z-.91),(.72,.18,.49),M['linen'],.45)
@@ -270,8 +271,10 @@ def scanner(at):
     x,y,z=at; bed(at)
     extrusion('CT floor pedestal',(x,y+.3,z-.9),2.67,1.15,.55,.35,M['ivory'])
     # Lathed front and rear profiles form a thick, softly rounded enclosure.
-    profile=[(.68,.43),(.78,.49),(1.17,.49),(1.34,.4),(1.43,.2),(1.43,-.25),(1.32,-.46),(.8,-.46),(.65,-.34),(.65,.3)]
-    verts=[]; faces=[]; n=80
+    profile=[(.66,.34),(.66,.43),(.68,.48),(.74,.51),(.82,.515),(1.15,.515),
+             (1.23,.5),(1.31,.46),(1.38,.38),(1.42,.27),(1.43,.15),(1.43,-.23),
+             (1.41,-.32),(1.35,-.41),(1.26,-.46),(.78,-.46),(.69,-.4),(.66,-.32)]
+    verts=[]; faces=[]; n=96
     for radius,depth in profile:
         for i in range(n):
             a=i*2*pi/n; verts.append((x+cos(a)*radius,y+1.62+sin(a)*radius,z-.9+depth))
@@ -279,7 +282,7 @@ def scanner(at):
         for i in range(n): faces.append((j*n+i,j*n+(i+1)%n,((j+1)%len(profile))*n+(i+1)%n,((j+1)%len(profile))*n+i))
     mesh('Sculpted CT shell',verts,faces,M['white'])
     tube('Mint bore gasket',[(x+cos(a)*.7,y+1.62+sin(a)*.7,z-.43) for a in [i*2*pi/80 for i in range(80)]],.045,M['teal'],True)
-    tube('Outer shell seam',[(x+cos(a)*1.405,y+1.62+sin(a)*1.405,z-.9) for a in [i*2*pi/80 for i in range(80)]],.012,M['cream'],True)
+    tube('Outer shell seam',[(x+cos(a)*1.432,y+1.62+sin(a)*1.432,z-1.03) for a in [i*2*pi/96 for i in range(96)]],.006,M['cream'],True)
     box('CT control display',(x,y+2.69,z-.39),(.42,.22,.03),M['screenblue'],.025)
     for side in [-1,1]:
         box('Scanner control bank',(x+side*1.02,y+1.48,z-.41),(.25,.38,.055),M['cream'],.045)
@@ -289,9 +292,16 @@ def linac(at):
     x,y,z=at; bed(at)
     extrusion('Treatment base',(x,y+.3,z-1.5),2.2,1.55,.56,.5,M['ivory'])
     box('Treatment column',(x,y+1.35,z-1.75),(1.15,2.1,.83),M['white'],.32)
-    # Swept gantry with varying section, rather than a stack of blocks.
-    path=[(y+.85,z-1.8,.48),(y+1.65,z-1.8,.49),(y+2.3,z-1.55,.48),(y+2.72,z-1.0,.43),(y+2.77,z-.4,.41),(y+2.48,z+.02,.4)]
-    verts=[];faces=[];n=24
+    # A broad rotational shoulder, curved arm and separate downward treatment
+    # head make the linac read differently from the circular CT bore.
+    for side in [-1,1]:
+        oval('Gantry rotation bearing',(x+side*.6,y+1.4,z-1.72),(.15,1.08,1.08),M['darkmint'])
+        oval('Bearing cover',(x+side*.68,y+1.4,z-1.72),(.08,.8,.8),M['ivory'])
+    path=[]
+    for i in range(25):
+        a=pi-i*pi/24
+        path.append((y+1.75+sin(a)*.95,z-.94+cos(a)*.85,.34+.08*i/24))
+    verts=[];faces=[];n=32
     for j,(h,d,r) in enumerate(path):
         prev=path[max(0,j-1)]; nxt=path[min(len(path)-1,j+1)]
         dh,dd=nxt[0]-prev[0],nxt[1]-prev[1]; length=math.hypot(dh,dd)
@@ -300,18 +310,21 @@ def linac(at):
     for j in range(len(path)-1):
         for i in range(n): faces.append((j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i))
     mesh('Continuous treatment gantry',verts,faces,M['white'])
-    extrusion('Collimator housing',(x,y+2.24,z),1.0,.9,.44,.26,M['white'])
-    extrusion('Collimator aperture',(x,y+1.99,z),.72,.62,.055,.18,M['darkmint'])
+    extrusion('Collimator housing',(x,y+2.03,z-.09),1.03,.97,.57,.29,M['ivory'])
+    extrusion('Collimator aperture',(x,y+1.72,z-.09),.72,.62,.065,.18,M['darkmint'])
 
 def floor_room(x,z,tile='floor',back_height=2.6):
     box('Room foundation',(x,-.16,z),(6,.32,5.5),M['cream'],.08)
+    # A continuous surface and hairline, flush grout do not cast black slot
+    # shadows. Joints are color boundaries, not gaps between separate slabs.
+    box('Continuous satin floor',(x,.025,z),(5.99,.05,5.49),M[tile],.008)
     for i in range(6):
-        for j in range(6):
-            box('Floor tile',(x-2.5+i,.015,z-2.3+j*.91),(.984,.04,.896),M[tile],.01)
+        if i: box('Shallow floor joint',(x-3+i,.051,z),(.009,.001,5.48),M['grout'],0)
+        if i: box('Shallow floor joint',(x,.051,z-2.75+i*.916),(5.98,.001,.009),M['grout'],0)
     # Full height rear walls and lower cutaway partitions keep the characters readable.
     box('Painted rear wall',(x,back_height/2,z-2.75),(6.06,back_height,.19),M['mint'] if z<0 else M['ivory'],.035)
     box('Oak wainscot',(x,.55,z-2.63),(5.96,1.05,.055),M['oak'],.012)
-    for i in range(30): box('Fine wall flute',(x-2.86+i*.195,.55,z-2.59),(.025,1.03,.028),M['cream'],.007)
+    for i in range(20): box('Fine wall flute',(x-2.86+i*.30,.55,z-2.598),(.014,1.03,.012),M['oak'],.004)
     box('Wall cap',(x,back_height+.04,z-2.75),(6.16,.14,.28),M['white'],.04)
     box('Chair rail',(x,1.1,z-2.59),(6,.07,.09),M['oak'],.02)
     box('Floor skirting',(x,.12,z-2.6),(5.95,.15,.08),M['white'],.025)
@@ -332,10 +345,10 @@ def reception():
     x,z=-4.8,5.05
     extrusion('Reception plinth',(x,.14,z),3.42,1.03,.22,.48,M['darkmint'])
     extrusion('Curved oak reception',(x,.7,z),3.35,1.0,1.05,.46,M['oak'])
-    for i in range(47):
-        t=pi*i/46
-        px=x+1.65*cos(t); pz=z+.49*sin(t)
-        box('Reception curved flute',(px,.7,pz),(.025,.93,.045),M['cream'],.008)
+    # Flutes follow the actual rounded rectangle, not an unrelated ellipse.
+    for i in range(23):
+        px=x-1.12+i*.102
+        box('Reception subtle flute',(px,.7,z+.502),(.014,.9,.012),M['oak'],.004)
     extrusion('Quartz counter',(x,1.26,z),3.58,1.17,.14,.51,M['white'])
     emblem((x,.72,z+.54),.72)
     monitor((-5.75,1.34,5.0),pi)
@@ -386,8 +399,9 @@ def garden_shrub(at):
 
 def interior():
     box('Hospital foundation',(0,-.36,.15),(14.4,.42,12.55),M['cream'],.18)
-    for z in range(12):
-        box('Hall tile',(0,.02,-5.5+z),(1.97,.05,.976),M['floor'],.012)
+    box('Continuous hall floor',(0,.025,0),(2,.05,12),M['floor'],.008)
+    for z in range(11):
+        box('Hall shallow joint',(0,.051,-5+z),(2,.001,.009),M['grout'],0)
     floor_room(-4,3,'floor',2.15); floor_room(-4,-3,'mint',3.05)
     floor_room(4,-3,'floor',3.05); floor_room(4,3,'mint',2.15)
     for x in [-1,1]:
@@ -413,7 +427,7 @@ def interior():
         for z in [-4.9,-1.1,1.1,4.9]: tube('Hall handrail',[(side*.82,.86,z-.55),(side*.82,.86,z+.55)],.035,M['oak'])
     for at in [(-6.3,0,.85),(-2.1,0,4.9),(6.4,0,4.8)]: plant(at,.8)
     # Low garden edge frames the playable rooms without covering the walking paths.
-    box('Garden soil',(0,-.67,.4),(18.5,.25,16),M['leaf'],.25)
+    box('Garden soil',(0,-.67,.4),(18.5,.25,16),M['garden'],.25)
     for x,z in [(-7.7,-4.5),(-7.7,-1.5),(-7.7,2),(-7.7,5),(-6,7),(-4.3,7),(5,7),(6.7,7)]:
         plant((x,-.5,z),.85,True)
     for at in [(-7.7,-.5,5.8),(-6.8,-.5,6.6),(-5.4,-.5,6.6),(6.9,-.5,6.5),(7.6,-.5,5.7)]: garden_shrub(at)
@@ -434,10 +448,48 @@ def bake_export(name,ao_size=2048):
     """Bake shared UV2 ambient occlusion and export a small set of material surfaces."""
     objs=[o for o in scene.objects if o.type=='MESH']
     for o in objs: simple_uv(o)
+    # Preserve separately editable furniture; only the joined mesh is exported.
+    authoring=bpy.data.collections.new(name+' — editable parts')
+    scene.collection.children.link(authoring)
+    source_materials={}
+    for o in objs:
+        copy=o.copy(); copy.data=o.data.copy(); authoring.objects.link(copy)
+        copy.name='Source · '+o.name
+        for i,m in enumerate(copy.data.materials):
+            if m not in source_materials: source_materials[m]=m.copy()
+            copy.data.materials[i]=source_materials[m]
+        copy.hide_set(True); copy.hide_render=True
+    authoring.hide_viewport=True
+    authoring.hide_render=True
+    for source in authoring.objects:
+        source.hide_set(False); source.hide_render=False
+    # Spend triangles on the silhouettes the player actually reads. Reduce
+    # tiny repeated parts BEFORE UV baking instead of collapsing the finished
+    # CT, cushions and AO charts together after baking.
+    protected=('Sculpted CT','Mint bore','Upholstered','Soft seat','Curved padded',
+               'Rolled armrest','Quartz counter','Curved oak reception',
+               'Continuous treatment','Collimator','Mattress','Linen pillow')
+    counts={o:sum(len(p.vertices)-2 for p in o.data.polygons) for o in objs}
+    keep=sum(n for o,n in counts.items() if o.name.startswith(protected) or n<150)
+    reducible=sum(counts.values())-keep
+    ratio=min(1,max(.05,(265000-keep)/max(1,reducible)))
+    reduced=[]
+    for o,n in counts.items():
+        if o.name.startswith(protected) or n<150: continue
+        mod=o.modifiers.new('Secondary detail budget','DECIMATE'); mod.ratio=ratio
+        reduced.append(o)
+    # Evaluate once. Applying thousands of operators individually rebuilds
+    # the whole dependency graph for every small key/leaf.
+    depsgraph=bpy.context.evaluated_depsgraph_get()
+    evaluated={o:bpy.data.meshes.new_from_object(o.evaluated_get(depsgraph),preserve_all_data_layers=True,depsgraph=depsgraph) for o in reduced}
+    for o,data in evaluated.items():
+        o.modifiers.clear(); o.data=data
+    print('DETAIL_BUDGET',name,'source',sum(counts.values()),'protected',keep,flush=True)
     bpy.ops.object.select_all(action='DESELECT')
     for o in objs:o.select_set(True)
     bpy.context.view_layer.objects.active=objs[0]; bpy.ops.object.join()
     obj=bpy.context.object; obj.name=name
+    obj['authoring_triangles']=sum(counts.values())
     assert len(obj.data.uv_layers)==1, 'Exactly one surface UV layer is required before AO'
     uv=obj.data.uv_layers.new(name='ContactAO'); obj.data.uv_layers.active=uv; uv.active_render=True
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
@@ -449,6 +501,7 @@ def bake_export(name,ao_size=2048):
         tex=m.node_tree.nodes.new('ShaderNodeTexImage'); tex.name='Baked contact AO'; tex.image=image; m.node_tree.nodes.active=tex
     scene.render.bake.target='IMAGE_TEXTURES'; scene.cycles.samples=128
     bpy.ops.object.bake(type='AO')
+    soften_contact_atlas(image)
     image.filepath_raw=str(TEX/(name+'-ao.png')); image.file_format='PNG'; image.save()
     for m in used:
         nt=m.node_tree; tex=nt.nodes.get('Baked contact AO')

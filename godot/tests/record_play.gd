@@ -2,9 +2,11 @@ extends SceneTree
 # Engine Movie Maker records the same interactive game; this driver sends real UI input.
 var game: Control
 var output := ""
+var simulation_speed := 4
+var hold_scale := 1.0
 
 func hold(seconds: float) -> void:
- for frame in range(int(seconds*24)):
+ for frame in range(int(seconds*24*hold_scale)):
   await process_frame
 
 func click(control: Control) -> void:
@@ -30,6 +32,9 @@ func click(control: Control) -> void:
 func run() -> void:
  for arg in OS.get_cmdline_user_args():
   if arg.begins_with("--output-dir="): output = arg.trim_prefix("--output-dir=")
+  if arg == "--brief":
+   simulation_speed = 6
+   hold_scale = 0.5
  if output.is_empty(): quit(1); return
  root.size = Vector2i(1280,720)
  game = load("res://main.tscn").instantiate()
@@ -60,10 +65,10 @@ func run() -> void:
  var bought := false
  var shown_dual := false
  for frame in range(4800):
-  game.sim.tick(4.0/24.0)
+  game.sim.tick(float(simulation_speed)/24.0)
   game.world.sync(game.sim,game.selected_id,1.0/24.0)
   game.refresh()
-  game.scene_caption.text = "자동 플레이 시연 · 진료 4배속"
+  game.scene_caption.text = "자동 플레이 시연 · 진료 %d배속" % simulation_speed
   for p in game.sim.patients:
    if game.sim.needs_action(p):
     await click(game.patient_button)
@@ -97,7 +102,7 @@ func run() -> void:
   await process_frame
  var result := {"passed":game.sim.all_done() and game.sim.money == 1100 and game.sim.max_treating == 2,
   "completed":game.sim.completed(),"money":game.sim.money,"max_treating":game.sim.max_treating,
-  "expanded":game.sim.expanded,"fps":24,"simulation_speed":4,"automatic_input":true,"mobile_performance_test":false}
+  "expanded":game.sim.expanded,"fps":24,"simulation_speed":simulation_speed,"automatic_input":true,"mobile_performance_test":false}
  await hold(2)
  await click(game.next_day_button)
  result["next_day"] = game.sim.day

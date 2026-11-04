@@ -4,9 +4,9 @@
 
 ## 이번 전달
 
-병원 내부·환자·간호사를 별도 Blender/GLB 모델과 구운 접촉 음영으로 교체했다. 이번 영상과 웹 빌드는 이 모델을 사용하는 실제 게임이다. 가로 화면을 기준으로 병원 공간이 창 전체를 차지한다. 오른쪽 아래 아이콘으로 환자 목록·지시 필요·증축·안팎을 조작하고, 왼쪽 아래 버튼으로 확대·축소·전체 보기를 선택한다. 빈 공간 드래그로 시점을 이동한다. 환자를 선택했을 때만 진료 버튼이 열린다.
+Blender 메시의 형태·재질·조명을 정리하고, 크림색 정보 바·둥근 도구 모음·청록 행동 버튼·오른쪽 환자 단계 패널을 적용했다. 하단 가운데에서 병원 전체 보기·환자 목록·진료 지시·증축을 선택한다. 왼쪽 아래에서 안팎 전환과 확대·축소, 상단에서 정지·재생과 1/2배속을 조작한다. 빈 공간 드래그로 시점을 이동한다. 환자를 선택했을 때 진료 패널이 열린다. [전후 비교](art-review.html)와 [제작 기록](art-review.md)을 함께 볼 수 있다.
 
-- `docs/media/playthrough.mp4`: 실제 Godot에서 자동 입력으로 진행한 플레이 시연. 약 55초, 1280×720, 24fps, 진료 4배속, 무음. 원본 AVI가 아닌 압축된 전달용 MP4를 소스와 함께 보관한다.
+- `docs/media/playthrough.mp4`: 실제 Godot에서 자동 입력으로 진행한 플레이 시연. 약 35초, 1280×720, 24fps, 진료 6배속, 무음. 원본 AVI가 아닌 압축된 전달용 MP4를 소스와 함께 보관한다.
 - Web 내보내기: Godot 4.6.3의 단일 스레드 WebGL 2 빌드. 캐시·저장·테스트 자료·원본 기획서는 웹 배포에 넣지 않는다.
 - 데스크톱 Chromium에서 실제 캔버스 클릭 → 환자 목록 열기 → 환자 선택 → 접수 → CT로 이동과 IndexedDB 저장을 확인했다.
 - 844×390 터치 에뮬레이션에서도 화면을 채우는 캔버스와 실제 탭 → 목록 → 접수 → 저장을 확인했다. 실제 iPhone/Safari의 성능·저장 유지·전체 진료는 아직 검증하지 않았다.
@@ -24,7 +24,7 @@
 ```sh
 ./tools/setup.sh
 ./tools/test-godot.sh
-python3 tools/run-visual-qa.py --movie --output-dir="$PWD/artifacts/playthrough"
+python3 tools/run-visual-qa.py --movie --brief --output-dir="$PWD/artifacts/playthrough"
 python3 tools/export-game.py Web
 python3 tools/test-web.py
 python3 tools/test-web.py --touch

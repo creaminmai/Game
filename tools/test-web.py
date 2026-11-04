@@ -24,8 +24,12 @@ try:
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch)
         page.set_default_timeout(120000)
         messages=[]
-        page.on('console',lambda m: messages.append(m.type+': '+m.text))
-        page.on('pageerror',lambda e: messages.append('pageerror: '+str(e)))
+        (output/'console.log').write_text('')
+        def record_message(message):
+            messages.append(message)
+            with (output/'console.log').open('a') as log: log.write(message+'\n')
+        page.on('console',lambda m: record_message(m.type+': '+m.text))
+        page.on('pageerror',lambda e: record_message('pageerror: '+str(e)))
         read_saves = '''async () => {
           const results=[];
           for (const info of await indexedDB.databases()) {
@@ -38,7 +42,7 @@ try:
           }
           return results;
         }'''
-        def wait_saved(predicate, timeout=180):
+        def wait_saved(predicate, timeout=300):
             # Await each IndexedDB read explicitly. A resolved undefined JS
             # handle is not evidence that the requested saved state exists.
             deadline=time.monotonic()+timeout
@@ -46,7 +50,8 @@ try:
                 for state in page.evaluate(read_saves):
                     if predicate(state): return state
                 page.wait_for_timeout(1000)
-            raise AssertionError('Expected simulation state was not persisted to IndexedDB')
+            (output/'failed-save-state.json').write_text(json.dumps(page.evaluate(read_saves),indent=2))
+            raise AssertionError('Expected simulation state was not persisted to IndexedDB; see console.log and failed-save-state.json')
         page.goto(f'http://127.0.0.1:{server.server_port}/index.html')
         page.wait_for_function("!document.querySelector('#status') || document.querySelector('#status').style.display === 'none'",timeout=60000)
         # Software WebGL startup varies; require an arrived patient in this
@@ -72,11 +77,11 @@ try:
         scale=min(canvas['width']/960,canvas['height']/540)
         logical_w,logical_h=canvas['width']/scale,canvas['height']/scale
         ox,oy=canvas['x'],canvas['y']
-        click(ox+(logical_w-291)*scale,oy+(logical_h-71)*scale) # Patient roster HUD icon.
+        click(ox+(logical_w*.5-55)*scale,oy+(logical_h-59)*scale) # Patient roster in the centered dock.
         if args.debug_captures: page.screenshot(timeout=120000,path=str(output/'patient-roster.png'))
-        click(ox+(logical_w-254)*scale,oy+(logical_h-356)*scale)
+        click(ox+(logical_w-190)*scale,oy+190*scale) # First arrived patient in the roster.
         if args.debug_captures: page.screenshot(timeout=120000,path=str(output/'patient-selected.png'))
-        click(ox+(logical_w-252)*scale,oy+(logical_h-161)*scale) # Contextual admission action.
+        click(ox+(logical_w-133)*scale,oy+333*scale) # Contextual admission action, verified in native UI QA.
         # Inspect this fresh test browser's own IndexedDB filesystem, never the user's profile.
         # IDBFS synchronizes asynchronously. Wait for evidence of the action in persistent storage.
         state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])

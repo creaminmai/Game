@@ -57,6 +57,8 @@ func check_layout(caption: String) -> void:
  controls.append_array([game.pause_button,game.outside_button,game.expansion_button,game.action_button,game.next_button,game.notice,
   game.patient_button,game.zoom_in_button,game.zoom_out_button,game.overview_button,game.selection_panel,game.detail,game.dismiss_button,
   game.money_panel,game.goal,game.next_day_button,game.roster_close])
+ controls.append(game.speed_button)
+ for stage in game.stages: controls.append(stage)
  for control in controls:
   if control.is_visible_in_tree() and not screen.encloses(control.get_global_rect()):
    printerr("Outside viewport: ",control.name," ",control.get_global_rect()," screen ",screen)
@@ -76,6 +78,10 @@ func run() -> void:
  await settle()
  game.set_process(false)
  check(game.no_save,"QA never reads or writes user save")
+ await click(game.speed_button)
+ check(game.playback_speed == 2.0,"speed button enables double-speed play")
+ await click(game.speed_button)
+ check(game.playback_speed == 1.0,"speed button restores normal speed")
  check(game.rows.size() == 4 and game.rows[1].disabled,"future arrivals visible but not selectable")
  check(not game.roster.visible and not game.selection_panel.visible,"HUD starts without list or patient card")
  await click(game.patient_button)
@@ -102,6 +108,25 @@ func run() -> void:
     ao_correct = ao_correct and material.ao_on_uv2
  check(ao_correct and ao_count >= 25,"imported hospital occlusion uses its atlas coordinates")
  await shot("01-fullscreen-game")
+ game.select_patient(1)
+ await settle()
+ var targets := {}
+ for key in ["patient_button","action_button"]:
+  var rect: Rect2 = game.get(key).get_global_rect()
+  targets[key] = [rect.get_center().x,rect.get_center().y]
+ FileAccess.open(output.path_join("ui-targets.json"),FileAccess.WRITE).store_string(JSON.stringify(targets))
+ root.size = Vector2i(1280,720)
+ await settle()
+ await settle()
+ game.refresh()
+ await settle()
+ check_layout("1280x720 selected-patient review")
+ check(game.viewport.size == Vector2i(1280,720),"world renders at display resolution independently of the logical HUD")
+ print("REVIEW PANEL: ",game.selection_panel.get_global_rect()," world render: ",game.viewport.size)
+ await shot("01-patient-admission")
+ root.size = Vector2i(960,540)
+ game.clear_selection()
+ await settle()
  var initial_zoom: float = game.world.camera.size
  await click(game.zoom_in_button)
  check(game.world.camera.size < initial_zoom,"zoom button enlarges actual 3D")

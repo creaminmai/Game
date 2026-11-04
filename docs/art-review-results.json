@@ -1,0 +1,148 @@
+{
+  "date_utc": "2026-11-04",
+  "baseline_commit": "e195a33674f4409a4a54e58c93c3ab107dfea552",
+  "engine": "Godot 4.6.3 stable official",
+  "authoring": "Blender 4.3.2",
+  "renderer": "Linux Compatibility / OpenGL / Mesa llvmpipe",
+  "simulation": {
+    "checks": 51,
+    "failures": 0
+  },
+  "engine_input": {
+    "android_ios_tested": false,
+    "checks": 116,
+    "completed": 4,
+    "dual_treatment_captured": true,
+    "failures": [],
+    "money_after_day_one": 1100,
+    "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+    "passed": true,
+    "selected_by_real_input": 7
+  },
+  "web_desktop": {
+    "passed": true,
+    "browser": "Chromium desktop / SwiftShader",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "mobile_tested": false
+  },
+  "web_touch": {
+    "passed": true,
+    "browser": "Chromium touch emulation",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "mobile_tested": false
+  },
+  "movie_scenario": {
+    "automatic_input": true,
+    "completed": 4,
+    "expanded": true,
+    "fps": 24,
+    "max_treating": 2,
+    "mobile_performance_test": false,
+    "money": 1100,
+    "next_day": 2,
+    "passed": true,
+    "simulation_speed": 6
+  },
+  "movie_metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720,
+        "color_space": "bt709",
+        "r_frame_rate": "24/1"
+      }
+    ],
+    "format": {
+      "duration": "34.791667",
+      "size": "2282077"
+    }
+  },
+  "movie_full_decode_passed": true,
+  "movie_sha256": "bcec31b313272a0bf9e2da8da0797fb2f35cd37fe9bc05b10fe5e1d9966b4441",
+  "source_audit": [
+    {
+      "name": "hospital-interior",
+      "editable_parts": 1549,
+      "packed_images": [
+        {
+          "name": "Coral woven upholstery surface",
+          "space": "sRGB",
+          "packed": true
+        },
+        {
+          "name": "Honey oak surface",
+          "space": "sRGB",
+          "packed": true
+        },
+        {
+          "name": "hospital-interior AO",
+          "space": "Non-Color",
+          "packed": true
+        },
+        {
+          "name": "Warm linen surface",
+          "space": "sRGB",
+          "packed": true
+        }
+      ],
+      "cameras": 1
+    },
+    {
+      "name": "treatment-annex",
+      "editable_parts": 80,
+      "packed_images": [
+        {
+          "name": "Honey oak surface",
+          "space": "sRGB",
+          "packed": true
+        },
+        {
+          "name": "treatment-annex AO",
+          "space": "Non-Color",
+          "packed": true
+        },
+        {
+          "name": "Warm linen surface",
+          "space": "sRGB",
+          "packed": true
+        }
+      ],
+      "cameras": 1
+    },
+    {
+      "name": "patient",
+      "editable_parts": 0,
+      "packed_images": [
+        {
+          "name": "Warm linen surface",
+          "space": "sRGB",
+          "packed": true
+        }
+      ],
+      "cameras": 1
+    },
+    {
+      "name": "nurse",
+      "editable_parts": 0,
+      "packed_images": [
+        {
+          "name": "Warm linen surface",
+          "space": "sRGB",
+          "packed": true
+        }
+      ],
+      "cameras": 1
+    }
+  ],
+  "real_mac_iphone_safari_verified": false,
+  "public_pages_access_verified": false
+}

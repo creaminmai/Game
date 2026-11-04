@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><defs>
+<linearGradient id="cream" x2="0" y2="1"><stop stop-color="#fffdf1"/><stop offset="1" stop-color="#f6e4c5"/></linearGradient>
+<linearGradient id="teal" x2="0" y2="1"><stop stop-color="#73d2b4"/><stop offset="1" stop-color="#299b89"/></linearGradient>
+<linearGradient id="gold" x2="0" y2="1"><stop stop-color="#ffe988"/><stop offset="1" stop-color="#edac3c"/></linearGradient>
+<linearGradient id="coral" x2="0" y2="1"><stop stop-color="#ffb49a"/><stop offset="1" stop-color="#e58068"/></linearGradient>
+</defs><path d="M30 15q17 9 36 0l-6 20q30 34 15 47q-27 14-51-1Q9 65 37 35Z" fill="url(#gold)" stroke="#b98236" stroke-width="2"/><path d="M32 35q18 5 33 0" stroke="#9f743b" stroke-width="4" fill="none"/><path d="M42 54q19-9 18 3t-17 7q-2 12 18 5M51 48v29" fill="none" stroke="#fff4c3" stroke-width="4" stroke-linecap="round"/></svg>

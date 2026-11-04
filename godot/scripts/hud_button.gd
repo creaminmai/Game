@@ -1,9 +1,17 @@
 class_name HospitalHudButton
 extends Button
 var symbol := ""
+static var icon_cache := {}
 
 func _draw() -> void:
- var ink := Color("fff1d5") if not disabled else Color("9aa89b")
+ var path := "res://assets/ui/"+symbol+".svg"
+ if ResourceLoader.exists(path):
+  if not icon_cache.has(symbol): icon_cache[symbol] = load(path)
+  var pixels := minf(49,minf(size.x,size.y)-8)
+  draw_texture_rect(icon_cache[symbol],Rect2((size-Vector2.ONE*pixels)*0.5,Vector2.ONE*pixels),false,Color(1,1,1,0.45) if disabled else Color.WHITE)
+  return
+ var ink := Color("418e7b") if not disabled else Color("9aa89b")
+ if symbol in ["pause","play"]: ink = Color("fff5dc")
  var c := size*0.5
  var r := 13.0
  match symbol:
