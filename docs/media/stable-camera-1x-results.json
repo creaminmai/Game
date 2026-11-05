@@ -1,0 +1,109 @@
+{
+  "admissions": 1,
+  "automatic_input": true,
+  "explicit_detail_view": true,
+  "followed_patient_id": 1,
+  "fps": 24,
+  "max_camera_shift": 0.0,
+  "max_zoom_delta": 0.0,
+  "mobile_performance_test": false,
+  "observed_states": [
+    "entering",
+    "waiting",
+    "walk_ct",
+    "ct_scan",
+    "walk_plan",
+    "plan_ready",
+    "planning",
+    "walk_treatment",
+    "treatment"
+  ],
+  "overview_restored": true,
+  "passed": true,
+  "plan_instructions": 1,
+  "real_canvas_clicks": 5,
+  "recorded_frames": 1296,
+  "selected_by_ray": 1,
+  "simulation_seconds": 53.9916666666658,
+  "simulation_speed": 1,
+  "stable_camera_until_seconds": 44,
+  "stage_camera_trace": [
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "walk_ct",
+      "time": 10.0333333333333
+    },
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "ct_scan",
+      "time": 16.0333333333332
+    },
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "walk_plan",
+      "time": 21.0333333333334
+    },
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "plan_ready",
+      "time": 25.1166666666668
+    },
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "planning",
+      "time": 26.6166666666669
+    },
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "walk_treatment",
+      "time": 31.741666666667
+    },
+    {
+      "camera_center": [
+        -0.0888755097985268,
+        2.07876396179199,
+        -0.22217383980751
+      ],
+      "camera_size": 14.3314647674561,
+      "patient_id": 1,
+      "state": "treatment",
+      "time": 36.8666666666668
+    }
+  ]
+}

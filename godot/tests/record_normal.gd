@@ -1,5 +1,6 @@
 extends SceneTree
 # 54 seconds of the real running game at 1x. Only input is automated.
+# One patient remains selected from admission through CT, planning and treatment.
 # No simulation jumps, accelerated tick loop, state edits or hidden cuts.
 var game: Control
 var output := ""
@@ -70,44 +71,57 @@ func run() -> void:
  var first_frame := Engine.get_process_frames()
  var start_time: float = game.sim.time
  var done := {}
- var plan_due := {}
+ var plan_due := -1.0
  var seen := {}
+ var trace: Array = []
+ var last_state := ""
+ var stable_center := Vector3.ZERO
+ var stable_size := 0.0
+ var max_shift := 0.0
+ var max_zoom_delta := 0.0
+ var detail_requested := false
+ var overview_restored := false
  while Engine.get_process_frames()-first_frame < 54*24:
   var elapsed: float = game.sim.time-start_time
-  for p in game.sim.patients: seen[p.state] = true
+  var p: Dictionary = game.sim.get_patient(1)
+  if not p.is_empty(): seen[p.state] = true
   if elapsed >= 7 and not done.has("select1"):
    await select_patient(1,true); done.select1 = true
   elif elapsed >= 9 and not done.has("admit1"):
    await click(game.action_button); admitted += 1; done.admit1 = true
-  elif elapsed >= 12 and not done.has("select2"):
-   await select_patient(2); done.select2 = true
-  elif elapsed >= 14 and not done.has("admit2"):
-   await click(game.action_button); admitted += 1; done.admit2 = true
-  elif elapsed >= 20 and not done.has("ct"):
-   await select_patient(1); done.ct = true
-  elif elapsed >= 44 and not done.has("treat"):
-   await click(game.overview_button)
-   await process_frame
-   await select_patient(1,true); done.treat = true
-  elif elapsed >= 49 and not done.has("queue"):
-   await select_patient(2); done.queue = true
-  for id in [1,2]:
-   var p: Dictionary = game.sim.get_patient(id)
-   if not p.is_empty() and p.state == "plan_ready":
-    if not plan_due.has(id):
-     await select_patient(id)
-     plan_due[id] = elapsed+1.5
-    elif elapsed >= plan_due[id]:
-     if game.selected_id != id: await select_patient(id)
-     await click(game.action_button)
-     plans += 1
+  elif elapsed >= 44 and not done.has("detail"):
+   await click(game.patient_view_button); done.detail = true
+  elif elapsed >= 49 and not done.has("overview"):
+   await click(game.overview_button); done.overview = true
+  if not p.is_empty() and p.state == "plan_ready":
+   if plan_due < 0: plan_due = elapsed+1.5
+   elif elapsed >= plan_due:
+    await click(game.action_button)
+    plans += 1
+  if elapsed >= 10 and elapsed < 44:
+   if stable_size == 0:
+    stable_center = game.world.view_center
+    stable_size = game.world.camera.size
+   max_shift = maxf(max_shift,stable_center.distance_to(game.world.view_center))
+   max_zoom_delta = maxf(max_zoom_delta,absf(stable_size-game.world.camera.size))
+   if p.state != last_state:
+    var center: Vector3 = game.world.view_center
+    trace.append({"time":elapsed,"patient_id":1,"state":p.state,"camera_center":[center.x,center.y,center.z],"camera_size":game.world.camera.size})
+    last_state = p.state
+  if elapsed >= 46 and elapsed < 49:
+   detail_requested = game.world.camera.size < stable_size*.85
+  if elapsed >= 50:
+   overview_restored = absf(game.world.camera.size-stable_size) < .01 and game.world.view_center.distance_to(stable_center) < .01
   await process_frame
  game.set_process(false)
  var simulated: float = game.sim.time-start_time
  var frames := Engine.get_process_frames()-first_frame
- var result := {"passed":admitted == 2 and plans == 2 and selected_by_ray == 2 and seen.has("ct_scan") and seen.has("treatment") and seen.has("treatment_queue") and absf(simulated-float(frames)/24.0) < .1,
+ var stable := max_shift < .01 and max_zoom_delta < .001
+ var result := {"passed":admitted == 1 and plans == 1 and selected_by_ray == 1 and seen.has("ct_scan") and seen.has("planning") and seen.has("treatment") and stable and detail_requested and overview_restored and absf(simulated-float(frames)/24.0) < .1,
   "automatic_input":true,"simulation_speed":1,"recorded_frames":frames,"simulation_seconds":simulated,
   "admissions":admitted,"plan_instructions":plans,"real_canvas_clicks":click_count,"selected_by_ray":selected_by_ray,
+  "followed_patient_id":1,"stable_camera_until_seconds":44,"max_camera_shift":max_shift,"max_zoom_delta":max_zoom_delta,"stage_camera_trace":trace,
+  "explicit_detail_view":detail_requested,"overview_restored":overview_restored,
   "observed_states":seen.keys(),"mobile_performance_test":false,"fps":24}
  FileAccess.open(output.path_join("movie-results.json"),FileAccess.WRITE).store_string(JSON.stringify(result,"  "))
  print("MOVIE NORMAL: ",JSON.stringify(result))

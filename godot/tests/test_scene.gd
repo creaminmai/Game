@@ -5,6 +5,11 @@ var failures: Array[String] = []
 var output := ""
 var selected_by_input := 0
 var collision_models := {}
+var camera_metrics := {}
+
+func camera_snapshot() -> Dictionary:
+ var center: Vector3 = game.world.view_center
+ return {"center":[center.x,center.y,center.z],"size":game.world.camera.size}
 
 func check(condition: bool, caption: String) -> void:
  checks += 1
@@ -15,6 +20,8 @@ func check(condition: bool, caption: String) -> void:
 func settle() -> void:
  await process_frame
  await process_frame
+ if is_instance_valid(game) and is_instance_valid(game.world):
+  while game.world.transition_active: await process_frame
 
 func model_bounds(model: Node3D) -> AABB:
  var found := false
@@ -59,7 +66,7 @@ func check_layout(caption: String) -> void:
  controls.append_array([game.pause_button,game.outside_button,game.expansion_button,game.action_button,game.next_button,game.notice,
   game.patient_button,game.zoom_in_button,game.zoom_out_button,game.overview_button,game.selection_panel,game.detail,game.dismiss_button,
   game.money_panel,game.goal,game.next_day_button,game.roster_close])
- controls.append_array([game.speed_button,game.reason_label,game.speech_bubble])
+ controls.append_array([game.speed_button,game.reason_label,game.speech_bubble,game.patient_view_button])
  for stage in game.stages: controls.append(stage)
  for control in controls:
   if control.is_visible_in_tree() and not screen.encloses(control.get_global_rect()):
@@ -74,7 +81,7 @@ func check_projected(points: Array[Vector3], caption: String) -> void:
  var scale_to_hud := game.size/Vector2(game.viewport.size)
  for point in points:
   var pixel: Vector2 = game.world.camera.unproject_position(point)*scale_to_hud
-  clear = clear and pixel.y > 120 and pixel.y < game.size.y-94 and pixel.x > 122
+  clear = clear and pixel.y > 120 and pixel.y < game.size.y-94 and pixel.x > 20
   clear = clear and pixel.x < game.size.x-18
   if game.selection_panel.visible:
    clear = clear and not game.selection_panel.get_global_rect().grow(6).has_point(pixel)
@@ -180,8 +187,14 @@ func run() -> void:
  check_projected([Vector3(-5.43,3.05,-3.7),Vector3(-2.57,3.05,-3.7),Vector3(-4,1.1,-1.53)],"default framing keeps CT clear of header and goal")
  check(not game.notice.is_visible_in_tree(),"no persistent instruction text over the hospital")
  await shot("01-fullscreen-game")
+ camera_metrics.default_view = camera_snapshot()
+ var operating_size: float = game.world.camera.size
+ var operating_center: Vector3 = game.world.view_center
  game.select_patient(1)
  await settle()
+ check(is_equal_approx(game.world.camera.size,operating_size),"opening patient card keeps operating zoom")
+ check(game.world.view_center.is_equal_approx(operating_center),"selecting an already visible patient keeps camera position")
+ camera_metrics.patient_card = camera_snapshot()
  var targets := {}
  for key in ["patient_button","action_button"]:
   var rect: Rect2 = game.get(key).get_global_rect()
@@ -196,6 +209,29 @@ func run() -> void:
  check(game.viewport.size == Vector2i(1280,720),"world renders at display resolution independently of the logical HUD")
  print("REVIEW PANEL: ",game.selection_panel.get_global_rect()," world render: ",game.viewport.size)
  await shot("01-patient-admission")
+ await click(game.patient_view_button)
+ check(game.world.camera.size < operating_size*.85,"explicit patient-view button enlarges the patient")
+ await shot("01-explicit-patient-view")
+ await click(game.overview_button)
+ check(is_equal_approx(game.world.camera.size,operating_size) and game.world.view_center.is_equal_approx(operating_center),"hospital button restores the stable operating view")
+ game.world.focus_patient(game.sim.get_patient(1))
+ check(game.world.transition_active and is_equal_approx(game.world.camera.size,operating_size),"automatic transition starts without snapping")
+ game.world._process(.21)
+ check(game.world.camera.size < operating_size and game.world.camera.size > game.world.target_size,"transition passes through an intermediate view at 0.21 seconds")
+ await settle()
+ await click(game.overview_button)
+ game.world.zoom_by(.7)
+ game.world.pan_by(Vector2(-1600,0))
+ var offscreen: Vector2 = game.world.camera.unproject_position(game.world.actors[1].head.global_position)
+ check(not game.world.play_area.has_point(offscreen),"offscreen-selection test starts with the patient outside the usable view")
+ var preserved_zoom: float = game.world.camera.size
+ game.select_patient(1)
+ await settle()
+ var revealed: Vector2 = game.world.camera.unproject_position(game.world.actors[1].head.global_position)
+ check(game.world.play_area.has_point(revealed) and is_equal_approx(game.world.camera.size,preserved_zoom),"offscreen selection pans the patient into view without zooming")
+ var nearest: Vector2 = offscreen.clamp(game.world.play_area.position,game.world.play_area.end)
+ check(offscreen.distance_to(revealed) <= offscreen.distance_to(nearest)+45,"offscreen reveal stops near the edge instead of centering the room")
+ await click(game.overview_button)
  root.size = Vector2i(960,540)
  game.clear_selection()
  await settle()
@@ -259,6 +295,15 @@ func run() -> void:
  Input.parse_input_event(press)
  await settle()
  check(game.world.view_center != old_center and game.selected_id == old_selection,"world drag pans without selecting")
+ await click(game.zoom_in_button)
+ var manual_center: Vector3 = game.world.view_center
+ var manual_size: float = game.world.camera.size
+ await click(game.action_button)
+ game.sim.tick(.5)
+ game.refresh()
+ await settle()
+ check(game.sim.get_patient(1).state != "waiting","manual-camera regression includes an actual patient state change")
+ check(not game.world.auto_frame and game.world.view_center.is_equal_approx(manual_center) and is_equal_approx(game.world.camera.size,manual_size),"state updates preserve user drag and zoom")
  await click(game.pause_button)
  var frozen: Dictionary = game.sim.snapshot()
  game.sim.tick(3)
@@ -276,11 +321,22 @@ func run() -> void:
  var restore_checked := false
  var poses_checked := {}
  var selected_states := {}
+ var roster_camera_checked := false
  for iteration in range(600):
   for p in game.sim.patients:
    if game.sim.needs_action(p):
+    var check_roster_camera := false
+    if p.state == "plan_ready" and not roster_camera_checked and not game.sim.expanded:
+     game.clear_selection()
+     await click(game.overview_button)
+     var patient_pixel: Vector2 = game.world.camera.unproject_position(game.world.actors[p.id].head.global_position)*game.size/Vector2(game.viewport.size)
+     check_roster_camera = patient_pixel.x > game.size.x-378 and patient_pixel.x < game.size.x-264
     await click(game.patient_button)
+    var before_roster_selection: Vector3 = game.world.view_center
     await click(game.rows[p.id-1])
+    if check_roster_camera:
+     check(game.world.view_center.is_equal_approx(before_roster_selection),"roster selection uses the opened card area, not the closed list width")
+     roster_camera_checked = true
     selected_by_input += 1
     await click(game.action_button)
   game.sim.tick(0.5)
@@ -332,11 +388,13 @@ func run() -> void:
    await click(game.overview_button)
    await settle()
    await shot("05-two-treatments")
+   camera_metrics.expanded_view = camera_snapshot()
    dual_seen = true
    var copy = load("res://scripts/hospital_simulation.gd").new()
    restore_checked = copy.restore(game.sim.snapshot()) and copy.paused
   if game.sim.all_done(): break
  check(poses_checked.size() == 3,"CT and both treatment couches verified")
+ check(roster_camera_checked,"roster-to-card camera regression exercised the boundary patient")
  check(game.sim.all_done() and game.sim.completed() == 4,"four patients complete and leave")
  check(game.sim.money == 1100 and expanded,"day one economy after annex")
  check(dual_seen and restore_checked,"concurrent treatment captured and restorable")
@@ -365,7 +423,7 @@ func run() -> void:
   await click(game.dismiss_button)
   check(not game.selection_panel.visible,str(dimensions)+" patient action closes after resize")
   await shot("layout-%dx%d" % [dimensions.x,dimensions.y])
- var report := {"checks": checks,"failures": failures,"passed": failures.is_empty(),"selected_by_real_input": selected_by_input,
+ var report := {"checks": checks,"failures": failures,"passed": failures.is_empty(),"selected_by_real_input": selected_by_input,"camera_views":camera_metrics,
   "completed":4,"money_after_day_one":1100,"dual_treatment_captured":dual_seen,"android_ios_tested":false,
   "note":"Desktop Godot automatic input QA, not manual playtest or mobile performance measurement."}
  var file := FileAccess.open(output.path_join("results.json"),FileAccess.WRITE)

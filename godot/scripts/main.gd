@@ -65,6 +65,7 @@ var notice_timer: Timer
 var speech_bubble: PanelContainer
 var bubble_text: Label
 var recording_caption := ""
+var patient_view_button: Button
 
 func _ready() -> void:
  no_save = "--no-save" in OS.get_cmdline_user_args() or "--qa" in OS.get_cmdline_user_args()
@@ -273,10 +274,19 @@ func build_ui() -> void:
  action_button.custom_minimum_size.y = 44
  action_button.add_theme_font_size_override("font_size",16)
  content.add_child(action_button)
- var patient_link := button("환자 목록  >",toggle_roster)
+ var links := HBoxContainer.new()
+ content.add_child(links)
+ patient_view_button = button("환자 보기",func(): world.focus_patient(sim.get_patient(selected_id)))
+ patient_view_button.tooltip_text = "선택 환자 주변을 자세히 보기 · 병원 버튼으로 기본 시점 복귀"
+ patient_view_button.custom_minimum_size.y = 32
+ patient_view_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ patient_view_button.add_theme_font_size_override("font_size",13)
+ links.add_child(patient_view_button)
+ var patient_link := button("환자 목록",toggle_roster)
  patient_link.custom_minimum_size.y = 32
- patient_link.add_theme_font_size_override("font_size",15)
- content.add_child(patient_link)
+ patient_link.add_theme_font_size_override("font_size",13)
+ patient_link.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ links.add_child(patient_link)
  toast = panel(hud)
  toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
  notice = label_text("",14)
@@ -406,9 +416,12 @@ func layout_hud() -> void:
   var right := w-18
   if selection_panel.visible: right = selection_panel.position.x-12
   if roster.visible: right = minf(right,roster.position.x-12)
-  var safe := Rect2(126,124,maxf(180,right-126),maxf(120,h-224))
+  var safe := Rect2(24,124,maxf(180,right-24),maxf(120,h-224))
+  # The hospital floor may extend behind the dock; important patient anchors
+  # use the tighter safe area. A card never participates in fitting the model.
+  var operating := Rect2(24,76,w-48,h-108)
   var scale_to_render := Vector2(viewport.size)/size
-  world.set_play_area(Rect2(safe.position*scale_to_render,safe.size*scale_to_render))
+  world.set_play_area(Rect2(safe.position*scale_to_render,safe.size*scale_to_render),Rect2(operating.position*scale_to_render,operating.size*scale_to_render))
   update_bubble()
 
 func show_notice(message: String) -> void:
@@ -457,7 +470,6 @@ func toggle_roster() -> void:
 
 func clear_selection() -> void:
  selected_id = -1
- world.show_overview()
  refresh()
 
 func scene_input(event: InputEvent) -> void:
@@ -485,7 +497,7 @@ func select_patient(id: int) -> void:
  if sim.get_patient(id).is_empty(): return
  selected_id = id
  roster.hide()
- world.focus_patient(sim.get_patient(id))
+ world.select_patient(sim.get_patient(id))
  refresh()
 
 func select_next_action() -> void:
@@ -515,7 +527,6 @@ func toggle_outside() -> void:
   outside = false
   sim.paused = previous_pause
  world.show_outside(outside)
- if not outside and not sim.get_patient(selected_id).is_empty(): world.focus_patient(sim.get_patient(selected_id))
  refresh()
 
 func open_expansion() -> void:

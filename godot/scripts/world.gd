@@ -14,12 +14,19 @@ var exterior_annex: Node3D
 var expansion_sign: Label3D
 var view_center := Vector3(-0.35,0.7,-0.5)
 var close_size := 12.7
-var overview_mode := false
+var overview_mode := true
 var auto_frame := true
 var play_area := Rect2()
 var focus_patient_data: Dictionary = {}
-var focus_signature := ""
-var framing_bounds := AABB()
+var operating_area := Rect2()
+const CAMERA_TRANSITION_SECONDS := 0.42
+const CAMERA_OFFSET := Vector3(8,21,29)
+var transition_active := false
+var transition_elapsed := 0.0
+var transition_from := Vector3.ZERO
+var transition_from_size := 14.0
+var target_center := Vector3.ZERO
+var target_size := 14.0
 var staff_models: Array[HospitalActor] = []
 
 func _ready() -> void:
@@ -59,77 +66,114 @@ func _ready() -> void:
  get_viewport().size_changed.connect(frame_camera)
  frame_camera()
 
-func set_play_area(rect: Rect2) -> void:
- if play_area.is_equal_approx(rect): return
+func set_play_area(rect: Rect2, operating_rect: Rect2) -> void:
+ var resized := not operating_area.is_equal_approx(operating_rect)
  play_area = rect
- frame_camera()
+ operating_area = operating_rect
+ # Opening a card/list changes only visibility checks, never the zoom.
+ if resized and auto_frame and overview_mode: frame_camera()
 
-func subject_bounds() -> AABB:
+func operating_bounds() -> AABB:
  if outside: return AABB(Vector3(-9,0,-5.5),Vector3(21,5.8,13.5))
- if not overview_mode and focus_patient_data.is_empty():
-  return AABB(Vector3(-6.5,0,-5.55),Vector3(7.1,3.2,11.3))
- if overview_mode:
-  return AABB(Vector3(-7.1,0,-5.85),Vector3(20.3 if wing_built else 14.2,3.2,11.9))
- var p := focus_patient_data
- match p.state:
-  "waiting", "ct_queue", "walk_ct":
-   return AABB(Vector3(-6.5,0,-5.55),Vector3(7.1,3.2,11.3))
-  "ct_scan": return AABB(Vector3(-6.4,0,-5.6),Vector3(5.5,3.2,6.2))
-  "walk_plan": return AABB(Vector3(-6.2,0,-5.55),Vector3(12.8,3.2,5.7))
-  "plan_ready", "plan_queue", "planning":
-   return AABB(Vector3(1.0,0,-5.5),Vector3(5.6,3.2,5.2))
-  "treatment_queue":
-   # Include both the waiting patient and the occupied treatment devices.
-   return AABB(Vector3(1.0,0,-5.5),Vector3(11.7 if wing_built else 5.8,3.2,11.3))
-  "walk_treatment":
-   return AABB(Vector3(0,0,-4.9),Vector3(12.7 if p.room == 1 else 6.8,3.2,10.6))
-  "treatment": return AABB(Vector3(1.25+p.room*6,0,0.0),Vector3(5.55,3.2,5.8))
- return AABB(Vector3(-7.1,0,-5.85),Vector3(20.3 if wing_built else 14.2,3.2,12.9))
+ return AABB(Vector3(-7.1,0,-5.85),Vector3(20.3 if wing_built else 14.2,3.2,11.9))
 
-func frame_camera() -> void:
- if not is_instance_valid(camera): return
- camera.position = view_center+Vector3(8,21,29)
- camera.look_at(view_center)
- if not auto_frame:
-  camera.size = close_size
-  return
+func fitted_view(bounds: AABB, area: Rect2) -> Dictionary:
  var pixels := get_viewport().get_visible_rect().size
- var safe := play_area if play_area.has_area() else Rect2(Vector2.ZERO,pixels)
- framing_bounds = subject_bounds()
- var basis_right := camera.global_basis.x
- var basis_up := camera.global_basis.y
+ var safe := area if area.has_area() else Rect2(Vector2.ZERO,pixels).grow(-12)
+ var right := camera.global_basis.x
+ var up := camera.global_basis.y
  var lo := Vector2(INF,INF)
  var hi := Vector2(-INF,-INF)
  for corner in range(8):
-  var point := framing_bounds.get_endpoint(corner)
-  var projection := Vector2(point.dot(basis_right),point.dot(basis_up))
-  lo = lo.min(projection); hi = hi.max(projection)
+  var point := bounds.get_endpoint(corner)
+  var projected := Vector2(point.dot(right),point.dot(up))
+  lo = lo.min(projected); hi = hi.max(projected)
  var span := hi-lo
- camera.size = maxf(span.y*pixels.y/safe.size.y,span.x*pixels.y/safe.size.x)*1.04
- var middle := framing_bounds.get_center()
- var displacement := safe.get_center()-pixels*0.5
- view_center = middle-basis_right*displacement.x*camera.size/pixels.y+basis_up*displacement.y*camera.size/pixels.y
- camera.position = view_center+Vector3(8,21,29)
+ var zoom := maxf(span.y*pixels.y/safe.size.y,span.x*pixels.y/safe.size.x)*1.01
+ var offset := safe.get_center()-pixels*.5
+ var center := bounds.get_center()-right*offset.x*zoom/pixels.y+up*offset.y*zoom/pixels.y
+ return {"center":center,"size":zoom}
+
+func apply_camera() -> void:
+ camera.position = view_center+CAMERA_OFFSET
  camera.look_at(view_center)
- close_size = camera.size
+ camera.size = close_size
+
+func move_camera(center: Vector3, zoom: float, animated: bool = true) -> void:
+ if transition_active and target_center.is_equal_approx(center) and is_equal_approx(target_size,zoom): return
+ target_center = center
+ target_size = zoom
+ transition_from = view_center
+ transition_from_size = camera.size
+ transition_elapsed = 0.0
+ transition_active = animated and (not view_center.is_equal_approx(center) or not is_equal_approx(camera.size,zoom))
+ if not transition_active:
+  view_center = center
+  close_size = zoom
+  apply_camera()
+
+func _process(delta: float) -> void:
+ if not transition_active: return
+ transition_elapsed += delta
+ var t := clampf(transition_elapsed/CAMERA_TRANSITION_SECONDS,0.0,1.0)
+ var eased := t*t*(3.0-2.0*t)
+ view_center = transition_from.lerp(target_center,eased)
+ close_size = lerpf(transition_from_size,target_size,eased)
+ apply_camera()
+ if t >= 1.0: transition_active = false
+
+func frame_camera() -> void:
+ if not is_instance_valid(camera): return
+ apply_camera()
+ if auto_frame and overview_mode:
+  var fit := fitted_view(operating_bounds(),operating_area)
+  move_camera(fit.center,fit.size,false)
 
 func zoom_by(factor: float) -> void:
+ transition_active = false
  auto_frame = false
  overview_mode = false
  close_size = clampf(camera.size*factor,8.0,50.0)
- frame_camera()
+ apply_camera()
 
 func show_overview() -> void:
  overview_mode = true
  auto_frame = true
- frame_camera()
+ var fit := fitted_view(operating_bounds(),operating_area)
+ move_camera(fit.center,fit.size)
+
+func select_patient(p: Dictionary) -> void:
+ focus_patient_data = p
+ # An explicit selection can reveal an offscreen patient at the current zoom.
+ # Merely changing their clinical state never fits a different room.
+ auto_frame = true
+ # The next sync follows HUD layout and actor pose updates. Checking here
+ # would still use the just-closed roster's narrower visible area.
 
 func focus_patient(p: Dictionary) -> void:
+ if p.is_empty(): return
+ focus_patient_data = p
  overview_mode = false
  auto_frame = true
- focus_patient_data = p
- focus_signature = "%d:%s:%d" % [p.id,p.state,p.room]
- frame_camera()
+ var fit := fitted_view(AABB(p.position+Vector3(-2.5,0,-2.5),Vector3(5,3.2,5)),play_area)
+ move_camera(fit.center,fit.size)
+
+func ensure_patient_visible() -> void:
+ if outside or not auto_frame or transition_active or focus_patient_data.is_empty(): return
+ var id: int = focus_patient_data.id
+ if not actors.has(id) or focus_patient_data.state == "complete": return
+ var anchor: Vector3 = actors[id].head.global_position
+ var pixel := camera.unproject_position(anchor)
+ if not play_area.has_area() or play_area.has_point(pixel): return
+ # Move only far enough to bring the head inside a padded visible region.
+ # The inset provides hysteresis so walking along the edge does not chatter.
+ var margin := minf(30.0,play_area.size.y*.12)
+ var inner := play_area.grow(-margin)
+ var desired := pixel.clamp(inner.position,inner.end)
+ var shift := pixel-desired
+ var pixels := get_viewport().get_visible_rect().size
+ var center := view_center+(camera.global_basis.x*shift.x-camera.global_basis.y*shift.y)*camera.size/pixels.y
+ move_camera(center,camera.size)
 
 func ground_point(pixel: Vector2) -> Vector3:
  var origin := camera.project_ray_origin(pixel)
@@ -139,13 +183,14 @@ func ground_point(pixel: Vector2) -> Vector3:
 func pan_by(delta: Vector2) -> void:
  var center := get_viewport().get_visible_rect().size*0.5
  var movement := ground_point(center)-ground_point(center+delta)
+ transition_active = false
  auto_frame = false
  close_size = camera.size
  overview_mode = false
  view_center += movement
  view_center.x = clampf(view_center.x,-6.0,11.0 if wing_built else 6.0)
  view_center.z = clampf(view_center.z,-4.0,5.0)
- frame_camera()
+ apply_camera()
 
 func build_interior() -> void:
  var model: Node3D = load("res://assets/models/hospital-interior.glb").instantiate()
@@ -252,25 +297,17 @@ func add_wing() -> void:
  staff(Vector3(11.8,0,1),"별관 치료사")
  exterior_annex.visible = true
  expansion_sign.visible = false
- frame_camera()
+ if auto_frame and overview_mode: show_overview()
 
 func show_outside(value: bool) -> void:
  outside = value
- overview_mode = true
- auto_frame = true
- if not value:
-  view_center = Vector3(-0.35,0,-0.5)
-  close_size = 12.7
  interior.visible = not value
  exterior.visible = value
- frame_camera()
+ show_overview()
 
 func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
  if sim.expanded: add_wing()
- var selected_patient := sim.get_patient(selected)
- if auto_frame and not overview_mode and not selected_patient.is_empty():
-  var signature := "%d:%s:%d" % [selected,selected_patient.state,selected_patient.room]
-  if focus_signature != signature: focus_patient(selected_patient)
+ focus_patient_data = sim.get_patient(selected)
  for model in staff_models: model.animate_staff(delta,model.get_meta("reception",false))
  for id in actors.keys():
   if sim.get_patient(id).is_empty():
@@ -283,6 +320,7 @@ func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
    a.build(p.id)
    actors[p.id] = a
   actors[p.id].sync(p, p.id == selected, delta)
+ ensure_patient_visible()
  ct_light.material_override.albedo_color = Color("75e0c0") if sim.ct_owner != -1 else Color("74bbaa")
  for i in range(beams.size()):
   var p := sim.get_patient(sim.treatment_owners[i])
