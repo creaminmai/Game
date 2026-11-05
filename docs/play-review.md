@@ -4,6 +4,10 @@
 
 ## 이번 전달
 
+[최신 동작 검토](character-motion.html)에 실제 엔진 1배속 영상 3개를 보관한다. `motion-admission-1x.mp4`는 선택·접수·민지·걷기·CT(24초), `motion-therapy-1x.mp4`는 치료 준비·이용·일어나기·귀가(37초), `motion-dual-1x.mp4`는 두 치료실 동시 사용(13초)이다. 입력 자동화를 표시하며 각 영상 안에는 배속이나 상태 건너뛰기가 없다. 일반 운영으로 만든 체크포인트부터 촬영하며 초기 체크포인트와 단계 기록을 검사 결과에 보관한다.
+
+## 앞 단계 카메라 전달 (`5eb1c78`)
+
 기본 화면은 병원의 주요 공간과 동선을 함께 보여 주는 안정적인 운영 시점이다. 환자의 진료 단계나 카드 열기로 방마다 확대·축소하지 않는다. 화면 밖 환자는 현재 확대율에서 최소 이동으로 찾고, 카드의 **환자 보기**는 명시적으로 상세 확대한다. **병원** 버튼으로 기본 시점에 돌아온다. 자동 전환은 0.42초이며 드래그·줌은 자동 이동을 중단한다. [최신 화면 비교](stable-camera.html)와 [카메라 변경 기록](stable-camera.md)을 함께 볼 수 있다.
 
 - `docs/media/stable-camera-1x.mp4`: 정상 1배속, 약 54초의 **자동 입력** 시연. 한 환자를 선택한 채 접수 → CT → 계획 → 치료를 진행한다. 44초부터 명시적인 환자 보기, 49초부터 기본 시점 복귀를 보여 준다. 게임 시간 건너뛰기나 영상 배속을 사용하지 않는다.
@@ -26,8 +30,9 @@
 ```sh
 ./tools/setup.sh
 ./tools/test-godot.sh
-python3 tools/run-visual-qa.py --movie --normal --output-dir="$PWD/artifacts/stable-camera-movie"
-python3 tools/run-visual-qa.py --movie --brief --output-dir="$PWD/artifacts/feedback-fast"
+python3 tools/run-visual-qa.py --movie --motion admission --output-dir="$PWD/artifacts/motion-movie-admission"
+python3 tools/run-visual-qa.py --movie --motion therapy --output-dir="$PWD/artifacts/motion-movie-therapy"
+python3 tools/run-visual-qa.py --movie --motion dual --output-dir="$PWD/artifacts/motion-movie-dual"
 python3 tools/export-game.py Web
 python3 tools/test-web.py
 python3 tools/test-web.py --touch

@@ -14,7 +14,7 @@ const CAPTIONS := {
  "walk_ct": "CT실로 이동", "ct_scan": "CT 촬영 중", "walk_plan": "계획실로 이동",
  "plan_ready": "계획 필요", "plan_queue": "계획 대기", "planning": "계획 검토 중",
  "treatment_queue": "치료 대기", "walk_treatment": "치료실로 이동",
- "treatment": "치료 중", "leaving": "귀가 중", "complete": "귀가 완료"}
+ "treatment": "치료 중", "leaving": "귀가 중", "complete": "오늘 일정 완료"}
 var patients: Array[Dictionary] = []
 var day := 1
 var lifetime_completed := 0

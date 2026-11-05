@@ -34,7 +34,7 @@ blender -b --factory-startup -t 8 --python tools/art/export_models.py
 
 ## 게임용 처리
 
-- 내부 정적 메시: 최대 300,000 삼각형. 원본은 보존하고 작은 반복 부품을 베이크 전에 감량한다. CT 외장·쿠션·접수대·치료 헤드의 큰 곡면을 보호한다. 현재 내부는 264,470 삼각형이다. 실제 수치는 `godot/assets/models/asset-report.json`에 기록한다.
+- 내부 정적 메시: 최대 300,000 삼각형. 원본은 보존하고 작은 반복 부품을 베이크 전에 감량한다. CT 외장·쿠션·접수대·치료 헤드의 큰 곡면을 보호한다. 현재 내부는 가동 헤드를 포함해 264,410 삼각형이다. 실제 수치는 `godot/assets/models/asset-report.json`에 기록한다.
 - UV0: 목재·직물의 표면 색. UV1: 별도 펼침으로 구운 접촉 음영(AO), 내부 2048² / 별관 1024². Godot에서 사용하는 두 UV 채널을 넘어가지 않도록 제작 과정에서 확인한다.
 - Godot 4.6.3에서 별도 AO 텍스처를 가져올 때 UV 설정이 기본값으로 남는 현상을 `import_hospital.gd` 후처리로 보정한다. 실제 엔진 재질 검사도 유지한다. 중간 베이크 PNG가 있는 `assets/textures/`는 웹 배포에서 제외하고 모델에 연결된 텍스처만 사용한다.
 - 캐릭터: 머리·팔·다리의 명명된 피벗, 별도 앉은 다리와 책·안경. 접촉 음영은 정점 색에 굽는다. 이는 뼈대/스킨을 갖춘 최종 리깅이나 표정 애니메이션은 아니다.
@@ -49,3 +49,9 @@ blender -b --factory-startup -t 8 --python tools/art/export_models.py
 본원·별관의 치료기와 침대는 -35° 방향으로 배치한다. 원본 편집 파트·게임 메시·구운 AO가 같은 배치를 사용한다. `build_assets.py`로 새로 만들 때도 이 각도를 적용한다. `turn_treatment_couches.py`는 3119d2f의 원본을 이전하는 일회성 도구이며, 현재 원본에 다시 적용할 필요는 없다. 실행할 경우 `--python-exit-code 1`로 Blender Python 오류를 셸에 전달한다.
 
 현재 Godot 외형은 `assets/models/import_hospital.gd`의 재질별 보정도 사용한다. 원본 기본색을 보존하면서 코팅 외장·목재·직물의 거칠기와 반사, 텍스처 색의 배율을 엔진에서 구분한다. [적용 값과 검증](../docs/play-feedback.md)을 참고한다.
+
+## 캐릭터 동작용 장비와 통로
+
+두 병원 원본은 합쳐진 정적 메시 외에 실제 곡선 암·치료 헤드인 `TreatmentHead` 메시를 포함한다. 내보내기에서 두 메시를 함께 선택하며 동일한 텍스처·재질을 공유한다. 게임은 부위의 원래 위치를 보존하고 승하차 때 위로 0.55만 이동한다. 캐릭터 원본은 그대로 두고 엔진에서 기존 부위 피벗과 눈 표면 셰이더를 사용한다.
+
+`prepare_motion_assets.py`는 좌석 간격·문을 막는 손잡이·별관 통로 화분·민지 모니터를 보정하고 치료기 부위를 분리한다. 원본의 처리 표시를 확인해 중복 이동을 방지한다. `build_assets.py`도 이 처리를 저장 전에 수행한다. 현재 패킹 원본에 재적용할 때는 `blender -b --factory-startup --python-exit-code 1 --python tools/art/prepare_motion_assets.py`를 사용한다. 이동된 가구의 작은 정적 AO는 이번에 재베이크하지 않았다. 동작과 남은 표현 한계는 [캐릭터 검토](../docs/character-motion.md)를 본다.

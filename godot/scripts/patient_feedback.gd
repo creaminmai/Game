@@ -34,10 +34,14 @@ static func describe(sim: HospitalSimulation, p: Dictionary) -> Dictionary:
    if p.state == "walk_plan": result.reason = "계획실에 도착하면 검토를 맡겨 주세요."
    elif p.state == "walk_treatment": result.reason = "%d번 치료실을 예약했어요. 도착하면 자동으로 치료해요." % (p.room+1)
   "ct_scan", "planning", "treatment":
-   result.action = sim.status_text(p.id)
+   if p.state in ["ct_scan","treatment"]:
+    if p.elapsed < CharacterMotion.TRANSFER_SECONDS: result.heading = "CT 준비 중" if p.state == "ct_scan" else "치료 준비 중"
+    elif p.elapsed > sim.DURATIONS[p.state]-CharacterMotion.TRANSFER_SECONDS: result.heading = "검사 마무리 중" if p.state == "ct_scan" else "치료 마무리 중"
+   result.action = result.heading
    result.reason = "%d초 후 마쳐요. " % maxi(0,ceili(sim.DURATIONS[p.state]-p.elapsed))
    result.reason += "끝나면 계획실로 이동해요." if p.state == "ct_scan" else ("끝나면 치료 순서에 등록돼요." if p.state == "planning" else "끝나면 자동으로 귀가해요.")
   "leaving", "complete":
-   result.action = sim.status_text(p.id)
-   result.reason = "오늘 진료를 마쳤어요. 추가 지시는 없어요."
+   result.heading = "오늘 일정 완료"
+   result.action = "귀가 중" if p.state == "leaving" else "오늘 일정 완료"
+   result.reason = "오늘 일정과 정산을 마쳤어요.\n추가 지시 없이 귀가해요."
  return result

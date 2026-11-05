@@ -28,6 +28,8 @@ for name in ['hospital-interior', 'treatment-annex', 'patient', 'nurse']:
             else:
                 assert 'COLOR_0' in attributes, name + ': missing character contact shading'
     assert triangles <= (300000 if name == 'hospital-interior' else 65000), name + ': triangle budget exceeded'
+    if name in ['hospital-interior','treatment-annex']:
+        assert any(node.get('name')=='TreatmentHead' for node in doc['nodes']), name+': missing movable overhead assembly'
     if name in ['patient', 'nurse']:
         names = {node.get('name') for node in doc['nodes']}
         assert {'Head', 'Torso', 'Arm_L', 'Arm_R', 'Leg_L', 'Leg_R', 'SeatedLegs', 'Book', 'Glasses'} <= names

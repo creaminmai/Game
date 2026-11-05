@@ -1,0 +1,79 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": true,
+  "fps": 24,
+  "max_camera_shift": 0.0,
+  "max_zoom_delta": 0.0,
+  "mobile_performance_test": false,
+  "money": 900,
+  "passed": true,
+  "real_canvas_clicks": 3,
+  "recorded_frames": 576,
+  "segment": "admission",
+  "simulation_seconds": 23.991666666667,
+  "simulation_speed": 1,
+  "simultaneous_treatment": false,
+  "trace": [
+    {
+      "patient": 1,
+      "pose": "idle",
+      "seconds": 0.0,
+      "state": "waiting"
+    },
+    {
+      "patient": 1,
+      "pose": "walk",
+      "seconds": 2.03333333333335,
+      "state": "walk_ct"
+    },
+    {
+      "patient": 1,
+      "pose": "prepare",
+      "seconds": 9.03333333333325,
+      "state": "ct_scan"
+    },
+    {
+      "patient": 1,
+      "pose": "lie_down",
+      "seconds": 9.19999999999991,
+      "state": "ct_scan"
+    },
+    {
+      "patient": 1,
+      "pose": "service",
+      "seconds": 10.4083333333332,
+      "state": "ct_scan"
+    },
+    {
+      "patient": 1,
+      "pose": "rise",
+      "seconds": 12.7,
+      "state": "ct_scan"
+    },
+    {
+      "patient": 1,
+      "pose": "walk",
+      "seconds": 14.0333333333333,
+      "state": "walk_plan"
+    },
+    {
+      "patient": 1,
+      "pose": "idle",
+      "seconds": 18.1166666666668,
+      "state": "planning"
+    },
+    {
+      "patient": 1,
+      "pose": "walk",
+      "seconds": 23.2416666666669,
+      "state": "walk_treatment"
+    }
+  ],
+  "encoding": {
+    "paused_setup_frames_removed": 1,
+    "source_frames": 577,
+    "delivered_frames": 576,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}

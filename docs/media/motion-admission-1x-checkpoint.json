@@ -1,0 +1,71 @@
+{
+  "day": 1,
+  "expanded": false,
+  "implementation": "sunshine-rebuild-2026-11",
+  "lifetime_completed": 0,
+  "max_treating": 0,
+  "money": 900,
+  "next_arrival": 12.0,
+  "patients": [
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting"
+      ],
+      "id": 1,
+      "name": "김영수",
+      "next_state": "waiting",
+      "paid": false,
+      "position": [
+        -4.5,
+        0.0,
+        2.29999995231628
+      ],
+      "queue_order": 0,
+      "room": -1,
+      "route": [],
+      "state": "waiting"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering"
+      ],
+      "id": 2,
+      "name": "이정호",
+      "next_state": "waiting",
+      "paid": false,
+      "position": [
+        0.0,
+        0.0,
+        6.3899998664856
+      ],
+      "queue_order": 0,
+      "room": -1,
+      "route": [
+        [
+          0.0,
+          0.0,
+          3.0
+        ],
+        [
+          -1.5,
+          0.0,
+          3.0
+        ],
+        [
+          -3.20000004768372,
+          0.0,
+          2.29999995231628
+        ]
+      ],
+      "state": "entering"
+    }
+  ],
+  "serial": 0,
+  "time": 5.99999999999999,
+  "version": 2
+}

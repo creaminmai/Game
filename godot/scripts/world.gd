@@ -28,6 +28,8 @@ var transition_from_size := 14.0
 var target_center := Vector3.ZERO
 var target_size := 14.0
 var staff_models: Array[HospitalActor] = []
+var departures_greeted := {}
+var treatment_heads: Array[Node3D] = []
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
@@ -161,7 +163,7 @@ func focus_patient(p: Dictionary) -> void:
 func ensure_patient_visible() -> void:
  if outside or not auto_frame or transition_active or focus_patient_data.is_empty(): return
  var id: int = focus_patient_data.id
- if not actors.has(id) or focus_patient_data.state == "complete": return
+ if not actors.has(id) or focus_patient_data.state in ["leaving","complete"]: return
  var anchor: Vector3 = actors[id].head.global_position
  var pixel := camera.unproject_position(anchor)
  if not play_area.has_area() or play_area.has_point(pixel): return
@@ -196,7 +198,8 @@ func build_interior() -> void:
  var model: Node3D = load("res://assets/models/hospital-interior.glb").instantiate()
  interior.add_child(model)
  model.set_meta("hospital_static",true)
- staff(Vector3(-4.65,0.05,4.25),"민지")
+ register_treatment_head(model)
+ staff(Vector3(-5.2,0.05,4.25),"민지")
  staff(Vector3(4.8,0.05,-3.4),"박 선생")
  ct_light = G.rounded_box(interior,Vector3(-4,2.7,-3.17),Vector3(0.36,0.055,0.025),Color("74bbaa"),0.015)
  add_treatment_beam(Vector3(4,0,3))
@@ -209,6 +212,11 @@ func build_interior() -> void:
   light.omni_range = 2.5
   interior.add_child(light)
 
+func register_treatment_head(model: Node3D) -> void:
+ var head: Node3D = model.find_child("TreatmentHead",true,false)
+ head.set_meta("rest_y",head.position.y)
+ treatment_heads.append(head)
+
 func add_treatment_beam(at: Vector3) -> void:
  var beam := G.cylinder(interior,at+Vector3(0,1.59,-0.09).rotated(Vector3.UP,deg_to_rad(-35)),0.025,0.18,Color("7bcbb3"))
  beam.visible = false
@@ -218,7 +226,7 @@ func staff(at: Vector3, caption_text: String) -> void:
  var a := Actor.new()
  interior.add_child(a)
  a.position = at
- a.build(1,true,caption_text == "민지")
+ a.build(staff_models.size()+1,true,caption_text == "민지")
  a.caption.visible = false
  a.caption.text = caption_text
  if caption_text == "박 선생": a.body.rotation.y = PI*0.9
@@ -293,6 +301,7 @@ func add_wing() -> void:
  var annex: Node3D = load("res://assets/models/treatment-annex.glb").instantiate()
  interior.add_child(annex)
  annex.set_meta("hospital_static",true)
+ register_treatment_head(annex)
  add_treatment_beam(Vector3(10,0,3))
  staff(Vector3(11.8,0,1),"별관 치료사")
  exterior_annex.visible = true
@@ -305,9 +314,20 @@ func show_outside(value: bool) -> void:
  exterior.visible = value
  show_overview()
 
+func reception_response(target: Vector3) -> void:
+ if not staff_models.is_empty(): staff_models[0].react("admission",target)
+
 func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
  if sim.expanded: add_wing()
  focus_patient_data = sim.get_patient(selected)
+ for p in sim.patients:
+  var departure_key := str(sim.day)+":"+str(p.id)
+  if p.state != "leaving" or departures_greeted.has(departure_key): continue
+  if not actors.has(p.id):
+   departures_greeted[departure_key] = true # restored departures do not replay events
+  elif delta > 0 and p.position.distance_to(staff_models[0].position) < 6.0:
+   staff_models[0].react("goodbye",p.position)
+   departures_greeted[departure_key] = true
  for model in staff_models: model.animate_staff(delta,model.get_meta("reception",false))
  for id in actors.keys():
   if sim.get_patient(id).is_empty():
@@ -323,8 +343,12 @@ func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
  ensure_patient_visible()
  ct_light.material_override.albedo_color = Color("75e0c0") if sim.ct_owner != -1 else Color("74bbaa")
  for i in range(beams.size()):
+  var lift := 0.0
+  for patient in sim.patients:
+   if patient.room == i: lift = maxf(lift,CharacterMotion.equipment_lift(patient))
+  treatment_heads[i].position.y = treatment_heads[i].get_meta("rest_y")+.55*lift
   var p := sim.get_patient(sim.treatment_owners[i])
-  beams[i].visible = not p.is_empty() and p.state == "treatment"
+  beams[i].visible = not p.is_empty() and p.state == "treatment" and lift < .01
 
 func pick(point: Vector2) -> int:
  var origin := camera.project_ray_origin(point)

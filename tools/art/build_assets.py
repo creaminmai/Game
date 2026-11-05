@@ -519,6 +519,8 @@ def bake_export(name,ao_size=2048):
         nt.links.new(tex.outputs['Color'],node.inputs['Occlusion'])
     obj.data.uv_layers.active_index=0
     obj.data.uv_layers[0].active_render=True
+    from prepare_motion_assets import prepare
+    prepare(obj,name)
     bpy.ops.file.pack_all()
     bpy.ops.wm.save_as_mainfile(filepath=str(SRC/(name+'.blend')),compress=True)
     report=export_static(obj,name)

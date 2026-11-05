@@ -2,15 +2,15 @@
   {
     "asset": "hospital-interior",
     "authoring_triangles": 856152,
-    "game_triangles": 264470,
-    "vertices": 142664,
-    "material_surfaces": 28
+    "game_triangles": 264410,
+    "vertices": 142616,
+    "material_surfaces": 31
   },
   {
     "asset": "treatment-annex",
     "authoring_triangles": 24936,
     "game_triangles": 24936,
     "vertices": 13009,
-    "material_surfaces": 18
+    "material_surfaces": 21
   }
 ]

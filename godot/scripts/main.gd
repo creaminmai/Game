@@ -508,7 +508,8 @@ func perform_action() -> void:
  if outside: return
  var p: Dictionary = sim.get_patient(selected_id)
  if p.is_empty(): return
- if p.state == "waiting": sim.admit(selected_id)
+ if p.state == "waiting":
+  if sim.admit(selected_id): world.reception_response(p.position)
  elif p.state == "plan_ready": sim.assign_plan(selected_id)
  refresh()
 

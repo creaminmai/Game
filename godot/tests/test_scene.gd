@@ -165,6 +165,7 @@ func run() -> void:
  await click(game.roster_close)
  game.sim.tick(24)
  game.refresh()
+ game.world.sync(game.sim,game.selected_id,.45)
  await settle()
  check_layout("960x540 landscape")
  check(game.world.actors[1].seated and game.world.actors[1].book.visible,"waiting patient sits and reads at the chair")
@@ -251,7 +252,7 @@ func run() -> void:
  check(game.selected_id == 3,"refresh never steals selection")
  await click(game.action_button)
  check(game.sim.ct_owner == 3,"selected patient admitted via real input")
- check(not game.world.actors[3].seated and game.world.actors[3].left_leg.visible,"admitted patient stands for CT travel")
+ check(not game.world.actors[3].seated and game.sim.get_patient(3).state == "walk_ct","admitted patient begins standing for CT travel")
  await click(game.next_button)
  check(game.selected_id == 4,"explicit helper cycles patients needing action")
  await click(game.action_button)
@@ -342,7 +343,7 @@ func run() -> void:
   game.sim.tick(0.5)
   game.refresh()
   for p in game.sim.patients:
-   if p.state in ["ct_scan","treatment"]:
+   if p.state in ["ct_scan","treatment"] and p.elapsed >= CharacterMotion.TRANSFER_SECONDS and p.elapsed <= game.sim.DURATIONS[p.state]-CharacterMotion.TRANSFER_SECONDS:
     var pose_key: String = p.state+str(p.room)
     if not poses_checked.has(pose_key):
      check_couch_pose(p)

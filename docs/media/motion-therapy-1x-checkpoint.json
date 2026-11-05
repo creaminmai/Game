@@ -1,0 +1,113 @@
+{
+  "day": 1,
+  "expanded": false,
+  "implementation": "sunshine-rebuild-2026-11",
+  "lifetime_completed": 0,
+  "max_treating": 0,
+  "money": 900,
+  "next_arrival": 24.0,
+  "patients": [
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue",
+        "walk_treatment"
+      ],
+      "id": 1,
+      "name": "김영수",
+      "next_state": "treatment",
+      "paid": false,
+      "position": [
+        2.32584238052368,
+        0.0,
+        3.0
+      ],
+      "queue_order": 3,
+      "room": 0,
+      "route": [
+        [
+          4.0,
+          0.0,
+          3.0
+        ]
+      ],
+      "state": "walk_treatment"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting"
+      ],
+      "id": 2,
+      "name": "이정호",
+      "next_state": "waiting",
+      "paid": false,
+      "position": [
+        -3.20000004768372,
+        0.0,
+        2.29999995231628
+      ],
+      "queue_order": 0,
+      "room": -1,
+      "route": [],
+      "state": "waiting"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting"
+      ],
+      "id": 3,
+      "name": "박상철",
+      "next_state": "waiting",
+      "paid": false,
+      "position": [
+        -4.5,
+        0.0,
+        3.79999995231628
+      ],
+      "queue_order": 0,
+      "room": -1,
+      "route": [],
+      "state": "waiting"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting"
+      ],
+      "id": 4,
+      "name": "최민석",
+      "next_state": "waiting",
+      "paid": false,
+      "position": [
+        -3.20000004768372,
+        0.0,
+        3.79999995231628
+      ],
+      "queue_order": 0,
+      "room": -1,
+      "route": [],
+      "state": "waiting"
+    }
+  ],
+  "serial": 3,
+  "time": 29.133333333333,
+  "version": 2
+}

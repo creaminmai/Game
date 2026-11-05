@@ -52,8 +52,10 @@ def export_static(obj,name):
                     assert hit[0] is None, f'Patient doorway blocked at x={x}, z={z}, height={h}, offset={dz}'
         print('DOORWAYS: 36 final-mesh clearance rays passed',flush=True)
     bpy.ops.object.select_all(action='DESELECT'); obj.select_set(True)
+    head=bpy.data.objects.get('TreatmentHead')
+    if head: head.select_set(True)
     bpy.ops.export_scene.gltf(filepath=str(ROOT/'godot/assets/models'/(name+'.glb')),export_format='GLB',use_selection=True,export_yup=True,export_apply=True,export_image_format='AUTO')
-    return {'asset':name,'authoring_triangles':obj.get('authoring_triangles',source_triangles),'game_triangles':sum(len(p.vertices)-2 for p in obj.data.polygons),'vertices':len(obj.data.vertices),'material_surfaces':len(set(obj.data.materials))}
+    return {'asset':name,'authoring_triangles':obj.get('authoring_triangles',source_triangles),'game_triangles':sum(len(p.vertices)-2 for part in [obj]+([head] if head else []) for p in part.data.polygons),'vertices':sum(len(part.data.vertices) for part in [obj]+([head] if head else [])),'material_surfaces':sum(len({p.material_index for p in part.data.polygons}) for part in [obj]+([head] if head else []))}
 
 if __name__=='__main__':
     reports=[]

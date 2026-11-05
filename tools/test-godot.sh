@@ -11,3 +11,13 @@ if rg 'SCRIPT ERROR|Parse Error|Compile Error' .runtime/import.log; then exit 1;
 godot --headless --path godot --script tests/test_hospital.gd 2>&1 | tee .runtime/simulation.log
 if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/simulation.log; then exit 1; fi
 rg -q 'SIMULATION: [1-9][0-9]* checks, 0 failures' .runtime/simulation.log
+# Animation/occupancy/save integration also runs without a display. It uses
+# the actual imported meshes and an isolated --qa game, never player saves.
+godot --headless --path godot --script tests/test_motion.gd -- --qa 2>&1 | tee .runtime/motion.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/motion.log; then exit 1; fi
+python3 - <<'PY'
+import json
+with open('artifacts/motion-unit/results.json') as f:
+    result=json.load(f)
+assert result['passed'] and not result['geometry_contacts'], result
+PY

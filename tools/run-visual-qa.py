@@ -14,6 +14,8 @@ p.add_argument('--diagnose', action='store_true', help='Isolate AO, shadow and a
 p.add_argument('--portraits', action='store_true', help='Also capture transparent portraits from the actual game characters')
 p.add_argument('--movie', action='store_true', help='Record an actual engine playthrough and encode MP4')
 p.add_argument('--brief', action='store_true', help='A shorter movie with 6x simulation and shorter reading pauses')
+p.add_argument('--motion-capture', action='store_true', help='Capture actual intermediate couch poses for visual review')
+p.add_argument('--motion', choices=['admission','therapy','dual'], help='Normal 1x motion segment from a real simulation checkpoint')
 p.add_argument('--normal', action='store_true', help='54 seconds at normal 1x speed, with clearly labeled automatic input')
 p.add_argument('--rehearsal', action='store_true', help='Run the normal-speed input scenario with fixed time but without rendering or a movie')
 p.add_argument('--input-check', action='store_true', help='Quick Movie Maker input regression check')
@@ -24,8 +26,10 @@ if args.brief and not args.movie:
     p.error('--brief requires --movie')
 if args.normal and (not args.movie or args.brief or args.input_check):
     p.error('--normal requires --movie and cannot be combined with --brief/--input-check')
-if args.rehearsal and not args.normal:
-    p.error('--rehearsal requires --normal')
+if args.motion and (not args.movie or args.normal or args.brief or args.input_check):
+    p.error('--motion requires --movie alone')
+if args.rehearsal and not (args.normal or args.motion):
+    p.error('--rehearsal requires --normal or --motion')
 if args.art_capture and args.movie:
     p.error('--art-capture and --movie are mutually exclusive')
 args.output_dir = args.output_dir.resolve()
@@ -50,12 +54,15 @@ with (runtime / 'xorg.log').open('w') as log:
             raise RuntimeError('Xorg did not become ready')
         script = 'tests/record_play.gd' if args.movie else ('tests/capture_art.gd' if args.art_capture else 'tests/test_scene.gd')
         if args.normal: script = 'tests/record_normal.gd'
+        if args.motion: script = 'tests/record_motion.gd'
+        if args.motion_capture: script = 'tests/capture_motion.gd'
         command = ['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', script]
         if args.rehearsal:
             command += ['--resolution','1280x720','--fixed-fps','24','--disable-render-loop']
         elif args.movie:
             command += ['--resolution', '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
+        if args.motion: command += [f'--segment={args.motion}']
         if args.input_check: command += ['--input-check']
         if args.diagnose: command += ['--diagnose']
         if args.portraits: command += ['--portraits']
@@ -70,7 +77,11 @@ with (runtime / 'xorg.log').open('w') as log:
             report = json.loads((args.output_dir / 'movie-results.json').read_text())
             if not report['passed']:
                 raise SystemExit('Movie scenario failed')
-            subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-i', str(args.output_dir / 'playthrough.avi'), '-vf', 'scale=out_color_matrix=bt709', '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-an', '-movflags', '+faststart', str(args.output_dir / 'playthrough.mp4')], check=True)
+            if args.motion:
+                from encode_motion import encode
+                encode(args.output_dir/'playthrough.avi', args.output_dir/'playthrough.mp4', args.output_dir/'movie-results.json')
+            else:
+                subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-i', str(args.output_dir / 'playthrough.avi'), '-vf', 'scale=out_color_matrix=bt709', '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-an', '-movflags', '+faststart', str(args.output_dir / 'playthrough.mp4')], check=True)
             subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration,size:stream=codec_name,width,height,r_frame_rate', '-of', 'json', str(args.output_dir / 'playthrough.mp4')], check=True)
         raise SystemExit(code)
     finally:

@@ -1,0 +1,527 @@
+{
+  "date_kst": "2026-11-05T10:47:09.522283+09:00",
+  "baseline_commit": "5eb1c7887460fdc1d849e83ca726099ed9efe1f3",
+  "engine": "Godot 4.6.3 stable official",
+  "renderer": "Linux Compatibility / Mesa llvmpipe",
+  "simulation": {
+    "checks": 51,
+    "failures": 0
+  },
+  "engine_input": {
+    "android_ios_tested": false,
+    "camera_views": {
+      "default_view": {
+        "center": [
+          -0.0888754799962044,
+          2.07876372337341,
+          -0.222173750400543
+        ],
+        "size": 14.3314647674561
+      },
+      "expanded_view": {
+        "center": [
+          2.95385456085205,
+          2.11792469024658,
+          -0.248526304960251
+        ],
+        "size": 15.5037231445312
+      },
+      "patient_card": {
+        "center": [
+          -0.0888754799962044,
+          2.07876372337341,
+          -0.222173750400543
+        ],
+        "size": 14.3314647674561
+      }
+    },
+    "checks": 172,
+    "completed": 4,
+    "dual_treatment_captured": true,
+    "failures": [],
+    "money_after_day_one": 1100,
+    "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+    "passed": true,
+    "selected_by_real_input": 6
+  },
+  "motion": {
+    "checks": 48,
+    "completed": 4,
+    "failures": [],
+    "geometry_contacts": {},
+    "geometry_sample_rate": 60,
+    "max_head_step_60fps": 0.116186797618866,
+    "max_turn_radians_per_frame": 0.436921715736389,
+    "money": 1100,
+    "passed": true,
+    "phases": [
+      {
+        "pose": "walk",
+        "state": "walk_ct",
+        "time": 6.01666666666666
+      },
+      {
+        "pose": "prepare",
+        "state": "ct_scan",
+        "time": 12.8500000000002
+      },
+      {
+        "pose": "lie_down",
+        "state": "ct_scan",
+        "time": 13.0000000000002
+      },
+      {
+        "pose": "service",
+        "state": "ct_scan",
+        "time": 14.2000000000003
+      },
+      {
+        "pose": "rise",
+        "state": "ct_scan",
+        "time": 16.516666666667
+      },
+      {
+        "pose": "walk",
+        "state": "walk_plan",
+        "time": 17.8666666666669
+      },
+      {
+        "pose": "idle",
+        "state": "plan_ready",
+        "time": 21.9166666666667
+      },
+      {
+        "pose": "walk",
+        "state": "walk_treatment",
+        "time": 26.9333333333331
+      },
+      {
+        "pose": "prepare",
+        "state": "treatment",
+        "time": 32.0333333333328
+      },
+      {
+        "pose": "lie_down",
+        "state": "treatment",
+        "time": 32.1833333333328
+      },
+      {
+        "pose": "service",
+        "state": "treatment",
+        "time": 33.3833333333327
+      },
+      {
+        "pose": "rise",
+        "state": "treatment",
+        "time": 60.6999999999978
+      },
+      {
+        "pose": "walk",
+        "state": "leaving",
+        "time": 62.0499999999978
+      },
+      {
+        "pose": "idle",
+        "state": "complete",
+        "time": 65.8666666666642
+      }
+    ],
+    "save_format_changed": false,
+    "simultaneous_treatment": true
+  },
+  "web_desktop": {
+    "passed": true,
+    "browser": "Chromium desktop / SwiftShader",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "mobile_tested": false
+  },
+  "web_touch": {
+    "passed": true,
+    "browser": "Chromium touch emulation",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "mobile_tested": false
+  },
+  "blender_sources": {
+    "passed": true,
+    "blender": "4.3.2",
+    "assets": [
+      {
+        "name": "hospital-interior",
+        "movable_head_vertices": 1376,
+        "head_rest_transform": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            -0.15000000596046448
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            -0.36000001430511475
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "static_triangles": 261730,
+        "head_triangles": 2680,
+        "editable_parts": 1548,
+        "shared_material_slots": 28,
+        "packed_images": 4,
+        "motion_clearance_prepared": true
+      },
+      {
+        "name": "treatment-annex",
+        "movable_head_vertices": 1376,
+        "head_rest_transform": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            10.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            -3.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            -0.1599999964237213
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "static_triangles": 22256,
+        "head_triangles": 2680,
+        "editable_parts": 80,
+        "shared_material_slots": 18,
+        "packed_images": 3,
+        "motion_clearance_prepared": true
+      }
+    ]
+  },
+  "movies": {
+    "admission": {
+      "scenario": {
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "fps": 24,
+        "max_camera_shift": 0.0,
+        "max_zoom_delta": 0.0,
+        "mobile_performance_test": false,
+        "money": 900,
+        "passed": true,
+        "real_canvas_clicks": 3,
+        "recorded_frames": 576,
+        "segment": "admission",
+        "simulation_seconds": 23.991666666667,
+        "simulation_speed": 1,
+        "simultaneous_treatment": false,
+        "trace": [
+          {
+            "patient": 1,
+            "pose": "idle",
+            "seconds": 0.0,
+            "state": "waiting"
+          },
+          {
+            "patient": 1,
+            "pose": "walk",
+            "seconds": 2.03333333333335,
+            "state": "walk_ct"
+          },
+          {
+            "patient": 1,
+            "pose": "prepare",
+            "seconds": 9.03333333333325,
+            "state": "ct_scan"
+          },
+          {
+            "patient": 1,
+            "pose": "lie_down",
+            "seconds": 9.19999999999991,
+            "state": "ct_scan"
+          },
+          {
+            "patient": 1,
+            "pose": "service",
+            "seconds": 10.4083333333332,
+            "state": "ct_scan"
+          },
+          {
+            "patient": 1,
+            "pose": "rise",
+            "seconds": 12.7,
+            "state": "ct_scan"
+          },
+          {
+            "patient": 1,
+            "pose": "walk",
+            "seconds": 14.0333333333333,
+            "state": "walk_plan"
+          },
+          {
+            "patient": 1,
+            "pose": "idle",
+            "seconds": 18.1166666666668,
+            "state": "planning"
+          },
+          {
+            "patient": 1,
+            "pose": "walk",
+            "seconds": 23.2416666666669,
+            "state": "walk_treatment"
+          }
+        ],
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 577,
+          "delivered_frames": 576,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuvj420p",
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "24.000000",
+          "size": "1042127"
+        }
+      },
+      "full_decode_passed": true,
+      "sha256": "d69aa5ee3a362526ea3ac6adccf6f9026d52f9c3090736e5e9004ff7ffe191f5",
+      "checkpoint_sha256": "70df27b828db32942b1869b9537529c7cb2f6445bb23e4f35b4b3cf3f6ba2299"
+    },
+    "therapy": {
+      "scenario": {
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "fps": 24,
+        "max_camera_shift": 0.0,
+        "max_zoom_delta": 0.0,
+        "mobile_performance_test": false,
+        "money": 1100,
+        "passed": true,
+        "real_canvas_clicks": 2,
+        "recorded_frames": 888,
+        "segment": "therapy",
+        "simulation_seconds": 36.9916666666652,
+        "simulation_speed": 1,
+        "simultaneous_treatment": false,
+        "trace": [
+          {
+            "patient": 1,
+            "pose": "walk",
+            "seconds": 0.0,
+            "state": "walk_treatment"
+          },
+          {
+            "patient": 1,
+            "pose": "prepare",
+            "seconds": 0.825000000000024,
+            "state": "treatment"
+          },
+          {
+            "patient": 1,
+            "pose": "lie_down",
+            "seconds": 0.991666666666696,
+            "state": "treatment"
+          },
+          {
+            "patient": 1,
+            "pose": "service",
+            "seconds": 2.20000000000006,
+            "state": "treatment"
+          },
+          {
+            "patient": 1,
+            "pose": "rise",
+            "seconds": 29.4916666666652,
+            "state": "treatment"
+          },
+          {
+            "patient": 1,
+            "pose": "walk",
+            "seconds": 30.8249999999985,
+            "state": "leaving"
+          },
+          {
+            "patient": 1,
+            "pose": "idle",
+            "seconds": 34.6583333333316,
+            "state": "complete"
+          }
+        ],
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 889,
+          "delivered_frames": 888,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuvj420p",
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "37.000000",
+          "size": "1234873"
+        }
+      },
+      "full_decode_passed": true,
+      "sha256": "4a65339869eeb671e032c735a035fb19468bf438be0f80dc29b0534f06260051",
+      "checkpoint_sha256": "d14fa6b7dfc2e70e35eab21993757f6b5a47e385434802a043b98c19070817a5"
+    },
+    "dual": {
+      "scenario": {
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "fps": 24,
+        "max_camera_shift": 0.0,
+        "max_zoom_delta": 0.0,
+        "mobile_performance_test": false,
+        "money": 500,
+        "passed": true,
+        "real_canvas_clicks": 0,
+        "recorded_frames": 312,
+        "segment": "dual",
+        "simulation_seconds": 13.0000000000015,
+        "simulation_speed": 1,
+        "simultaneous_treatment": true,
+        "trace": [
+          {
+            "patient": 3,
+            "pose": "walk",
+            "seconds": 0.0,
+            "state": "walk_treatment"
+          },
+          {
+            "patient": 3,
+            "pose": "prepare",
+            "seconds": 1.00000000000011,
+            "state": "treatment"
+          },
+          {
+            "patient": 3,
+            "pose": "lie_down",
+            "seconds": 1.1666666666668,
+            "state": "treatment"
+          },
+          {
+            "patient": 3,
+            "pose": "service",
+            "seconds": 2.37500000000027,
+            "state": "treatment"
+          }
+        ],
+        "encoding": {
+          "paused_setup_frames_removed": 12,
+          "source_frames": 324,
+          "delivered_frames": 312,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuvj420p",
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "13.000000",
+          "size": "383136"
+        }
+      },
+      "full_decode_passed": true,
+      "sha256": "a4014faf7281ab7176b17ee30e3364d8860899ffc395ce50e3a41722dafa791f",
+      "checkpoint_sha256": "5ba8469f8043bf885709f15e4e3054df627c540c890d76004ce14459a840b54f"
+    }
+  },
+  "source_sha256": {
+    "godot/scripts/actor.gd": "a7749630d7502a6e89dc56deb7a5caf5854f2375e53cbf72d41114e7c55a6c34",
+    "godot/scripts/character_motion.gd": "cf045323ad87612ea3478c7e9fb20d94502d292d566900c432706c3e24bb1826",
+    "godot/scripts/world.gd": "bdbe24ad8acbabe92cb726b4c22242361ab9f0efa2e7597ad03f46f1068a6e29",
+    "godot/scripts/main.gd": "227cde2af546f61535b14061edb8c39e13ec30b8b6fbe29b449097ea5c9b11a0",
+    "godot/scripts/patient_feedback.gd": "71cb551c17616f7ca30786bc94b5ebf6043955c0bde4345e9d665202148b6884",
+    "godot/scripts/hospital_simulation.gd": "a192828bcf7600a7b6d047fa58954161fb600a127aa03eb1b85dad572d75449f",
+    "godot/assets/shaders/blink.gdshader": "4853a7b5357b19b223eb5a6a4b330cb5d5c5016a3f02e060668143424c86145b",
+    "godot/assets/models/hospital-interior.glb": "aa52a200868874d2c9dd500080caa2dbd3a2d25d22619c656e21aa0b818715f4",
+    "godot/assets/models/treatment-annex.glb": "469ed0fb759aa0ea9da7545aac5247105e8c3d53632280e62c7ede7d355141c3",
+    "godot/tests/test_motion.gd": "4137e430861c8d9d4da455ec7ffcd4590d24862cb9380bf434c931d1babbb490",
+    "godot/tests/test_scene.gd": "100bca342633b3e2e4ce78a52a71b8c8f40ebfa057b694d1b657f99ef3012533",
+    "godot/tests/record_motion.gd": "edf7743ecfa3c7127f0ed8ec782a31597d8cd8a5591621f813c1f3c24d61ee06",
+    "art/source/hospital-interior.blend": "6514730bcd0d402036007ce5861ef238301d818a2f5848fbba3302d4c2f4bcba",
+    "art/source/treatment-annex.blend": "df70479ecaef9f7e7f242f029553f7ee633ea8104aba1ca73256ceaeaf89a013",
+    "tools/art/prepare_motion_assets.py": "9acb330bb6990571b6ef12442245ac937ffbb54b0174f8052b207df4bed46553",
+    "tools/art/export_models.py": "39d7843a5ccb6591aae6b84900326bb745575cfb854bbb8082a5f0ea0e693785",
+    "tools/run-visual-qa.py": "d1bbf8f796a638f8a37a6f1a8dca207a15506fb91058b30d74fdc0bce30c87b0",
+    "tools/encode_motion.py": "dc048e020eea03a9f6f50258123ebcab29390f4cff48596298b0cee8efc6f399",
+    "tools/test-godot.sh": "fed37c3a6c7d61d0fe8463350926749246e68e97c198ffbecaab4d5159212f5d"
+  },
+  "preserved_sha256": {
+    "godot/scripts/save_store.gd": "af2bf1abde9b75beab713a3380866357492c39a913bc91aa876a4bcd840afc27",
+    "godot/assets/daylight.tres": "f40b2882d0fd6358fad419108f8d2c13ca8193d304f3afd01bfba41a09608aea",
+    "godot/assets/models/import_hospital.gd": "709fa19648d761a0b2f59fd6651b655c88d644aa2469c5d9b6fb4cd953cc2761",
+    "godot/assets/models/patient.glb": "f755ce6536536ea0c31aed63777f218bf6d01a9488268d1c298dff895300e384",
+    "godot/assets/models/nurse.glb": "50d98229933dd2c26f376a91c89b29cc60733c762c744ab1cc5b7eee132928c1",
+    "art/source/patient.blend": "23a3d4a86e03ba548d91275835f269b63336f7d1f5a344f1e84ad7b51a103abe",
+    "art/source/nurse.blend": "840e6c56a41660c16a61b632e51d558eb8e4c3ad148719e0bade86a7fafdf900"
+  },
+  "operating_rules_unchanged_except_completion_caption": true,
+  "real_mac_iphone_safari_verified": false,
+  "public_pages_access_verified": false
+}

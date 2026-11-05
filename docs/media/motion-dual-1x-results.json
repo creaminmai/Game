@@ -1,0 +1,49 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": true,
+  "fps": 24,
+  "max_camera_shift": 0.0,
+  "max_zoom_delta": 0.0,
+  "mobile_performance_test": false,
+  "money": 500,
+  "passed": true,
+  "real_canvas_clicks": 0,
+  "recorded_frames": 312,
+  "segment": "dual",
+  "simulation_seconds": 13.0000000000015,
+  "simulation_speed": 1,
+  "simultaneous_treatment": true,
+  "trace": [
+    {
+      "patient": 3,
+      "pose": "walk",
+      "seconds": 0.0,
+      "state": "walk_treatment"
+    },
+    {
+      "patient": 3,
+      "pose": "prepare",
+      "seconds": 1.00000000000011,
+      "state": "treatment"
+    },
+    {
+      "patient": 3,
+      "pose": "lie_down",
+      "seconds": 1.1666666666668,
+      "state": "treatment"
+    },
+    {
+      "patient": 3,
+      "pose": "service",
+      "seconds": 2.37500000000027,
+      "state": "treatment"
+    }
+  ],
+  "encoding": {
+    "paused_setup_frames_removed": 12,
+    "source_frames": 324,
+    "delivered_frames": 312,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}
