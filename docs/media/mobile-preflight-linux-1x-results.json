@@ -1,0 +1,146 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": false,
+  "daily_ledger": {
+    "expansion_expense": 0,
+    "income": 0,
+    "new_annex": false,
+    "opening_money": 900,
+    "version": 1
+  },
+  "day_two_without_first_day_dialogue": false,
+  "dialogues": [
+    "welcome",
+    "arrival",
+    "ct"
+  ],
+  "final_money": 900,
+  "first_admission_video_seconds": 9.04166666666667,
+  "fps": 24,
+  "journal_shown": false,
+  "mobile_performance_test": false,
+  "passed": true,
+  "purchase_camera_stable": true,
+  "real_canvas_clicks": 5,
+  "recorded_frames": 576,
+  "segment": "welcome",
+  "simulation_speed": 1,
+  "trace": [
+    {
+      "day": 1,
+      "dialogue": "welcome",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "entering",
+      "treating": 0,
+      "video_seconds": 0.0
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "entering",
+      "treating": 0,
+      "video_seconds": 3.20833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "waiting",
+      "treating": 0,
+      "video_seconds": 3.91666666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "arrival",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "waiting",
+      "treating": 0,
+      "video_seconds": 4.0
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "waiting",
+      "treating": 0,
+      "video_seconds": 7.20833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "ct",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "walk_ct",
+      "treating": 0,
+      "video_seconds": 9.25
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "walk_ct",
+      "treating": 0,
+      "video_seconds": 12.4583333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "ct_scan",
+      "treating": 0,
+      "video_seconds": 16.0416666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 900,
+      "outside": false,
+      "patient_state": "walk_plan",
+      "treating": 0,
+      "video_seconds": 21.0416666666667
+    }
+  ],
+  "two_rooms_treating": false,
+  "encoding": {
+    "paused_setup_frames_removed": 1,
+    "source_frames": 577,
+    "delivered_frames": 576,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}
