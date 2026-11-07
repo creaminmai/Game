@@ -90,11 +90,13 @@ try:
         # IDBFS synchronizes asynchronously. Wait for evidence of the action in persistent storage.
         state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])
         story=state.get('first_day_story',{})
+        ledger=state.get('daily_ledger',{})
+        assert ledger=={'version':1,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False}, 'Actual opening/day receipts were not saved correctly'
         assert story.get('version')==1 and story.get('seen',{}).get('admission'), 'State-driven tutorial was not saved after actual admission'
         page.screenshot(timeout=120000,path=str(output/'after-admission.png'))
         (output/'console.log').write_text('\n'.join(messages))
         assert not any('SCRIPT ERROR' in m or m.startswith('pageerror:') for m in messages), 'Browser runtime error'
-        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':True,'story_stage':story['stage'],'mobile_tested':False}
+        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':True,'daily_ledger_saved':True,'story_stage':story['stage'],'mobile_tested':False}
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()

@@ -105,7 +105,7 @@ func run() -> void:
   "completed":game.sim.completed(),"money":game.sim.money,"max_treating":game.sim.max_treating,
   "expanded":game.sim.expanded,"fps":24,"simulation_speed":simulation_speed,"automatic_input":true,"mobile_performance_test":false}
  await hold(2)
- await click(game.next_day_button)
+ await click(game.journal.next_button if game.journal.visible else game.next_day_button)
  result["next_day"] = game.sim.day
  result["passed"] = result.passed and game.sim.day == 2
  await hold(2)

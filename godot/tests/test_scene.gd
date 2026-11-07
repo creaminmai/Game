@@ -401,7 +401,7 @@ func run() -> void:
  check(dual_seen and restore_checked,"concurrent treatment captured and restorable")
  check(game.next_day_button.visible,"next-day button appears after departure")
  await shot("06-day-complete")
- await click(game.next_day_button)
+ await click(game.journal.next_button if game.journal.visible else game.next_day_button)
  check(game.sim.day == 2 and game.sim.patients.size() == 1,"next day through real input")
  game.refresh(); await settle()
  check(game.world.actors.size() == 1,"previous day actors removed")

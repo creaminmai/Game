@@ -30,6 +30,13 @@ var target_size := 14.0
 var staff_models: Array[HospitalActor] = []
 var departures_greeted := {}
 var treatment_heads: Array[Node3D] = []
+var plot_outline: Node3D
+var plot_selected := false
+var expansion_sparkles: Node3D
+var inside_marker: Node3D
+var celebration_elapsed := -1.0
+var inside_elapsed := -1.0
+var celebration_count := 0
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
@@ -64,6 +71,7 @@ func _ready() -> void:
  add_child(interior); add_child(exterior)
  build_interior()
  build_exterior()
+ build_expansion_feedback()
  exterior.visible = false
  get_viewport().size_changed.connect(frame_camera)
  frame_camera()
@@ -115,6 +123,7 @@ func move_camera(center: Vector3, zoom: float, animated: bool = true) -> void:
   apply_camera()
 
 func _process(delta: float) -> void:
+ update_expansion_feedback(delta)
  if not transition_active: return
  transition_elapsed += delta
  var t := clampf(transition_elapsed/CAMERA_TRANSITION_SECONDS,0.0,1.0)
@@ -283,7 +292,7 @@ func build_exterior() -> void:
   G.box(exterior,Vector3(x,2.5,5.7),Vector3(0.4,0.08,0.4),Color("706c53"))
  for at in [Vector3(-7,0,-4),Vector3(-8,0,1),Vector3(10,0,-5),Vector3(11,0,2)]: tree(at,at.x<0)
  for x in [-6,-3,3,6,9]: G.flowers(exterior,Vector3(x,0,4.5))
- expansion_sign = G.label(exterior,"치료별관 예정지",Vector3(7,0.4,1),32)
+ expansion_sign = G.label(exterior,"치료별관 예정지 · 눌러보기",Vector3(7,.6,1),30)
  exterior_annex = Node3D.new()
  exterior.add_child(exterior_annex)
  exterior_annex.visible = false
@@ -294,6 +303,82 @@ func build_exterior() -> void:
  G.box(exterior_annex,Vector3(4.8,2.25,1),Vector3(1.5,0.1,2),Color("578b82"))
  G.label(exterior_annex,"치료별관",Vector3(7,3.7,2.3),30)
  for x in [6,7.5]: exterior_window(exterior_annex,Vector3(x,1.5,2.55))
+
+func feedback_border(parent: Node3D, center: Vector3, extent: Vector2) -> Node3D:
+ var group := Node3D.new()
+ parent.add_child(group)
+ for side in [-1,1]:
+  G.rounded_box(group,center+Vector3(side*extent.x*.5,0,0),Vector3(.13,.06,extent.y),Color("78c9b2"),.025)
+  G.rounded_box(group,center+Vector3(0,0,side*extent.y*.5),Vector3(extent.x,.06,.13),Color("78c9b2"),.025)
+ for mesh in group.get_children():
+  mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  mesh.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+ return group
+
+func build_expansion_feedback() -> void:
+ expansion_sign.hide() # A readable HUD callout labels this same 3D site.
+ plot_outline = feedback_border(exterior,Vector3(7,.08,0),Vector2(4.6,5.6))
+ var fill := G.box(plot_outline,Vector3(7,.045,0),Vector3(4.6,.01,5.6),Color(.57,.88,.73,.18))
+ fill.set_meta("plot_fill",true)
+ fill.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ fill.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+ fill.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+ expansion_sparkles = Node3D.new()
+ exterior.add_child(expansion_sparkles)
+ for i in range(12):
+  var angle := i*TAU/12.0
+  var at := Vector3(7+cos(angle)*2.5,1.0+(i%3)*.8,sin(angle)*2.9)
+  var sparkle := G.sphere(expansion_sparkles,at,.09 if i%2 else .13,Color("ffe6a1") if i%2 else Color("bce8d6"))
+  sparkle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  sparkle.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+  sparkle.set_meta("start",at)
+ expansion_sparkles.hide()
+ inside_marker = feedback_border(interior,Vector3(10,.11,2.6),Vector2(4.8,5.1))
+ inside_marker.hide()
+
+func preview_expansion(value: bool) -> void:
+ plot_selected = value
+ expansion_sign.text = "여기에 치료별관이 생겨요" if value else "치료별관 예정지 · 눌러보기"
+
+func pick_expansion_site(pixel: Vector2) -> bool:
+ if not outside or wing_built: return false
+ var at := ground_point(pixel)
+ return Rect2(4.6,-3.0,4.8,6.0).has_point(Vector2(at.x,at.z))
+
+func celebrate_expansion() -> void:
+ # This is called ONLY by the successful user purchase, never by restore/sync.
+ celebration_count += 1
+ celebration_elapsed = 0.0
+ plot_selected = false
+ expansion_sparkles.show()
+
+func highlight_annex_inside() -> void:
+ if not wing_built: return
+ inside_elapsed = 0.0
+ inside_marker.show()
+
+func update_expansion_feedback(delta: float) -> void:
+ if not is_instance_valid(plot_outline): return
+ if celebration_elapsed >= 0:
+  celebration_elapsed += delta
+  var t := minf(1,celebration_elapsed/1.6)
+  for sparkle in expansion_sparkles.get_children():
+   sparkle.position = sparkle.get_meta("start")+Vector3(0,t*.65,0)
+   sparkle.scale = Vector3.ONE*maxf(.001,sin(t*PI))
+  if t >= 1:
+   celebration_elapsed = -1
+   expansion_sparkles.hide()
+ plot_outline.visible = not wing_built or celebration_elapsed >= 0
+ for mesh in plot_outline.get_children():
+  if mesh.has_meta("plot_fill"):
+   mesh.material_override.albedo_color = Color(.93,.83,.55,.24) if plot_selected else Color(.57,.88,.73,.18)
+   continue
+  mesh.material_override.albedo_color = Color("ffe2a1") if plot_selected else Color("78c9b2")
+ if inside_elapsed >= 0:
+  inside_elapsed += delta
+  if inside_elapsed >= 3.5:
+   inside_elapsed = -1
+   inside_marker.hide()
 
 func add_wing() -> void:
  if wing_built: return
@@ -306,7 +391,7 @@ func add_wing() -> void:
  staff(Vector3(11.8,0,1),"별관 치료사")
  exterior_annex.visible = true
  expansion_sign.visible = false
- if auto_frame and overview_mode: show_overview()
+ # Purchase feedback never changes camera position or zoom.
 
 func show_outside(value: bool) -> void:
  outside = value

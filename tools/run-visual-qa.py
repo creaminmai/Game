@@ -18,6 +18,7 @@ p.add_argument('--motion-capture', action='store_true', help='Capture actual int
 p.add_argument('--motion', choices=['admission','therapy','dual'], help='Normal 1x motion segment from a real simulation checkpoint')
 p.add_argument('--story-check', action='store_true', help='Verify the first-day story through actual GUI input')
 p.add_argument('--story', choices=['welcome','completion','ending'], help='Normal 1x first-day tutorial/story recording')
+p.add_argument('--polish', choices=['welcome','expansion','journal'], help='Normal 1x improved first-day play, annex and journal')
 p.add_argument('--normal', action='store_true', help='54 seconds at normal 1x speed, with clearly labeled automatic input')
 p.add_argument('--rehearsal', action='store_true', help='Run the normal-speed input scenario with fixed time but without rendering or a movie')
 p.add_argument('--input-check', action='store_true', help='Quick Movie Maker input regression check')
@@ -32,7 +33,9 @@ if args.motion and (not args.movie or args.normal or args.brief or args.input_ch
     p.error('--motion requires --movie alone')
 if args.story and (not args.movie or args.normal or args.motion or args.brief or args.input_check or args.story_check):
     p.error('--story requires --movie alone')
-if args.rehearsal and not (args.normal or args.motion or args.story):
+if args.polish and (not args.movie or args.normal or args.motion or args.story or args.brief or args.input_check or args.story_check):
+    p.error('--polish requires --movie alone')
+if args.rehearsal and not (args.normal or args.motion or args.story or args.polish):
     p.error('--rehearsal requires --normal, --motion or --story')
 if args.art_capture and args.movie:
     p.error('--art-capture and --movie are mutually exclusive')
@@ -61,6 +64,7 @@ with (runtime / 'xorg.log').open('w') as log:
         if args.motion: script = 'tests/record_motion.gd'
         if args.story_check: script = 'tests/test_story_ui.gd'
         if args.story: script = 'tests/record_story.gd'
+        if args.polish: script = 'tests/record_first_day_polish.gd'
         if args.motion_capture: script = 'tests/capture_motion.gd'
         command = ['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', script]
         if args.rehearsal:
@@ -68,7 +72,8 @@ with (runtime / 'xorg.log').open('w') as log:
         elif args.movie:
             command += ['--resolution', '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
-        if args.story_check or args.story: command += ['--tutorial']
+        if args.story_check or args.story or args.polish: command += ['--tutorial']
+        if args.polish: command += [f'--segment={args.polish}']
         if args.story: command += [f'--segment={args.story}']
         if args.motion: command += [f'--segment={args.motion}']
         if args.input_check: command += ['--input-check']
@@ -85,7 +90,7 @@ with (runtime / 'xorg.log').open('w') as log:
             report = json.loads((args.output_dir / 'movie-results.json').read_text())
             if not report['passed']:
                 raise SystemExit('Movie scenario failed')
-            if args.motion or args.story:
+            if args.motion or args.story or args.polish:
                 from encode_motion import encode
                 encode(args.output_dir/'playthrough.avi', args.output_dir/'playthrough.mp4', args.output_dir/'movie-results.json')
             else:

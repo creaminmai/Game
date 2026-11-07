@@ -45,6 +45,25 @@ func disable() -> void:
  line = 0
  stage = "disabled"
 
+func enable_current(sim: RefCounted, selected: int) -> void:
+ # Re-enabling is a fresh look at the current action, never a dialogue backlog.
+ enabled = true
+ active = ""
+ line = 0
+ selected_first = selected == 1 or sim.get_patient(1).state not in ["entering","waiting"]
+ for id in IDS: seen[id] = true
+ var first: Dictionary = sim.get_patient(1)
+ if sim.day == 1 and not sim.all_done():
+  if not first.paid: seen.erase("complete")
+  if not sim.expanded and sim.expansion_reason() != "": seen.erase("expansion")
+  seen.erase("day_end")
+ sync(sim,selected,false)
+
+func acknowledge_action(action: String) -> void:
+ # Only explicit player actions can dismiss now-obsolete action instructions.
+ var obsolete: Array = ["welcome","arrival","admission"] if action == "select" else ["welcome","arrival","admission","ct","plan"]
+ if active in obsolete: finish_dialogue()
+
 func finish_dialogue() -> void:
  if active != "": seen[active] = true
  active = ""
@@ -61,7 +80,7 @@ func applicable(id: String, sim: RefCounted, selected: int) -> bool:
  match id:
   "welcome": return p.state in ["entering","waiting"] and not selected_first
   "arrival": return p.state == "waiting" and not selected_first
-  "admission": return p.state == "waiting" and selected == 1
+  "admission": return false # Legacy scene ID is kept for save compatibility; guidance lives by the button.
   "ct": return p.state in ["ct_queue","walk_ct","ct_scan"]
   "plan": return p.state == "plan_ready"
   "treatment": return p.state == "treatment"
@@ -86,7 +105,7 @@ func sync(sim: RefCounted, selected: int, allow_new: bool = true) -> void:
  if index >= sim.STATES.find("planning"): stage = "treatment"
  if p.paid: stage = "complete"
  if sim.all_done(): stage = "day_end"
- # Retire instructions the player has already passed, even during a dialogue.
+ # Retire missed instructions, but never expire a line the player is reading.
  if selected_first: seen.welcome = true; seen.arrival = true
  if index >= sim.STATES.find("ct_queue"): seen.welcome = true; seen.arrival = true; seen.admission = true
  if index >= sim.STATES.find("walk_plan"): seen.ct = true
@@ -96,7 +115,8 @@ func sync(sim: RefCounted, selected: int, allow_new: bool = true) -> void:
  if sim.all_done():
   for id in IDS:
    if id != "day_end": seen[id] = true
- if active != "" and (seen.get(active,false) or not applicable(active,sim,selected)): finish_dialogue()
+ if active == "admission": finish_dialogue() # Migrate the removed instruction without replay.
+ # An active spoken line survives passive state changes, focus loss and new hints.
  if active != "" or not allow_new: return
  for id in IDS:
   if not seen.get(id,false) and applicable(id,sim,selected):
@@ -106,14 +126,13 @@ func sync(sim: RefCounted, selected: int, allow_new: bool = true) -> void:
 
 func lines(sim: RefCounted) -> Array:
  match active:
-  "welcome": return [["민지","오셨어요! 오늘부터 햇살병원을 함께 돌보게 됐네요."],["민지","병원 운영은 함께 살피고, 의학적 판단은 의료진이 맡아요."],["민지","먼저 첫 환자분을 맞이해 볼까요?"]]
-  "arrival": return [["김영수","여기가 햇살병원 맞지요? 처음 와서 어디로 가야 할지 모르겠네요."],["민지","어서 오세요. 차근차근 안내해 드릴게요."]]
-  "admission": return [["민지","환자분을 확인했으면 접수해 주세요."],["민지","오른쪽 환자 카드의 ‘접수하기’를 누르면 돼요."]]
-  "ct": return [["민지","CT 차례를 기다리고 있어요. 차례가 오면 자동으로 이동해요." if sim.get_patient(1).state == "ct_queue" else "이제 CT 촬영을 진행해요. 이동과 촬영은 자동으로 이어져요."],["민지","기다리는 동안 다른 환자분도 확인할 수 있어요."]]
-  "plan": return [["민지","촬영이 끝났어요. 의료진에게 치료 계획 검토를 맡겨 주세요."],["민지","김영수 님 카드의 ‘계획 맡기기’를 눌러 주세요."]]
-  "treatment": return [["민지","치료가 진행 중이에요. 준비부터 마무리까지 카드에서 확인해요."],["민지","의료진이 진행하는 동안 다른 환자분도 돌볼 수 있어요."]]
+  "welcome": return [["민지","오셨어요! 햇살병원을 함께 돌봐요. 먼저 첫 환자분을 맞이할까요?"]]
+  "arrival": return [["김영수","간판은 잘 찾았는데… 처음이라 조금 떨리네요. 저, 접수 부탁해요."]]
+  "ct": return [["민지","CT는 차례대로 자동 진행돼요. 다른 환자분도 살펴볼까요?"]]
+  "plan": return [["민지","촬영을 마쳤어요. 의료진에게 치료 계획 검토를 맡겨 주세요."]]
+  "treatment": return [["민지","치료를 시작했어요. 준비와 마무리는 환자 카드에서 확인해요."]]
   "complete": return [["김영수","처음이라 긴장했는데, 차근차근 알려줘서 고맙네요."],["민지","오늘 일정은 모두 마치셨어요. 조심히 들어가세요."]]
-  "expansion": return [["민지","치료실을 하나 더 마련하면 두 분을 함께 도울 수 있겠어요."],["민지","‘병원 밖’ 오른쪽 예정지를 살펴보세요. ‘증축’에서 가격과 효과를 확인해요."],["민지","비용은 600만이에요. 오늘은 증축을 미뤄도 괜찮아요."]]
+  "expansion": return [["민지","치료실이 하나 더 있으면 두 분을 함께 도울 수 있겠어요."],["민지","병원 밖 예정지를 살펴볼까요? 오늘은 미뤄도 괜찮아요."]]
   "day_end": return [["민지","첫날이 끝났네요. 오늘 오신 분들 얼굴이 벌써 기억나요."],["민지","내일도 편하게 찾아오실 수 있도록, 조금씩 가꿔봐요."]]
  return []
 

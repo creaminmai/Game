@@ -28,6 +28,7 @@ var planner_owner := -1
 var treatment_owners: Array[int] = [-1]
 var serial := 0
 var max_treating := 0
+var ledger := HospitalDailyLedger.new()
 
 func _init() -> void:
  spawn()
@@ -196,6 +197,7 @@ func _step(delta: float) -> void:
       if not p.paid:
        p.paid = true
        money += VISIT_FEE
+       ledger.income += VISIT_FEE
        lifetime_completed += 1
       treatment_owners[p.room] = -1
       var points: Array = []
@@ -214,6 +216,8 @@ func expansion_reason() -> String:
 func purchase_expansion() -> bool:
  if not expansion_reason().is_empty(): return false
  money -= EXPANSION_COST
+ ledger.expansion_expense = EXPANSION_COST
+ ledger.new_annex = true
  expanded = true
  treatment_owners.append(-1)
  dispatch()
@@ -223,6 +227,7 @@ func purchase_expansion() -> bool:
 func start_next_day() -> bool:
  if not all_done(): return false
  day += 1
+ ledger.start_day(money)
  patients.clear()
  time = 0.0
  next_arrival = 6.0
@@ -243,7 +248,7 @@ func snapshot() -> Dictionary:
   for point in p.route: copy.route.append([point.x,point.y,point.z])
   saved.append(copy)
  return {"version": 2,"implementation": "sunshine-rebuild-2026-11", "day": day,"lifetime_completed": lifetime_completed,"time": time,"next_arrival": next_arrival,
-  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved}
+  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot()}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= low and value <= high
@@ -317,6 +322,9 @@ func restore(data: Variant) -> bool:
  for id in range(1,candidate.size()+1):
   if not id in ids: return false
  if data.lifetime_completed < paid_count or data.next_arrival != minf(24.0, candidate.size()*6.0): return false
+ var candidate_ledger := HospitalDailyLedger.from_save(data.get("daily_ledger"),paid_count,int(data.money),data.expanded)
+ if candidate_ledger == null: return false
+ ledger = candidate_ledger
  patients = candidate
  day = int(data.day); lifetime_completed = int(data.lifetime_completed)
  money = int(data.money); expanded = data.expanded

@@ -77,6 +77,15 @@ var story_next: Button
 var story_skip: Button
 var story_off: Button
 var story_highlight: Panel
+var guide_settings: Button
+var guide_panel: Panel
+var guide_close: Button
+var guide_description: Label
+var journal: HospitalDayJournal
+var journal_seen_day := -1
+var annex_highlight_pending := false
+var facility_callout: PanelContainer
+var facility_label: Label
 
 func _ready() -> void:
  no_save = "--no-save" in OS.get_cmdline_user_args() or "--qa" in OS.get_cmdline_user_args()
@@ -327,7 +336,7 @@ func build_ui() -> void:
  speech_bubble.add_child(bubble_text)
  hud.add_child(speech_bubble)
  speech_bubble.hide()
- next_day_button = button("오늘 진료 완료 · 다음 날 시작",start_day,true)
+ next_day_button = button("오늘의 병원 일지",open_journal,true)
  hud.add_child(next_day_button)
  roster = panel(hud)
  var list := VBoxContainer.new()
@@ -360,7 +369,7 @@ func build_ui() -> void:
  confirmation.mouse_filter = Control.MOUSE_FILTER_STOP
  add_child(confirmation)
  var shade := ColorRect.new()
- shade.color = Color(0.07,0.15,0.12,0.55)
+ shade.color = Color(0.07,0.15,0.12,0.35)
  shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
  shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  confirmation.add_child(shade)
@@ -371,8 +380,8 @@ func build_ui() -> void:
  var heading := label_text("치료별관",32)
  heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
  dialog_content.add_child(heading)
- var message := label_text("치료실을 하나 더 열어요
-두 환자를 동시에 치료할 수 있어요",21)
+ var message := label_text("치료실 1개 추가
+최대 두 환자를 동시에 치료할 수 있어요",21)
  message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
  dialog_content.add_child(message)
  var cost := label_text("증축 비용   600만",28,TEAL)
@@ -387,9 +396,21 @@ func build_ui() -> void:
   b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   actions.add_child(b)
  confirmation.confirmed.connect(confirm_expansion)
- confirmation.canceled.connect(func(): show_notice("증축을 취소했어요"))
+ confirmation.canceled.connect(func(): world.preview_expansion(false); show_notice("증축을 취소했어요"); refresh())
  confirmation.hide()
  build_story_ui()
+ facility_callout = panel(hud)
+ facility_callout.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ facility_callout.z_index = 20
+ facility_label = label_text("",20,TEAL)
+ facility_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ facility_callout.add_child(facility_label)
+ facility_callout.hide()
+ journal = HospitalDayJournal.new()
+ add_child(journal)
+ journal.build(self)
+ journal.next_requested.connect(start_day)
+ journal.closed.connect(refresh)
  resized.connect(layout_hud)
  get_window().size_changed.connect(func(): layout_hud.call_deferred())
  layout_hud.call_deferred()
@@ -398,24 +419,32 @@ func build_story_ui() -> void:
  story_panel = Panel.new()
  story_panel.add_theme_stylebox_override("panel",UISkin.frame())
  hud.add_child(story_panel)
- story_portrait = UISkin.picture("res://assets/ui/portrait-minji.png",52)
+ story_portrait = UISkin.picture("res://assets/ui/portrait-minji.png",44)
  story_panel.add_child(story_portrait)
- story_heading = label_text("",13,TEAL)
+ story_heading = label_text("",19,TEAL)
  story_panel.add_child(story_heading)
- story_text = label_text("",14)
+ story_text = label_text("",18)
  story_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
  story_panel.add_child(story_text)
- story_summary = label_text("",13,TEAL)
+ story_summary = label_text("",13,TEAL) # Legacy test/tool handle; the journal owns the daily figures.
  story_panel.add_child(story_summary)
+ story_summary.hide()
  story_next = button("다음",advance_story,true)
- story_skip = button("건너뛰기",skip_story)
- story_skip.tooltip_text = "현재 대화 건너뛰기"
- for b in [story_next,story_skip]:
-  b.add_theme_font_size_override("font_size",13)
-  story_panel.add_child(b)
- story_off = button("안내 끄기",disable_story)
- story_off.add_theme_font_size_override("font_size",12)
- hud.add_child(story_off)
+ story_skip = button("이번 대화 건너뛰기",skip_story)
+ for b in [story_next,story_skip]: story_panel.add_child(b)
+ for state in ["normal","hover","pressed"]:
+  story_skip.add_theme_stylebox_override(state,style(Color.TRANSPARENT,Color("c9baa1") if state != "normal" else Color.TRANSPARENT,10))
+ guide_settings = button("안내 설정",toggle_guide_settings)
+ hud.add_child(guide_settings)
+ guide_panel = Panel.new()
+ guide_panel.add_theme_stylebox_override("panel",UISkin.frame())
+ hud.add_child(guide_panel)
+ guide_description = label_text("첫날 안내 설정\n켜면 현재 할 일부터 안내해요.\n이미 지난 이야기는 반복하지 않아요.",21)
+ guide_panel.add_child(guide_description)
+ story_off = button("안내 끄기",toggle_guidance)
+ guide_close = button("게임으로",toggle_guide_settings,true)
+ for b in [story_off,guide_close]: guide_panel.add_child(b)
+ guide_panel.hide()
  story_highlight = Panel.new()
  var outline := style(Color.TRANSPARENT,Color("4cbaa5"),18)
  outline.set_border_width_all(3)
@@ -424,7 +453,6 @@ func build_story_ui() -> void:
  story_highlight.z_index = 10
  hud.add_child(story_highlight)
  story_panel.hide()
- story_off.hide()
  story_highlight.hide()
 
 func advance_story() -> void:
@@ -442,42 +470,78 @@ func disable_story() -> void:
  refresh()
  persist()
 
+func toggle_guide_settings() -> void:
+ guide_panel.visible = not guide_panel.visible
+ refresh()
+
+func toggle_guidance() -> void:
+ if story.enabled: story.disable()
+ else: story.enable_current(sim,selected_id)
+ refresh()
+ persist()
+
+func open_journal() -> void:
+ if outside or not sim.all_done(): return
+ journal_seen_day = sim.day
+ if story.active == "day_end": story.finish_dialogue()
+ guide_panel.hide()
+ journal.present(sim)
+ refresh()
+ persist()
+
 func refresh_story() -> void:
- story.sync(sim,selected_id,not outside and pause_holds.is_empty() and not confirmation.visible)
- story_panel.visible = story.enabled and story.active != "" and not outside and not roster.visible and not confirmation.visible and sim.day == 1
- story_off.visible = story.enabled and sim.day == 1 and not confirmation.visible
+ story.sync(sim,selected_id,not outside and pause_holds.is_empty() and not confirmation.visible and not guide_panel.visible)
+ if sim.all_done() and not outside and not confirmation.visible and journal_seen_day != sim.day:
+  # Never interrupt an earlier line the player is still reading. No timed wait.
+  if story.active in ["","day_end"] or not story.enabled:
+   journal_seen_day = sim.day
+   if story.active == "day_end": story.finish_dialogue()
+   guide_panel.hide()
+   journal.present(sim)
+ story_panel.visible = story.enabled and story.active != "" and not outside and not roster.visible and not confirmation.visible and not guide_panel.visible and not journal.visible and sim.day == 1
+ guide_settings.visible = not confirmation.visible and not journal.visible
+ story_off.text = "안내 끄기" if story.enabled else "안내 다시 켜기"
  if story_panel.visible:
   var lines: Array = story.lines(sim)
   var speech: Array = lines[mini(story.line,lines.size()-1)]
-  story_heading.text = "다시 켜진 간판\n%s  ·  %d/%d" % [speech[0],story.line+1,lines.size()]
+  story_heading.text = "%s  ·  %d/%d" % [speech[0],mini(story.line+1,lines.size()),lines.size()]
   story_text.text = speech[1]
   story_portrait.texture = load("res://assets/ui/portrait-patient-1.png" if speech[0] == "김영수" else "res://assets/ui/portrait-minji.png")
-  story_next.text = "다음" if story.line < lines.size()-1 else "닫기"
-  story_next.tooltip_text = "다음 대사" if story.line < lines.size()-1 else "대화 닫기"
-  story_summary.visible = story.active == "day_end"
-  story_summary.text = story.day_summary(sim)
+  story_next.text = "다음"
+  story_next.tooltip_text = "다음 대사" if story.line < lines.size()-1 else "이야기를 마치고 직접 해보기"
  var hint := story.hint(sim,selected_id,outside)
  if not hint.is_empty(): goal.text = hint
- goal_ribbon.visible = not story_panel.visible
+ goal_ribbon.visible = not story_panel.visible and not guide_panel.visible
+ if story.enabled and sim.day == 1 and selected_id == 1 and not sim.paused and sim.needs_action(sim.get_patient(1)):
+  reason_label.text = "다음 행동 ↓ 접수하기" if sim.get_patient(1).state == "waiting" else "다음 행동 ↓ 계획 맡기기\n의학적 판단은 의료진이 맡아요."
 
 func layout_story() -> void:
  if not is_instance_valid(story_panel): return
- var w := minf(304,size.x-284)
- var extra := 40.0 if story_summary.visible else 0.0
- place(story_panel,Rect2(18,71,w,212+extra))
- place(story_portrait,Rect2(14,17,52,52))
- place(story_heading,Rect2(78,14,w-94,44))
- place(story_text,Rect2(14,78,w-28,70))
- story_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
- place(story_summary,Rect2(14,149,w-28,36))
- place(story_next,Rect2(14,156+extra,64,44))
- place(story_skip,Rect2(84,156+extra,100,44))
- if story_panel.visible:
-  place(story_off,Rect2(208,227+extra,100,44))
- else:
-  place(story_off,Rect2(442,71,100,44))
+ var scale_to_pixels := float(get_window().size.y)/size.y
+ var touch := maxf(44,ceilf(44/scale_to_pixels))
+ var body_font := maxi(18,ceili(16/scale_to_pixels))
+ var name_font := maxi(19,ceili(17/scale_to_pixels))
+ var w := 348.0 if scale_to_pixels < 1.0 else 324.0
+ var body_height := body_font*4.15
+ var footer := 66+body_height
+ place(story_panel,Rect2(18,71,w,footer+touch+14))
+ story_heading.add_theme_font_size_override("font_size",name_font)
+ story_text.add_theme_font_size_override("font_size",body_font)
+ story_next.add_theme_font_size_override("font_size",maxi(18,ceili(15/scale_to_pixels)))
+ story_skip.add_theme_font_size_override("font_size",maxi(13,ceili(12/scale_to_pixels)))
+ place(story_portrait,Rect2(14,12,44,44))
+ place(story_heading,Rect2(70,16,w-84,36))
+ place(story_text,Rect2(14,62,w-28,body_height))
+ for b in [story_next,story_skip,guide_settings,story_off,guide_close,action_button,next_day_button,confirmation.ok_button,confirmation.cancel_button]: b.custom_minimum_size.y = touch
+ place(story_next,Rect2(w-106,footer,92,touch))
+ place(story_skip,Rect2(8,footer,w-126,touch))
+ place(guide_settings,Rect2(18,size.y-220,148,touch))
+ place(guide_panel,Rect2(18,71,400,250))
+ place(guide_description,Rect2(18,20,364,120))
+ place(story_off,Rect2(18,165,208,touch))
+ place(guide_close,Rect2(240,165,142,touch))
  story_highlight.hide()
- if not story.enabled or story_panel.visible or outside or sim.day != 1 or confirmation.visible: return
+ if not story.enabled or story_panel.visible or guide_panel.visible or journal.visible or outside or sim.day != 1 or confirmation.visible: return
  var p: Dictionary = sim.get_patient(1)
  if p.is_empty(): return
  var target: Control = null
@@ -491,6 +555,7 @@ func layout_story() -> void:
 func layout_hud() -> void:
  var w := size.x
  var h := size.y
+ var touch := maxf(44,ceilf(44*size.y/get_window().size.y))
  # Render the world at display resolution (capped at 720p), independently of
  # the logical HUD scale. Enlarging a 960px SubViewport blurred model details.
  var pixels := Vector2(get_window().size)
@@ -502,19 +567,23 @@ func layout_hud() -> void:
  place(title,Rect2(78,12,190,38))
  place(day_label,Rect2(w-355,19,185,30))
  place(money_panel,Rect2(w*.43-75,6,150,50))
- place(pause_button,Rect2(w-137,7,50,50))
- pause_button.custom_minimum_size = Vector2(50,50)
- place(speed_button,Rect2(w-79,9,64,46))
+ place(pause_button,Rect2(w-145,1,maxf(50,touch),maxf(50,touch)))
+ pause_button.custom_minimum_size = Vector2(maxf(50,touch),maxf(50,touch))
+ speed_button.custom_minimum_size.y = touch
+ place(speed_button,Rect2(w-77,1,64,maxf(46,touch)))
  place(goal_ribbon,Rect2(18,71,415,43))
  place(scene_caption,Rect2(450,77,w-470,24))
  if story.enabled and sim.day == 1: place(scene_caption,Rect2(552,77,w-570,24))
  if not recording_caption.is_empty():
-  place(scene_caption,Rect2(w-258,h-28,248,24))
-  scene_caption.add_theme_stylebox_override("normal",style(Color(.99,.97,.9,.94),Color.TRANSPARENT,8))
+  place(scene_caption,Rect2(w-258,h-34,248,30))
+  var caption_style := style(Color(.99,.97,.9,.94),Color.TRANSPARENT,8)
+  caption_style.content_margin_top = 4; caption_style.content_margin_bottom = 4
+  scene_caption.add_theme_stylebox_override("normal",caption_style)
  var dock_x := (w-392)*0.5
  place(dock,Rect2(dock_x,h-91,392,88))
  for i in range(tool_buttons.size()):
-  place(tool_buttons[i],Rect2(dock_x+22+i*91,h-87,56,56))
+  tool_buttons[i].custom_minimum_size = Vector2.ONE*maxf(56,touch)
+  place(tool_buttons[i],Rect2(dock_x+22+i*91,h-31-maxf(56,touch),maxf(56,touch),maxf(56,touch)))
   place(tool_labels[i],Rect2(dock_x+6+i*91,h-31,88,24))
  place(outside_button,Rect2(18,h-89,66,66))
  place(outside_label,Rect2(6,h-27,90,22))
@@ -522,12 +591,15 @@ func layout_hud() -> void:
  place(zoom_out_button,Rect2(70,h-145,44,44))
  place(selection_panel,Rect2(w-252,77,238,minf(414,h-94)))
  place(next_day_button,Rect2((w-380)*0.5,h-153,380,54))
- place(toast,Rect2((w-370)*.5,h-150,370,50))
+ notice.add_theme_font_size_override("font_size",maxi(16,ceili(16*size.y/get_window().size.y)))
+ toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ place(toast,Rect2((w-420)*.5,h-187,420,88))
  place(roster,Rect2(w-366,96,352,334))
  orientation_hint.visible = w < h
  place(orientation_hint,Rect2(24,142,w-48,70))
- place(confirmation.card,Rect2((w-540)*0.5,(h-310)*0.5,540,310))
+ place(confirmation.card,Rect2(30 if outside else (w-540)*.5,(h-310)*.5,540,310))
  layout_story()
+ if is_instance_valid(journal): journal.layout(self)
  if is_instance_valid(world):
   var right := w-18
   if selection_panel.visible: right = selection_panel.position.x-12
@@ -539,6 +611,27 @@ func layout_hud() -> void:
   var scale_to_render := Vector2(viewport.size)/size
   world.set_play_area(Rect2(safe.position*scale_to_render,safe.size*scale_to_render),Rect2(operating.position*scale_to_render,operating.size*scale_to_render))
   update_bubble()
+  update_facility_callout()
+
+func update_facility_callout() -> void:
+ facility_callout.hide()
+ if journal.visible: return
+ var at := Vector3(7,.6,1)
+ if outside:
+  if sim.expanded and world.celebration_elapsed < 0: return
+  facility_label.text = "치료별관 · 운영 시작 ✓" if sim.expanded else ("이곳에 별관이 생겨요" if confirmation.visible else "치료별관 예정지 · 눌러보기")
+ else:
+  if not world.inside_marker.visible: return
+  at = Vector3(10,3,1)
+  facility_label.text = "새 치료실 · 운영 중 ✓"
+ var point: Vector2 = world.camera.unproject_position(at)*size/Vector2(viewport.size)
+ var right := selection_panel.position.x-12 if selection_panel.visible and not outside else size.x-18
+ facility_label.add_theme_font_size_override("font_size",maxi(18,ceili(16*size.y/get_window().size.y)))
+ var width := 300.0
+ var left := clampf(point.x-width*.5,18,right-width)
+ if outside and confirmation.visible: left = maxf(left,confirmation.card.get_rect().end.x+12)
+ place(facility_callout,Rect2(left,clampf(point.y-76,122,size.y-210),width,52))
+ facility_callout.show()
 
 func show_notice(message: String) -> void:
  if message.is_empty(): return
@@ -592,7 +685,7 @@ func clear_selection() -> void:
  refresh()
 
 func scene_input(event: InputEvent) -> void:
- if confirmation.visible: return
+ if confirmation.visible or journal.visible: return
  var pixel_scale := Vector2(viewport.size)/scene_container.size
  if event is InputEventMouseButton:
   if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed: world.zoom_by(0.88)
@@ -605,6 +698,8 @@ func scene_input(event: InputEvent) -> void:
     if not dragging and not outside:
      var id := world.pick(event.position*pixel_scale)
      if id > 0: select_patient(id)
+    elif not dragging and outside and world.pick_expansion_site(event.position*pixel_scale):
+     open_expansion()
     dragging = false
  elif event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_LEFT:
   if (event.position*pixel_scale).distance_to(drag_start) > 8: dragging = true
@@ -615,6 +710,7 @@ func scene_input(event: InputEvent) -> void:
 func select_patient(id: int) -> void:
  if sim.get_patient(id).is_empty(): return
  selected_id = id
+ if id == 1: story.acknowledge_action("select")
  roster.hide()
  world.select_patient(sim.get_patient(id))
  refresh()
@@ -628,8 +724,11 @@ func perform_action() -> void:
  var p: Dictionary = sim.get_patient(selected_id)
  if p.is_empty(): return
  if p.state == "waiting":
-  if sim.admit(selected_id): world.reception_response(p.position)
- elif p.state == "plan_ready": sim.assign_plan(selected_id)
+  if sim.admit(selected_id):
+   world.reception_response(p.position)
+   if selected_id == 1: story.acknowledge_action("admit")
+ elif p.state == "plan_ready":
+  if sim.assign_plan(selected_id) and selected_id == 1: story.acknowledge_action("plan")
  refresh()
 
 func toggle_pause() -> void:
@@ -654,28 +753,40 @@ func toggle_outside() -> void:
   outside = false
   set_pause_hold("outside",false)
  world.show_outside(outside)
+ guide_panel.hide()
+ if not outside and annex_highlight_pending:
+  world.highlight_annex_inside()
+  annex_highlight_pending = false
  refresh()
 
 func open_expansion() -> void:
  var reason: String = sim.expansion_reason()
  if not reason.is_empty(): show_notice(reason); return
  roster.hide()
+ guide_panel.hide()
+ world.preview_expansion(true)
  confirmation.popup_centered()
+ refresh()
 
 func confirm_expansion() -> void:
  if sim.purchase_expansion():
   world.add_wing()
-  world.show_overview()
-  show_notice("치료별관이 열렸어요. 두 환자를 동시에 치료해요.")
+  world.celebrate_expansion()
+  annex_highlight_pending = outside
+  if not outside: world.highlight_annex_inside()
+  show_notice("치료실이 하나 늘었어요!\n민지 · 두 분을 함께 도울 수 있겠어요.")
+  persist()
  else: show_notice(sim.expansion_reason())
  refresh()
 
 func start_day() -> void:
- if outside: return
+ if outside or not sim.all_done(): return
  if sim.start_next_day():
+  journal.hide()
   selected_id = -1
   world.show_overview()
   show_notice("%d일차를 시작해요. 자금과 별관은 유지돼요." % sim.day)
+  persist()
  refresh()
 
 func refresh() -> void:
@@ -728,6 +839,7 @@ func _process(delta: float) -> void:
  if not is_instance_valid(world): return
  sim.tick(delta*playback_speed)
  world.sync(sim,selected_id,delta*playback_speed if not sim.paused else 0.0)
+ update_facility_callout()
  update_bubble()
  story_highlight.modulate.a = .78+.14*sin(Time.get_ticks_msec()/650.0)
  ui_time += delta
