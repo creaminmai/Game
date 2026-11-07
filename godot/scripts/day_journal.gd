@@ -10,6 +10,7 @@ var values: Array[Label] = []
 var facility: Label
 var next_button: Button
 var close_button: Button
+var chapter_stamp: Label
 
 func build(game: Control) -> void:
  set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -28,6 +29,9 @@ func build(game: Control) -> void:
  card.add_child(date_label); game.place(date_label,Rect2(24,54,300,28))
  var seal: Label = game.label_text("✓ 일정 완료",22,game.TEAL)
  card.add_child(seal); game.place(seal,Rect2(386,30,160,38))
+ chapter_stamp = game.label_text("",20,game.TEAL)
+ chapter_stamp.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+ card.add_child(chapter_stamp); game.place(chapter_stamp,Rect2(330,58,216,28))
  var portrait := HospitalUiSkin.picture("res://assets/ui/portrait-minji.png",56)
  card.add_child(portrait); game.place(portrait,Rect2(22,90,56,56))
  quote = game.label_text("",22)
@@ -56,10 +60,18 @@ func build(game: Control) -> void:
  game.place(next_button,Rect2(282,368,264,62))
  hide()
 
-func present(sim: HospitalSimulation) -> void:
+func present(sim: HospitalSimulation, guidance_enabled: bool = true) -> void:
  if not sim.all_done(): return
- date_label.text = "%d일차 · 햇살병원" % sim.day
+ date_label.text = "%d일차 · 누적 방문 %d회" % [sim.day,sim.chapters.total()]
  quote.text = "민지 · 오늘 오신 분들 얼굴이 기억나요.\n내일도 편하게 오실 수 있게 가꿔봐요." if sim.day == 1 else "민지 · 오늘의 일정을 모두 마쳤어요.\n내일도 차근차근 함께해요."
+ chapter_stamp.text = ""
+ var chapter := 2 if sim.chapters.chapter_two_day > 0 else (1 if sim.chapters.chapter_one_day > 0 else 0)
+ if chapter > 0:
+  chapter_stamp.text = "✓ %d장 완료" % chapter
+  if not chapter in sim.chapters.presented:
+   sim.chapters.presented.append(chapter)
+   if chapter == 2 and guidance_enabled:
+    quote.text = "민지 · 한 분씩도 바빴던 병원이\n이제 조금씩 자리를 잡아가네요."
  values[0].text = "%d명" % sim.completed()
  values[1].text = "%d만" % sim.ledger.income
  values[2].text = "%d만" % sim.ledger.expansion_expense if sim.ledger.expansion_expense >= 0 else "기록 없음 · 이전 저장"
@@ -69,7 +81,12 @@ func present(sim: HospitalSimulation) -> void:
  show()
 
 func layout(game: Control) -> void:
- game.place(card,Rect2(game.safe_ui.position+(game.safe_ui.size-Vector2(570,448))*.5,Vector2(570,448)))
+ var touch := maxf(62,ceilf(44*game.size.y/game.ui_display_size.y))
+ var dimensions := Vector2(570,386+touch)
+ game.place(card,Rect2(game.safe_ui.position+(game.safe_ui.size-dimensions)*.5,dimensions))
+ for b in [close_button,next_button]: b.custom_minimum_size.y = touch
+ game.place(close_button,Rect2(24,368,246,touch))
+ game.place(next_button,Rect2(282,368,264,touch))
 
 func _unhandled_key_input(event: InputEvent) -> void:
  if visible and event.is_action_pressed("ui_cancel"):

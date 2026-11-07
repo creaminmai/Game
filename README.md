@@ -28,7 +28,7 @@ CLI가 준비된 Linux 환경에서는 다음을 실행합니다.
 
 ## 영상과 직접 체험
 
-[최신 접수 위임 영상](docs/staff-admission.html) · [위임 구현·검증](docs/staff-admission.md) · [첫날 플레이·별관·일지 영상](docs/first-day-polish.html) · [변경·검증·남은 요소](docs/first-day-polish.md) · [이전 첫날 이야기 영상](docs/first-day-story.html) · [이전 캐릭터 동작 영상](docs/character-motion.html) · [이전 카메라 전후 비교](docs/stable-camera.html) · [체험 빌드와 게시 상태](docs/play-review.md) · [남은 작업과 다음 순서](docs/roadmap.md)
+[최신 챕터 1·2 영상](docs/chapter-progression.html) · [챕터 구현·검증·Android/Web 전달](docs/chapter-progression.md) · [접수 위임 영상](docs/staff-admission.html) · [위임 구현·검증](docs/staff-admission.md) · [첫날 플레이·별관·일지 영상](docs/first-day-polish.html) · [이전 캐릭터 동작 영상](docs/character-motion.html) · [이전 카메라 전후 비교](docs/stable-camera.html) · [남은 작업과 다음 순서](docs/roadmap.md)
 
 Mac/iPhone을 위한 웹 빌드를 준비했습니다. 공개 플레이 링크는 Pages 게시 후 실제 접속을 확인해야 합니다.
 

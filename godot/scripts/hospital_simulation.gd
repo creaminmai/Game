@@ -31,6 +31,7 @@ var serial := 0
 var max_treating := 0
 var ledger := HospitalDailyLedger.new()
 var admission := HospitalAdmissionDuty.new()
+var chapters := HospitalChapterProgress.new()
 
 func _init() -> void:
  spawn()
@@ -60,6 +61,7 @@ func set_state(p: Dictionary, state: String) -> void:
  p.state = state
  p.elapsed = 0.0
  p.history.append(state)
+ if state == "complete": chapters.record_departure(day,p.id)
  changed.emit()
 
 func travel(p: Dictionary, state: String, points: Array, destination: String) -> void:
@@ -219,6 +221,7 @@ func _step(delta: float) -> void:
  admission.tick(self,delta)
  dispatch()
  max_treating = maxi(max_treating, count_state("treatment"))
+ chapters.observe(self)
 
 func expansion_reason() -> String:
  if expanded: return "치료별관 운영 중"
@@ -239,6 +242,8 @@ func purchase_expansion() -> bool:
 
 func start_next_day() -> bool:
  if not all_done(): return false
+ chapters.observe(self)
+ chapters.close_day(day)
  day += 1
  ledger.start_day(money)
  patients.clear()
@@ -262,7 +267,7 @@ func snapshot() -> Dictionary:
   for point in p.route: copy.route.append([point.x,point.y,point.z])
   saved.append(copy)
  return {"version": 2,"implementation": "sunshine-rebuild-2026-11", "day": day,"lifetime_completed": lifetime_completed,"time": time,"next_arrival": next_arrival,
-  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot()}
+  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot()}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= low and value <= high
@@ -340,6 +345,9 @@ func restore(data: Variant) -> bool:
  if candidate_ledger == null: return false
  var candidate_admission := HospitalAdmissionDuty.from_save(data.get("staff_admission"),int(data.day),candidate)
  if candidate_admission == null: return false
+ var candidate_chapters := HospitalChapterProgress.from_save(data.get("chapter_progress"),int(data.day),int(data.lifetime_completed),candidate,data.expanded)
+ if candidate_chapters == null: return false
+ chapters = candidate_chapters
  admission = candidate_admission
  ledger = candidate_ledger
  patients = candidate
@@ -348,6 +356,7 @@ func restore(data: Variant) -> bool:
  time = float(data.time); next_arrival = float(data.next_arrival)
  serial = int(data.serial); max_treating = int(data.max_treating)
  ct_owner = ct; planner_owner = planner; treatment_owners = rooms
+ chapters.observe(self)
  paused = true
  changed.emit()
  return true

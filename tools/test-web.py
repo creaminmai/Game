@@ -11,12 +11,14 @@ parser.add_argument('--mobile-preflight',action='store_true',help='Resize/inset,
 parser.add_argument('--url',help='Actual accessible export URL; defaults to isolated localhost test server')
 parser.add_argument('--touch',action='store_true')
 parser.add_argument('--staff',action='store_true',help='Load a normally operated day-two fixture into this private profile, then test actual delegation input/reload')
+parser.add_argument('--chapter',action='store_true',help='Actual 11-to-12 departure, chapter journal and browser reload from a normal simulation checkpoint')
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
 parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock allowance per saved-state wait; software WebGL may render far below real time')
 args=parser.parse_args()
 if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
 repo = Path(__file__).resolve().parents[1]
 output = repo / ('artifacts/browser-staff-touch' if args.staff and args.touch else ('artifacts/browser-touch' if args.touch else 'artifacts/browser'))
+if args.chapter: output=repo/('artifacts/browser-chapter-touch' if args.touch else 'artifacts/browser-chapter')
 output.mkdir(parents=True, exist_ok=True)
 (output/'results.json').unlink(missing_ok=True)
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -26,7 +28,7 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader'])
-        width,height=(844,350) if args.staff and args.touch else ((844,390) if args.touch else (1280,720))
+        width,height=(844,350) if (args.staff or args.chapter) and args.touch else ((844,390) if args.touch else (1280,720))
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch,device_scale_factor=args.dpr)
         page.set_default_timeout(120000)
         messages=[]
@@ -145,13 +147,16 @@ try:
             assert restored['money']==after['money'] and restored['daily_ledger']==after['daily_ledger'] and restored['patients']==after['patients'],'Real browser reload changed saved operations'
             preflight={'layouts':layouts,'freeze_resume_while_user_paused':True,'actual_page_reload':True,'indexeddb_restored':True,'physical_phone':False}
         staff={}
-        if args.staff:
+        chapter={}
+        if args.staff or args.chapter:
             # This is a fresh test-only browser profile, never player storage.
             # Leave the running engine before replacing the fixture so it cannot
             # race the write. Operational state comes from normal day-one commands.
-            fixture=json.loads((repo/'artifacts/staff-video-offer/checkpoint.json').read_text())
-            fixture['staff_admission']['offer_seen']=False
-            fixture['first_day_story']=state['first_day_story']
+            fixture_path='artifacts/chapter-rehearsal-completion/checkpoint.json' if args.chapter else 'artifacts/staff-video-offer/checkpoint.json'
+            fixture=json.loads((repo/fixture_path).read_text())
+            if args.staff:
+                fixture['staff_admission']['offer_seen']=False
+                fixture['first_day_story']=state['first_day_story']
             from urllib.parse import urljoin
             page.goto(urljoin(base,'LICENSE-Godot.txt'))
             replaced=page.evaluate('''async data => {
@@ -171,31 +176,61 @@ try:
             }''',fixture)
             assert replaced==1, replaced
             page.goto(base+('&' if '?' in base else '?')+'playtest=1')
-            page.wait_for_function('window.sunshineControls?.admission_accept.visible',timeout=int(args.save_timeout*1000))
-            assert page.evaluate('window.sunshineControls._state.day')==2
-            page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-offer.png'))
-            press('admission_accept');press('pause')
-            admitted_state=wait_saved(lambda s:s['day']==2 and s['staff_admission']['enabled'] and s['patients'][0]['state'] not in ['waiting','entering'])
-            assert admitted_state['patients'][0]['history'].count('ct_queue')==1
-            press('settings')
-            page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-settings.png'))
-            press('admission_toggle');press('guide_close');press('pause')
-            page.wait_for_function('window.sunshineControls._state.paused')
-            live=page.evaluate('window.sunshineControls._state')
-            saved=wait_saved(lambda s:not s['staff_admission']['enabled'] and abs(s['time']-live['time'])<.001)
-            page.reload()
-            page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
-            restored=wait_saved(lambda s:s['day']==2 and not s['staff_admission']['enabled'] and abs(s['time']-saved['time'])<.001)
-            assert page.evaluate('window.sunshineControls._state.paused')
-            assert restored['patients']==saved['patients'] and restored['daily_ledger']==saved['daily_ledger'] and restored['money']==saved['money']
-            assert not page.evaluate('window.sunshineControls.admission_accept.visible')
-            page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored.png'))
-            staff={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'accepted_via_canvas':True,'automatic_admission_once':True,'disabled_via_canvas':True,'real_page_reload':True,'disabled_setting_and_patients_restored':True,'physical_phone':False}
+            if args.chapter:
+                page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                assert page.evaluate('window.sunshineControls._state.visits')==11
+                assert page.evaluate('window.sunshineControls._state.chapter_two_day')==0
+                assert page.evaluate('window.sunshineControls._state.paused')
+                press('pause')
+                complete=wait_saved(lambda s:s['chapter_progress']['chapter_two_day']==3 and 2 in s['chapter_progress']['presented'])
+                assert complete['chapter_progress']['archived_visits']==8 and len(complete['chapter_progress']['visits'])==4
+                assert complete['money']==2700 and complete['daily_ledger']['income']==800 and complete['daily_ledger']['expansion_expense']==0
+                page.screenshot(timeout=120000,scale='css',path=str(output/'chapter-completed-journal.png'))
+                press('journal_close');press('chapter_goal')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'chapter-completed-goals.png'))
+                press('chapter_close');press('journal_open');press('journal_next')
+                day4=wait_saved(lambda s:s['day']==4)
+                assert day4['money']==2700 and day4['daily_ledger']['income']==0 and day4['daily_ledger']['expansion_expense']==0
+                assert day4['chapter_progress']['archived_visits']==12 and not day4['chapter_progress']['visits']
+                press('pause')
+                live=page.evaluate('window.sunshineControls._state')
+                saved=wait_saved(lambda s:s['day']==4 and abs(s['time']-live['time'])<.001)
+                page.reload()
+                page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                restored=wait_saved(lambda s:s['day']==4 and abs(s['time']-saved['time'])<.001)
+                for key in ['patients','chapter_progress','daily_ledger','staff_admission','money']:
+                    assert restored[key]==saved[key],key
+                assert page.evaluate('window.sunshineControls._state.paused')
+                press('chapter_goal')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'chapter-day-four-restored.png'))
+                chapter={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'actual_departure_11_to_12':True,'journal_stamp':True,'next_day_retains_cumulative':True,'real_page_reload':True,'no_duplicate_receipts':True,'physical_phone':False}
+            else:
+                page.wait_for_function('window.sunshineControls?.admission_accept.visible',timeout=int(args.save_timeout*1000))
+                assert page.evaluate('window.sunshineControls._state.day')==2
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-offer.png'))
+                press('admission_accept');press('pause')
+                admitted_state=wait_saved(lambda s:s['day']==2 and s['staff_admission']['enabled'] and s['patients'][0]['state'] not in ['waiting','entering'])
+                assert admitted_state['patients'][0]['history'].count('ct_queue')==1
+                press('settings')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-settings.png'))
+                press('admission_toggle');press('guide_close');press('pause')
+                page.wait_for_function('window.sunshineControls._state.paused')
+                live=page.evaluate('window.sunshineControls._state')
+                saved=wait_saved(lambda s:not s['staff_admission']['enabled'] and abs(s['time']-live['time'])<.001)
+                page.reload()
+                page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                restored=wait_saved(lambda s:s['day']==2 and not s['staff_admission']['enabled'] and abs(s['time']-saved['time'])<.001)
+                assert page.evaluate('window.sunshineControls._state.paused')
+                assert restored['patients']==saved['patients'] and restored['daily_ledger']==saved['daily_ledger'] and restored['money']==saved['money']
+                assert not page.evaluate('window.sunshineControls.admission_accept.visible')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored.png'))
+                staff={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'accepted_via_canvas':True,'automatic_admission_once':True,'disabled_via_canvas':True,'real_page_reload':True,'disabled_setting_and_patients_restored':True,'physical_phone':False}
         (output/'console.log').write_text('\n'.join(messages))
         assert not any('SCRIPT ERROR' in m or m.startswith('pageerror:') for m in messages), 'Browser runtime error'
         report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':True,'daily_ledger_saved':True,'story_stage':story['stage'],'mobile_tested':False,'wasm_engine_start_wall_seconds':loader_done_seconds,'first_arrived_and_persisted_wall_seconds':initial_seconds,'viewport':[width,height],'device_pixel_ratio':args.dpr,'url_kind':'provided URL' if args.url else 'loopback only','godot':'4.6.3','renderer':'Chromium SwiftShader WebGL2'}
         report['preflight']=preflight
         report['staff']=staff
+        report['chapter']=chapter
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()

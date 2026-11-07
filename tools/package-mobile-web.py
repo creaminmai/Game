@@ -7,7 +7,7 @@ web=repo/'artifacts/web'
 manifest=json.loads((web/'build.json').read_text())
 output=repo/'artifacts/mobile'
 output.mkdir(parents=True,exist_ok=True)
-target=output/f"SunshineHospital-Web-0.3.0-{manifest['source_commit'][:7]}.zip"
+target=output/f"SunshineHospital-Web-{manifest['version']}-{manifest['source_commit'][:7]}.zip"
 root='햇살병원-iPhone체험/'
 with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(web.iterdir()):

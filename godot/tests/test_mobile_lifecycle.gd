@@ -23,7 +23,7 @@ func reached() -> bool:
   "ct": return p.get("state") == "ct_scan" and p.elapsed > 1.0
   "therapy": return p.get("state") == "treatment" and p.elapsed > 1.0
   "purchase": return game.sim.expansion_reason().is_empty()
-  "journal","day-two","staff-on","staff-off": return game.sim.all_done()
+  "journal","day-two","staff-on","staff-off","chapter-before","chapter-after","chapter-day-four": return game.sim.all_done()
   "dual": return game.sim.count_state("treatment") == 2
  return false
 func run() -> void:
@@ -51,6 +51,18 @@ func run() -> void:
    game.sim.set_admission_delegated(true)
    game.sim.tick(5)
    if scenario == "staff-off": game.sim.set_admission_delegated(false)
+  if scenario.begins_with("chapter-"):
+   var fixture = load("res://tests/chapter_fixture.gd")
+   game.story.disable()
+   game.refresh(); game.start_day()
+   fixture.finish_day(game.sim,2); game.refresh(); game.start_day()
+   for step in range(10000):
+    fixture.step(game.sim,2)
+    if game.sim.chapters.total() == 11 and game.sim.lifetime_completed == 12: break
+   check(game.sim.chapters.total() == 11 and game.sim.chapters.chapter_two_day == 0,"11 departures and 12 fees never completes chapter early")
+   if scenario != "chapter-before": fixture.finish_day(game.sim,2)
+   game.refresh()
+   if scenario == "chapter-day-four": game.start_day()
   game.story.disable(); game.refresh()
   if scenario == "user-paused": game.toggle_pause()
   var expected: Dictionary = game.sim.snapshot()
@@ -75,7 +87,7 @@ func run() -> void:
   var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(checkpoint_path))
   var restored: Dictionary = JSON.parse_string(JSON.stringify(game.sim.snapshot()))
   check(not game.store.blocked and game.store.message.contains("불러왔어요"),"main ready loads actual saved file")
-  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission"]:
+  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission","chapter_progress"]:
    check(restored[key] == expected[key],"separate process restores "+key)
   check(game.sim.paused,"relaunch safely waits for user play")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
@@ -93,6 +105,15 @@ func run() -> void:
    check(not game.story.enabled and not game.admission_offer.visible,"relaunch does not replay proposal with guidance off")
    game.toggle_pause(); game.sim.tick(2)
    check(game.sim.serial == (1 if scenario == "staff-on" else 0),"resume runs only consented duty, exactly once")
+  if scenario.begins_with("chapter-"):
+   check(game.sim.money == 2700,"three-day balance survives real process restart without rewards")
+   if scenario == "chapter-before":
+    check(game.sim.chapters.total() == 11 and game.sim.chapters.chapter_two_day == 0,"pre-boundary restore remains incomplete")
+    game.toggle_pause(); load("res://tests/chapter_fixture.gd").finish_day(game.sim,2); game.refresh()
+   check(game.sim.chapters.total() == 12 and game.sim.chapters.chapter_two_day == 3,"12th real departure is preserved exactly once")
+   if scenario != "chapter-day-four":
+    check(game.journal.visible and game.sim.chapters.presented.has(2),"completed journal restores chapter stamp without duplicate award")
+   else: check(game.sim.day == 4 and game.sim.ledger.income == 0 and game.sim.ledger.expansion_expense == 0,"next day resets daily ledger and preserves cumulative visits")
   game.persist()
  var report := {"passed":failures.is_empty(),"checks":checks,"failures":failures,"case":scenario,"phase":mode,"platform":"Linux headless; injected lifecycle notifications + real process restart"}
  FileAccess.open(output.path_join(scenario+"-"+mode+".json"),FileAccess.WRITE).store_string(JSON.stringify(report,"  "))
