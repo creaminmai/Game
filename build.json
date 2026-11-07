@@ -1,8 +1,17 @@
 {
-  "version": "0.3.0-dev",
-  "source_commit": "3472bddf4dbed4d0a3f4f21fa6c21247296e042f",
-  "source_dirty": false,
+  "version": "0.4.0-dev",
+  "version_code": 400,
+  "features": [
+    "first-day-story",
+    "daily-ledger",
+    "treatment-annex",
+    "admission-delegation",
+    "chapters-1-2"
+  ],
   "godot": "4.6.3.stable.official.7d41c59c4",
+  "application_id": "org.creaminmai.sunshinehospital.playtest",
+  "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a",
+  "source_dirty": false,
   "target": "Web",
   "build_kind": "release export",
   "files": {
@@ -12,7 +21,7 @@
     },
     "index.html": {
       "bytes": 6410,
-      "sha256": "56d5e56afe6093ed683418d6bf729c151c12e9e8220fabbd9643c8db8f24cfb9"
+      "sha256": "7572b19fb8c4c6805361d723e0ba948a196077722837121b3db23f5c2ffc8c58"
     },
     "index.icon.png": {
       "bytes": 31995,
@@ -39,8 +48,8 @@
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
     "index.pck": {
-      "bytes": 10904964,
-      "sha256": "a39348fe1c91de6d56461cfe21e74c3e85b90d9bb9dc2c16402d2385b4663340"
+      "bytes": 10916624,
+      "sha256": "d8a9f700f49b5a3eed00e21ff279f545d8b37c518d4de804e2173a6f38c429cd"
     },
     "index.js": {
       "bytes": 315759,
