@@ -34,12 +34,22 @@ for name, url, sha, destination in [
             path = destination.joinpath(*parts)
             if info.is_dir(): path.mkdir(parents=True,exist_ok=True); continue
             path.parent.mkdir(parents=True,exist_ok=True)
-            path.write_bytes(archive.read(info))
-            path.chmod((info.external_attr >> 16) & 0o777 or 0o644)
+            data = archive.read(info)
+            if path.exists() and path.read_bytes() == data: continue
+            # adb may already be a running daemon. Replace an inode atomically
+            # instead of truncating a live executable (ETXTBSY).
+            temporary = path.with_name(path.name+'.installing')
+            temporary.write_bytes(data)
+            temporary.chmod((info.external_attr >> 16) & 0o777 or 0o644)
+            temporary.replace(path)
 
 jdk = fetch('jdk21.tar.gz','https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.9%2B10/OpenJDK21U-jdk_x64_linux_hotspot_21.0.9_10.tar.gz','810d3773df7e0d6c4394e4e244b264c8b30e0b05a0acf542d065fd78a6b65c2f')
-with tarfile.open(jdk) as archive: archive.extractall(runtime/'java',filter='data')
 java = runtime/'java'/'jdk-21.0.9+10'
+java_stamp = runtime/'java'/'.temurin-21.0.9+10.sha256'
+java_sha = hashlib.sha256(jdk.read_bytes()).hexdigest()
+if not java_stamp.exists() or java_stamp.read_text() != java_sha or not (java/'bin/java').is_file():
+    with tarfile.open(jdk) as archive: archive.extractall(runtime/'java',filter='data')
+    java_stamp.write_text(java_sha)
 # Keep one development key across updates. Never overwrite it or commit it.
 key = runtime/'android-debug.keystore'
 if not key.exists():
