@@ -1,0 +1,1227 @@
+{
+  "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a",
+  "passed": true,
+  "checks": 3405,
+  "checks_exclude_browser_and_movie_scenario_assertions": true,
+  "platform": "Linux Godot 4.6.3 Compatibility llvmpipe; Chromium SwiftShader desktop/touch emulation",
+  "physical_android": false,
+  "physical_iphone": false,
+  "mac_hardware": false,
+  "tests": {
+    "motion": {
+      "checks": 48,
+      "completed": 4,
+      "failures": [],
+      "geometry_contacts": {},
+      "geometry_sample_rate": 60,
+      "max_head_step_60fps": 0.116186797618866,
+      "max_turn_radians_per_frame": 0.436921715736389,
+      "money": 1100,
+      "passed": true,
+      "phases": [
+        {
+          "pose": "walk",
+          "state": "walk_ct",
+          "time": 6.01666666666666
+        },
+        {
+          "pose": "prepare",
+          "state": "ct_scan",
+          "time": 12.8500000000002
+        },
+        {
+          "pose": "lie_down",
+          "state": "ct_scan",
+          "time": 13.0000000000002
+        },
+        {
+          "pose": "service",
+          "state": "ct_scan",
+          "time": 14.2000000000003
+        },
+        {
+          "pose": "rise",
+          "state": "ct_scan",
+          "time": 16.516666666667
+        },
+        {
+          "pose": "walk",
+          "state": "walk_plan",
+          "time": 17.8666666666669
+        },
+        {
+          "pose": "idle",
+          "state": "plan_ready",
+          "time": 21.9166666666667
+        },
+        {
+          "pose": "walk",
+          "state": "walk_treatment",
+          "time": 26.9333333333331
+        },
+        {
+          "pose": "prepare",
+          "state": "treatment",
+          "time": 32.0333333333328
+        },
+        {
+          "pose": "lie_down",
+          "state": "treatment",
+          "time": 32.1833333333328
+        },
+        {
+          "pose": "service",
+          "state": "treatment",
+          "time": 33.3833333333327
+        },
+        {
+          "pose": "rise",
+          "state": "treatment",
+          "time": 60.6999999999978
+        },
+        {
+          "pose": "walk",
+          "state": "leaving",
+          "time": 62.0499999999978
+        },
+        {
+          "pose": "idle",
+          "state": "complete",
+          "time": 65.8666666666642
+        }
+      ],
+      "save_format_changed": false,
+      "simultaneous_treatment": true
+    },
+    "story": {
+      "checks": 84,
+      "failures": [],
+      "mac_or_mobile_hardware_test": false,
+      "passed": true,
+      "saved_scenes": [
+        "welcome",
+        "arrival",
+        "",
+        "ct",
+        "plan",
+        "treatment",
+        "complete",
+        "expansion",
+        "day_end",
+        ""
+      ]
+    },
+    "first_day_polish": {
+      "checks": 70,
+      "failures": [],
+      "mobile_hardware_test": false,
+      "passed": true
+    },
+    "staff": {
+      "checks": 61,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false
+    },
+    "chapters": {
+      "checks": 524,
+      "failures": [],
+      "passed": true,
+      "physical_device": false,
+      "real_file_roundtrips": 18
+    },
+    "chapter_ui": {
+      "checks": 984,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "pixel_metrics": {
+        "1280x720 built not used": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 completed history": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 dual goals": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 final journal": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 first journal": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 growth dialogue": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 initial goals": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 selected card and goals": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "844x350 built not used": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 completed history": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 dual goals": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 final journal": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 first journal": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 growth dialogue": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 initial goals": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 selected card and goals": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x390 built not used": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 completed history": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 dual goals": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 final journal": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 first journal": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 growth dialogue": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 initial goals": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 selected card and goals": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "915x412 built not used": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 completed history": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 dual goals": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 final journal": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 first journal": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 growth dialogue": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 initial goals": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 selected card and goals": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        }
+      },
+      "platform": "Linux Godot; automated input + simulated safe insets"
+    },
+    "staff_ui_regression": {
+      "checks": 856,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "pixel_metrics": {
+        "1280x720 day-one dialogue/card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 day-one settings": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 delegated card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 delegated settings": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 proposal": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "844x350 day-one dialogue/card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 day-one settings": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 delegated card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 delegated settings": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 proposal": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x390 day-one dialogue/card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 day-one settings": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 delegated card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 delegated settings": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 proposal": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "915x412 day-one dialogue/card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 day-one settings": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 delegated card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 delegated settings": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 proposal": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        }
+      },
+      "platform": "Linux Godot OpenGL llvmpipe; automated mouse input, simulated safe insets"
+    },
+    "story_ui_regression": {
+      "actual_pixel_metrics": {
+        "compact CT": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "compact arrival": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "compact welcome": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "desktop CT": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        },
+        "desktop arrival": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        },
+        "desktop welcome": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        }
+      },
+      "automatic_input": true,
+      "checks": 271,
+      "failures": [],
+      "mobile_hardware_test": false,
+      "passed": true,
+      "renderer": "Godot Compatibility / Linux llvmpipe"
+    },
+    "scene_regression": {
+      "android_ios_tested": false,
+      "camera_views": {
+        "default_view": {
+          "center": [
+            -0.0888754799962044,
+            2.07876372337341,
+            -0.222173750400543
+          ],
+          "size": 14.3314647674561
+        },
+        "expanded_view": {
+          "center": [
+            2.95385456085205,
+            2.11792469024658,
+            -0.248526304960251
+          ],
+          "size": 15.5037231445312
+        },
+        "patient_card": {
+          "center": [
+            -0.0888754799962044,
+            2.07876372337341,
+            -0.222173750400543
+          ],
+          "size": 14.3314647674561
+        }
+      },
+      "checks": 172,
+      "completed": 4,
+      "dual_treatment_captured": true,
+      "failures": [],
+      "money_after_day_one": 1100,
+      "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+      "passed": true,
+      "selected_by_real_input": 6
+    },
+    "process_restarts": {
+      "passed": true,
+      "checks": 284,
+      "process_launches": 26,
+      "isolated_save_directory": "/workspace/Game/.runtime/mobile-lifecycle-g7wcufyw",
+      "cases": [
+        {
+          "case": "moving",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "moving",
+          "checks": 12,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "ct",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "ct",
+          "checks": 12,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "therapy",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "therapy",
+          "checks": 12,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "user-paused",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "user-paused",
+          "checks": 12,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "purchase",
+          "checks": 8,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "purchase",
+          "checks": 14,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "journal",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "journal",
+          "checks": 15,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "day-two",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "day-two",
+          "checks": 15,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "dual",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "dual",
+          "checks": 15,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-on",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-on",
+          "checks": 15,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-off",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-off",
+          "checks": 15,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "chapter-before",
+          "checks": 8,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "chapter-before",
+          "checks": 18,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "chapter-after",
+          "checks": 8,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "chapter-after",
+          "checks": 17,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "chapter-day-four",
+          "checks": 8,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "chapter-day-four",
+          "checks": 17,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        }
+      ],
+      "physical_mobile_tested": false
+    },
+    "simulation": {
+      "passed": true,
+      "checks": 51
+    }
+  },
+  "browsers": {
+    "desktop": {
+      "passed": true,
+      "browser": "Chromium desktop / SwiftShader",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.1246175289998064,
+      "first_arrived_and_persisted_wall_seconds": 134.0821817569995,
+      "viewport": [
+        1280,
+        720
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {}
+    },
+    "chapter_touch_844x350": {
+      "passed": true,
+      "browser": "Chromium touch emulation",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.1349725129985018,
+      "first_arrived_and_persisted_wall_seconds": 85.20914510799776,
+      "viewport": [
+        844,
+        350
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {
+        "passed": true,
+        "normal_simulation_checkpoint": true,
+        "isolated_indexeddb_fixture": true,
+        "actual_departure_11_to_12": true,
+        "journal_stamp": true,
+        "next_day_retains_cumulative": true,
+        "real_page_reload": true,
+        "no_duplicate_receipts": true,
+        "physical_phone": false
+      }
+    }
+  },
+  "videos": {
+    "journal": {
+      "automatic_input": true,
+      "built_before_dual_goal_shown": false,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "fps": 24,
+      "journal_shown": true,
+      "live_dual_goal_shown": false,
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+      "real_canvas_clicks": 2,
+      "real_file_restored": false,
+      "recorded_frames": 432,
+      "reload_trigger": "actual SaveStore; separate process restart covered by lifecycle tests",
+      "segment": "journal",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "chapter_one_day": 0,
+          "chapter_two_day": 0,
+          "day": 1,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": false,
+          "goals": false,
+          "journal": false,
+          "money": 1700,
+          "seconds": 0.0,
+          "treating": 0,
+          "visits": 3
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 1,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": false,
+          "goals": false,
+          "journal": false,
+          "money": 1700,
+          "seconds": 1.875,
+          "treating": 0,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 1,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": false,
+          "goals": false,
+          "journal": true,
+          "money": 1700,
+          "seconds": 2.0,
+          "treating": 0,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 1,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": false,
+          "goals": false,
+          "journal": false,
+          "money": 1700,
+          "seconds": 8.20833333333333,
+          "treating": 0,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 1,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": false,
+          "goals": true,
+          "journal": false,
+          "money": 1700,
+          "seconds": 10.2083333333333,
+          "treating": 0,
+          "visits": 4
+        }
+      ],
+      "two_rooms_actually_treating": false,
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 433,
+        "delivered_frames": 432,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/chapter-journal-1x.mp4",
+      "sha256": "2ab4e9026608941c3c605cdf26beb221cd1495c10e3168920816b6e2185579a2",
+      "bytes": 210290,
+      "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a"
+    },
+    "annex": {
+      "automatic_input": true,
+      "built_before_dual_goal_shown": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "fps": 24,
+      "journal_shown": false,
+      "live_dual_goal_shown": true,
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+      "real_canvas_clicks": 7,
+      "real_file_restored": false,
+      "recorded_frames": 720,
+      "reload_trigger": "actual SaveStore; separate process restart covered by lifecycle tests",
+      "segment": "annex",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 2,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": false,
+          "goals": false,
+          "journal": false,
+          "money": 1700,
+          "seconds": 0.0,
+          "treating": 1,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 2,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": true,
+          "goals": false,
+          "journal": false,
+          "money": 1100,
+          "seconds": 7.20833333333333,
+          "treating": 1,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 2,
+          "dialogue": "",
+          "dual_condition": false,
+          "expanded": true,
+          "goals": true,
+          "journal": false,
+          "money": 1100,
+          "seconds": 14.2083333333333,
+          "treating": 1,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 2,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": true,
+          "journal": false,
+          "money": 1100,
+          "seconds": 20.0416666666667,
+          "treating": 2,
+          "visits": 4
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 2,
+          "dialogue": "dual",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": false,
+          "money": 1100,
+          "seconds": 25.2083333333333,
+          "treating": 2,
+          "visits": 4
+        }
+      ],
+      "two_rooms_actually_treating": true,
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 721,
+        "delivered_frames": 720,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/chapter-annex-1x.mp4",
+      "sha256": "32af3c14682cc8e3016f143fcc23ef3694cf032c150e25fc3a6f36b60ec28cc3",
+      "bytes": 645913,
+      "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a"
+    },
+    "completion": {
+      "automatic_input": true,
+      "built_before_dual_goal_shown": false,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "fps": 24,
+      "journal_shown": true,
+      "live_dual_goal_shown": false,
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+      "real_canvas_clicks": 6,
+      "real_file_restored": true,
+      "recorded_frames": 600,
+      "reload_trigger": "actual SaveStore; separate process restart covered by lifecycle tests",
+      "segment": "completion",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 0,
+          "day": 3,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": false,
+          "money": 2700,
+          "seconds": 0.0,
+          "treating": 0,
+          "visits": 11
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 3,
+          "day": 3,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": false,
+          "money": 2700,
+          "seconds": 1.875,
+          "treating": 0,
+          "visits": 12
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 3,
+          "day": 3,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": true,
+          "money": 2700,
+          "seconds": 2.0,
+          "treating": 0,
+          "visits": 12
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 3,
+          "day": 3,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": false,
+          "money": 2700,
+          "seconds": 8.20833333333333,
+          "treating": 0,
+          "visits": 12
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 3,
+          "day": 3,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": true,
+          "journal": false,
+          "money": 2700,
+          "seconds": 9.20833333333333,
+          "treating": 0,
+          "visits": 12
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 3,
+          "day": 3,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": true,
+          "money": 2700,
+          "seconds": 12.375,
+          "treating": 0,
+          "visits": 12
+        },
+        {
+          "chapter_one_day": 1,
+          "chapter_two_day": 3,
+          "day": 4,
+          "dialogue": "",
+          "dual_condition": true,
+          "expanded": true,
+          "goals": false,
+          "journal": false,
+          "money": 2700,
+          "seconds": 14.2083333333333,
+          "treating": 0,
+          "visits": 12
+        }
+      ],
+      "two_rooms_actually_treating": false,
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 601,
+        "delivered_frames": 600,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/chapter-completion-1x.mp4",
+      "sha256": "5354884eb525a2acd08fffe1f175483cbaa53bfbf57e9445fc8ce89ff5e07867",
+      "bytes": 396726,
+      "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a"
+    }
+  },
+  "delivery": {
+    "version": "0.4.0-dev",
+    "version_code": 400,
+    "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-2"
+    ],
+    "godot": "4.6.3.stable.official.7d41c59c4",
+    "application_id": "org.creaminmai.sunshinehospital.playtest",
+    "passed": true,
+    "source_dirty": false,
+    "development_certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "android_hardware_tested": false,
+    "iphone_hardware_tested": false,
+    "files": {
+      "artifacts/android/SunshineHospital-0.4.0-dev.apk": {
+        "bytes": 66948548,
+        "sha256": "a031bd2991dba8921d417831a64fb909ee8b3ceb929f6e73fb1e0d3e24f1c7aa"
+      },
+      "artifacts/mobile/SunshineHospital-Web-0.4.0-dev-abec208.zip": {
+        "bytes": 22621922,
+        "sha256": "4a9cb935b6104a5bd00f9c2a314f1aea75eb61c132ae750e19d1c2496f21076e"
+      }
+    }
+  },
+  "android_package_verification": {
+    "passed": true,
+    "apk": "SunshineHospital-0.4.0-dev.apk",
+    "bytes": 66948548,
+    "sha256": "a031bd2991dba8921d417831a64fb909ee8b3ceb929f6e73fb1e0d3e24f1c7aa",
+    "certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "debug": true,
+    "landscape": true,
+    "min_sdk": 24,
+    "target_sdk": 36,
+    "architectures": [
+      "arm64-v8a",
+      "x86_64"
+    ],
+    "alignment_16kb": true,
+    "device_list": "* daemon not running; starting now at tcp:5037\n* daemon started successfully\nList of devices attached\n\n",
+    "installation_tested": false,
+    "android_runtime_tested": false,
+    "store_release": false,
+    "version": "0.4.0-dev",
+    "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-2"
+    ],
+    "same_development_signer_as_previous": true
+  },
+  "web_remote": {
+    "web_branch_commit": "551c84d3e76a6f68bbc8a5915102815c1b34c320",
+    "source_commit": "abec208ad905ebbc90327ab3493d907db3ffb15a",
+    "pages_publication_verified": false
+  }
+}
