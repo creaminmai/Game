@@ -1,6 +1,51 @@
 {
-  "source_commit": "26b2bec307e2ece0f6985e025ab9af6d6b98f372",
-  "engine": "Godot 4.6.3",
-  "target": "Web single-threaded",
+  "version": "0.3.0-dev",
+  "source_commit": "73e24c76222cf5dac1f407cf4370a71a3ab84498",
+  "source_dirty": false,
+  "godot": "4.6.3.stable.official.7d41c59c4",
+  "target": "Web",
+  "build_kind": "release export",
+  "files": {
+    "index.apple-touch-icon.png": {
+      "bytes": 23802,
+      "sha256": "b628a17b1a2ef53c18118e26198415d7a661d19b3d862849b08397c56855b408"
+    },
+    "index.html": {
+      "bytes": 6410,
+      "sha256": "2c9b9e82412be1518b6a6bc6383a0e0559f0366d4e8ef66d613555ee7b2aebf7"
+    },
+    "index.icon.png": {
+      "bytes": 31995,
+      "sha256": "b37230b2390ef7d22368aabefc9ad6f39bfb2ddf6324054dc8f48ae5ed5d7aff"
+    },
+    "index.png": {
+      "bytes": 21443,
+      "sha256": "3cb4495c0b98dfbe4b663cbf2b6836473572339beb66d902367893162a70be0e"
+    },
+    "LICENSE-Godot.txt": {
+      "bytes": 78749,
+      "sha256": "2909f8d8f7e879024f9da282802acb43c1860cd71a214995975d3c25593d8699"
+    },
+    "index.wasm": {
+      "bytes": 37700666,
+      "sha256": "26b61ce95247012ab3dca3ff51e96d1cdbff44ee91a8c20a83e150afca83f1b6"
+    },
+    "index.audio.position.worklet.js": {
+      "bytes": 2973,
+      "sha256": "be33985bc7160d6bf9646f259cd86b259cd67b02ccb297ee5c44f8ac84327bc8"
+    },
+    "index.audio.worklet.js": {
+      "bytes": 7298,
+      "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
+    },
+    "index.pck": {
+      "bytes": 10898904,
+      "sha256": "e80e2bff06cf80eddeea8ea9e374d23480050fcecb06f7c98d055c2deb42deee"
+    },
+    "index.js": {
+      "bytes": 315759,
+      "sha256": "e3f56ee40e6f84371053db06692cfac15e2c8659547b11c6b2dfa1996dabd981"
+    }
+  },
   "mobile_safari_verified": false
 }
