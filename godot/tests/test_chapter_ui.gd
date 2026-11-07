@@ -18,6 +18,7 @@ func chapter_layout(caption: String) -> void:
   for i in range(2): check(not c.conditions[i].get_global_rect().intersects(c.conditions[i+1].get_global_rect()),caption+" condition rows separated")
  if game.story_panel.visible:
   check(game.story_text.get_line_count()*game.story_text.get_line_height() <= game.story_text.size.y,caption+" growth dialogue lines fit")
+  if game.sim.chapters.active != "": check(not game.toast.visible,caption+" growth dialogue replaces duplicate purchase response")
  if game.journal.visible:
   check(game.journal.quote.get_line_count()*game.journal.quote.get_line_height() <= game.journal.quote.size.y,caption+" journal quote lines fit")
   check(not game.journal.chapter_stamp.get_global_rect().intersects(game.journal.date_label.get_global_rect()),caption+" daily date and cumulative stamp separated")

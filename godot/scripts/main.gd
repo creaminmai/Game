@@ -583,6 +583,7 @@ func refresh_chapters() -> void:
  sim.chapters.sync_story(sim,story.enabled,free_to_speak)
  if sim.day >= 2 and sim.chapters.active != "" and free_to_speak and story.enabled:
   story_panel.show()
+  toast.hide() # The existing purchase response must not compete with this line.
   story_heading.text = "민지 · 병원의 성장"
   story_text.text = sim.chapters.speech()
   story_portrait.texture = load("res://assets/ui/portrait-minji.png")
