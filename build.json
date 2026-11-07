@@ -1,6 +1,6 @@
 {
   "version": "0.3.0-dev",
-  "source_commit": "73e24c76222cf5dac1f407cf4370a71a3ab84498",
+  "source_commit": "3472bddf4dbed4d0a3f4f21fa6c21247296e042f",
   "source_dirty": false,
   "godot": "4.6.3.stable.official.7d41c59c4",
   "target": "Web",
@@ -12,7 +12,7 @@
     },
     "index.html": {
       "bytes": 6410,
-      "sha256": "2c9b9e82412be1518b6a6bc6383a0e0559f0366d4e8ef66d613555ee7b2aebf7"
+      "sha256": "56d5e56afe6093ed683418d6bf729c151c12e9e8220fabbd9643c8db8f24cfb9"
     },
     "index.icon.png": {
       "bytes": 31995,
@@ -39,8 +39,8 @@
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
     "index.pck": {
-      "bytes": 10898904,
-      "sha256": "e80e2bff06cf80eddeea8ea9e374d23480050fcecb06f7c98d055c2deb42deee"
+      "bytes": 10904964,
+      "sha256": "a39348fe1c91de6d56461cfe21e74c3e85b90d9bb9dc2c16402d2385b4663340"
     },
     "index.js": {
       "bytes": 315759,
