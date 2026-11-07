@@ -1,7 +1,15 @@
 {
-  "version": "0.4.0-dev",
-  "version_code": 400,
-  "features": ["first-day-story", "daily-ledger", "treatment-annex", "admission-delegation", "chapters-1-2"],
+  "version": "0.5.0-dev",
+  "version_code": 500,
+  "features": [
+    "first-day-story",
+    "daily-ledger",
+    "treatment-annex",
+    "admission-delegation",
+    "chapters-1-3",
+    "operations-training",
+    "planning-delegation"
+  ],
   "godot": "4.6.3",
   "application_id": "org.creaminmai.sunshinehospital.playtest"
 }

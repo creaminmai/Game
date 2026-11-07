@@ -6,15 +6,17 @@ var opening_money := 900
 var income := 0
 var expansion_expense := 0
 var new_annex := false
+var training_expense := 0
 
 func start_day(balance: int) -> void:
  opening_money = balance
  income = 0
  expansion_expense = 0
  new_annex = false
+ training_expense = 0
 
 func snapshot() -> Dictionary:
- return {"version":1,"opening_money":opening_money,"income":income,"expansion_expense":expansion_expense,"new_annex":new_annex}
+ return {"version":2,"opening_money":opening_money,"income":income,"expansion_expense":expansion_expense,"new_annex":new_annex,"training_expense":training_expense}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and value == floor(float(value)) and value >= low and value <= high
@@ -27,16 +29,21 @@ static func from_save(data: Variant, paid_count: int, balance: int, expanded: bo
   # The existing paid flags and unchanged visit fee are exact current-day receipts.
   result.income = paid_count*200
   return result
- if not data is Dictionary or data.get("version") != 1: return null
+ if not data is Dictionary or not whole(data.get("version"),1,2): return null
+ var training: Variant = data.get("training_expense",0)
+ if data.version == 2 and not data.has("training_expense"): return null
+ if not whole(training,0,500) or not int(training) in [0,500]: return null
+ if data.version == 1 and training != 0: return null
  if not whole(data.get("opening_money"),-1,100000000): return null
  if not whole(data.get("income"),0,800) or data.income != paid_count*200: return null
  if not whole(data.get("expansion_expense"),-1,600) or not int(data.expansion_expense) in [-1,0,600] or not data.get("new_annex") is bool: return null
  if data.new_annex != (data.expansion_expense == 600): return null
  if data.new_annex and not expanded: return null
  if data.opening_money >= 0:
-  if data.expansion_expense < 0 or balance != data.opening_money+data.income-data.expansion_expense: return null
+  if data.expansion_expense < 0 or balance != data.opening_money+data.income-data.expansion_expense-training: return null
  result.opening_money = int(data.opening_money)
  result.income = int(data.income)
  result.expansion_expense = int(data.expansion_expense)
  result.new_annex = data.new_annex
+ result.training_expense = int(training)
  return result

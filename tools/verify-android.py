@@ -27,7 +27,7 @@ with zipfile.ZipFile(apk) as z:
     assert len(names)==len(set(names))
     assert 'lib/arm64-v8a/libgodot_android.so' in names and 'lib/x86_64/libgodot_android.so' in names
     assert not any('/tests/' in n for n in names)
-    for script in ['chapter_progress','chapter_panel','admission_duty']:
+    for script in ['chapter_progress','chapter_panel','admission_duty','operations_training']:
         assert any(script in n for n in names), 'Missing production feature script: '+script
 for name,text in [('signature.txt',signature),('manifest.txt',badging),('manifest-tree.txt',tree)]:
     (output/name).write_text(text)

@@ -3,6 +3,7 @@ extends RefCounted
 
 signal changed
 signal admitted(id: int)
+signal plan_assigned(id: int)
 const MAX_PATIENTS := 4
 const VISIT_FEE := 200
 const EXPANSION_COST := 600
@@ -32,6 +33,7 @@ var max_treating := 0
 var ledger := HospitalDailyLedger.new()
 var admission := HospitalAdmissionDuty.new()
 var chapters := HospitalChapterProgress.new()
+var operations := HospitalOperationsTraining.new()
 
 func _init() -> void:
  spawn()
@@ -52,7 +54,7 @@ func spawn() -> void:
  var id := patients.size() + 1
  var p := {"id": id, "name": NAMES[(id + day - 2) % NAMES.size()], "state": "entering",
   "position": Vector3(0,0,6.6), "route": [], "next_state": "", "elapsed": 0.0,
-  "room": -1, "paid": false, "queue_order": 0, "history": ["entering"]}
+  "room": -1, "paid": false, "queue_order": 0, "history": ["entering"],"admission_source":"none","plan_source":"none"}
  patients.append(p)
  travel(p, "entering", [Vector3(0,0,3), Vector3(-1.5,0,3), wait_position(id)], "waiting")
  changed.emit()
@@ -61,7 +63,9 @@ func set_state(p: Dictionary, state: String) -> void:
  p.state = state
  p.elapsed = 0.0
  p.history.append(state)
- if state == "complete": chapters.record_departure(day,p.id)
+ if state == "complete":
+  chapters.record_departure(day,p.id)
+  operations.record_departure(day,p)
  changed.emit()
 
 func travel(p: Dictionary, state: String, points: Array, destination: String) -> void:
@@ -93,7 +97,7 @@ func needs_action(p: Dictionary) -> bool:
  return p.state in ["waiting", "plan_ready"]
 
 func needs_player_action(p: Dictionary) -> bool:
- return p.state == "plan_ready" or (p.state == "waiting" and not admission.enabled)
+ return (p.state == "plan_ready" and not operations.enabled) or (p.state == "waiting" and not admission.enabled)
 
 func set_admission_delegated(value: bool) -> bool:
  if not admission.set_enabled(value,day): return false
@@ -120,24 +124,32 @@ func status_text(id: int) -> String:
  var p := get_patient(id)
  if p.is_empty(): return "도착 예정 · %d초 후" % maxi(0, ceili((id - 1) * 6.0 - time))
  var caption: String = CAPTIONS[p.state]
- if p.state == "waiting" and admission.enabled: caption = "민지 접수 대기"
+ if p.state == "waiting" and admission.enabled: caption = "민지 접수"
+ if p.state == "plan_ready" and operations.enabled: caption = "계획 준비" if operations.candidate_id == id else "지시 대기"
  var rank := queue_rank(id)
  if rank > 0: caption += " · %d번째" % rank
  return caption
 
-func admit(id: int) -> bool:
+func admit(id: int, automatic: bool = false) -> bool:
  var p := get_patient(id)
  if paused or p.is_empty() or p.state != "waiting": return false
+ if automatic and (not admission.enabled or admission.candidate_id != id or admission.elapsed+.000001 < admission.DELAY): return false
+ p.admission_source = "minji" if automatic else "manual"
+ if admission.candidate_id == id: admission.reset_pending()
  enqueue(p, "ct_queue")
  dispatch()
  admitted.emit(id)
  return true
 
-func assign_plan(id: int) -> bool:
+func assign_plan(id: int, automatic: bool = false) -> bool:
  var p := get_patient(id)
  if paused or p.is_empty() or p.state != "plan_ready": return false
+ if automatic and (not operations.trained or not operations.enabled or operations.candidate_id != id or operations.elapsed+.000001 < operations.DELAY): return false
+ p.plan_source = "staff" if automatic else "manual"
+ if operations.candidate_id == id: operations.reset_pending()
  enqueue(p, "plan_queue")
  dispatch()
+ plan_assigned.emit(id)
  return true
 
 func first_queued(state: String) -> Dictionary:
@@ -219,9 +231,33 @@ func _step(delta: float) -> void:
       points.append(Vector3(1.5,0,3)); points.append(Vector3(0,0,3)); points.append(Vector3(0,0,7))
       travel(p, "leaving", points, "complete")
  admission.tick(self,delta)
+ operations.tick(self,delta)
  dispatch()
  max_treating = maxi(max_treating, count_state("treatment"))
  chapters.observe(self)
+
+func training_reason() -> String:
+ if operations.trained: return "운영 교육 완료"
+ if chapters.chapter_two_day == 0: return "2장 완료 후 이용해요 · 교육비 500만"
+ if money < operations.COST: return "자금이 부족해요 · 500만 필요"
+ return ""
+
+func purchase_training() -> bool:
+ if not training_reason().is_empty(): return false
+ money -= operations.COST
+ ledger.training_expense = operations.COST
+ operations.trained = true
+ operations.purchased_day = day
+ operations.set_enabled(false)
+ operations.finish_scene()
+ if not "introduction" in operations.seen: operations.seen.append("introduction")
+ changed.emit()
+ return true
+
+func set_plan_delegated(value: bool) -> bool:
+ if not operations.set_enabled(value): return false
+ changed.emit()
+ return true
 
 func expansion_reason() -> String:
  if expanded: return "치료별관 운영 중"
@@ -244,6 +280,7 @@ func start_next_day() -> bool:
  if not all_done(): return false
  chapters.observe(self)
  chapters.close_day(day)
+ operations.close_day(day)
  day += 1
  ledger.start_day(money)
  patients.clear()
@@ -267,7 +304,7 @@ func snapshot() -> Dictionary:
   for point in p.route: copy.route.append([point.x,point.y,point.z])
   saved.append(copy)
  return {"version": 2,"implementation": "sunshine-rebuild-2026-11", "day": day,"lifetime_completed": lifetime_completed,"time": time,"next_arrival": next_arrival,
-  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot()}
+  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot(),"operations_training":operations.snapshot()}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= low and value <= high
@@ -330,6 +367,15 @@ func restore(data: Variant) -> bool:
    rooms[int(raw.room)] = int(raw.id)
   if raw.state in ["leaving","complete"] and raw.room < 0: return false
   var p: Dictionary = raw.duplicate(true)
+  var admitted_before: bool = STATES.find(p.state) >= STATES.find("ct_queue")
+  var planned_before: bool = STATES.find(p.state) >= STATES.find("plan_queue")
+  if raw.has("admission_source") != raw.has("plan_source"): return false
+  if data.has("operations_training") and not raw.has("admission_source"): return false
+  p.admission_source = raw.get("admission_source","legacy" if admitted_before else "none")
+  p.plan_source = raw.get("plan_source","legacy" if planned_before else "none")
+  if not p.admission_source in ["none","manual","minji","legacy"] or not p.plan_source in ["none","manual","staff","legacy"]: return false
+  if (p.admission_source != "none") != admitted_before or (p.plan_source != "none") != planned_before: return false
+  if p.admission_source == "minji" and data.day < 2: return false
   p.id = int(p.id); p.room = int(p.room); p.queue_order = int(p.queue_order)
   p.position = Vector3(raw.position[0],raw.position[1],raw.position[2])
   p.route = []
@@ -347,6 +393,9 @@ func restore(data: Variant) -> bool:
  if candidate_admission == null: return false
  var candidate_chapters := HospitalChapterProgress.from_save(data.get("chapter_progress"),int(data.day),int(data.lifetime_completed),candidate,data.expanded)
  if candidate_chapters == null: return false
+ var candidate_operations := HospitalOperationsTraining.from_save(data.get("operations_training"),int(data.day),candidate,candidate_chapters.chapter_two_day,candidate_ledger.training_expense)
+ if candidate_operations == null: return false
+ operations = candidate_operations
  chapters = candidate_chapters
  admission = candidate_admission
  ledger = candidate_ledger

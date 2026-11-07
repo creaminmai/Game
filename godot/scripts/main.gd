@@ -100,6 +100,10 @@ var admission_accept: Button
 var admission_decline: Button
 var admission_skip: Button
 var admission_offer_open := false
+var training_button: Button
+var planning_toggle: Button
+var training_dialog: HospitalGameDialog
+var training_reason_label: Label
 var chapter_panel: HospitalChapterPanel
 
 func _ready() -> void:
@@ -124,6 +128,7 @@ func _ready() -> void:
  viewport.add_child(world)
  sim.changed.connect(on_change)
  sim.admitted.connect(func(id: int): world.reception_response(sim.get_patient(id).position))
+ sim.plan_assigned.connect(func(id: int): world.plan_response(sim.get_patient(id).position))
  if not store.message.is_empty(): show_notice(store.message)
  refresh()
 
@@ -486,6 +491,10 @@ func build_story_ui() -> void:
  for b in [story_off,guide_close]: guide_panel.add_child(b)
  admission_toggle = button("",toggle_admission)
  guide_panel.add_child(admission_toggle)
+ training_button = button("",open_training)
+ planning_toggle = button("",toggle_planning)
+ for b in [training_button,planning_toggle]: guide_panel.add_child(b)
+ build_training_dialog()
  guide_panel.hide()
  admission_offer = Panel.new()
  admission_offer.add_theme_stylebox_override("panel",UISkin.frame())
@@ -516,12 +525,14 @@ func build_story_ui() -> void:
 
 func advance_story() -> void:
  if sim.chapters.active != "" and sim.day >= 2: sim.chapters.finish_scene()
+ elif sim.operations.active != "": sim.operations.next_line()
  else: story.next_line(sim)
  refresh()
  persist()
 
 func skip_story() -> void:
  if sim.chapters.active != "" and sim.day >= 2: sim.chapters.finish_scene()
+ elif sim.operations.active != "": sim.operations.finish_scene()
  else: story.finish_dialogue()
  refresh()
  persist()
@@ -540,6 +551,7 @@ func toggle_guidance() -> void:
  if story.enabled: story.disable()
  else: story.enable_current(sim,selected_id)
  sim.chapters.guidance_changed(story.enabled,sim)
+ sim.operations.guidance_changed(story.enabled,sim)
  refresh()
  persist()
 
@@ -565,7 +577,12 @@ func refresh_admission() -> void:
  guide_settings.text = "안내 설정" if sim.day == 1 else ("설정 · 접수\n민지에게 맡김" if sim.admission.enabled else "설정 · 접수\n직접")
  admission_toggle.disabled = sim.day < 2
  admission_toggle.text = "접수 위임 · 2일차부터 가능" if sim.day < 2 else ("접수: 민지에게 맡김 → 직접 하기" if sim.admission.enabled else "접수: 직접 → 민지에게 맡기기")
- guide_description.text = "접수 위임은 무료예요.\n치료 계획은 직접 맡겨 주세요."
+ guide_description.text = "민지: 접수 · 박 선생: 계획 검토"
+ training_button.text = "운영 교육: 완료 ✓" if sim.operations.trained else ("운영 교육 · 500만" if sim.chapters.chapter_two_day > 0 else "운영 교육 · 500만 · 2장 완료 후")
+ planning_toggle.text = "계획 지시: 직원 → 직접 하기" if sim.operations.enabled else ("계획 지시: 직접 → 직원에게" if sim.operations.trained else "계획 지시: 직접 · 교육 필요")
+ planning_toggle.disabled = not sim.operations.trained
+ training_dialog.ok_button.disabled = sim.training_reason() != ""
+ training_reason_label.text = sim.training_reason() if sim.training_reason() != "" else "구매 후 계획 지시를 직접 켜 주세요."
  story_off.text = "이야기 안내: 켜짐 → 끄기" if story.enabled else "이야기 안내: 꺼짐 → 다시 켜기"
  zoom_in_button.visible = not guide_panel.visible and not admission_offer.visible
  zoom_out_button.visible = zoom_in_button.visible
@@ -578,9 +595,10 @@ func toggle_chapter_panel() -> void:
 
 func refresh_chapters() -> void:
  chapter_panel.refresh(sim)
- if journal.visible or confirmation.visible or outside: chapter_panel.hide()
- var free_to_speak: bool = not outside and pause_holds.is_empty() and not guide_panel.visible and not chapter_panel.visible and not roster.visible and not confirmation.visible and not journal.visible and not admission_offer_open and not (sim.day >= 2 and not sim.admission.offer_seen)
+ if journal.visible or confirmation.visible or training_dialog.visible or outside: chapter_panel.hide()
+ var free_to_speak: bool = not outside and pause_holds.is_empty() and not guide_panel.visible and not chapter_panel.visible and not roster.visible and not confirmation.visible and not training_dialog.visible and not journal.visible and not admission_offer_open and not (sim.day >= 2 and not sim.admission.offer_seen)
  sim.chapters.sync_story(sim,story.enabled,free_to_speak)
+ sim.operations.sync_story(sim,story.enabled,free_to_speak and sim.chapters.active == "")
  if sim.day >= 2 and sim.chapters.active != "" and free_to_speak and story.enabled:
   story_panel.show()
   toast.hide() # The existing purchase response must not compete with this line.
@@ -589,6 +607,13 @@ func refresh_chapters() -> void:
   story_portrait.texture = load("res://assets/ui/portrait-minji.png")
   story_next.text = "다음"
   goal_ribbon.hide()
+ if sim.operations.active != "" and sim.chapters.active == "" and free_to_speak and story.enabled:
+  var speech: Array = sim.operations.speech()
+  story_panel.show(); toast.hide(); goal_ribbon.hide()
+  story_heading.text = speech[0]+" · 함께 맡는 일"
+  story_text.text = speech[1]
+  story_portrait.texture = load("res://assets/ui/portrait-planner.png" if speech[0] == "박 선생" else "res://assets/ui/portrait-minji.png")
+  story_next.text = "다음"
  if chapter_panel.visible:
   story_panel.hide(); story_highlight.hide(); goal_ribbon.hide()
   next_day_button.hide(); toast.hide(); guide_settings.hide()
@@ -600,6 +625,7 @@ func open_journal() -> void:
  journal_seen_day = sim.day
  if story.active == "day_end": story.finish_dialogue()
  sim.chapters.finish_scene()
+ sim.operations.finish_scene()
  guide_panel.hide()
  chapter_panel.hide()
  journal.present(sim,story.enabled)
@@ -608,9 +634,9 @@ func open_journal() -> void:
 
 func refresh_story() -> void:
  story.sync(sim,selected_id,not outside and pause_holds.is_empty() and not confirmation.visible and not guide_panel.visible)
- if sim.all_done() and not outside and not confirmation.visible and journal_seen_day != sim.day:
+ if sim.all_done() and not outside and not confirmation.visible and not training_dialog.visible and journal_seen_day != sim.day:
   # Never interrupt an earlier line the player is still reading. No timed wait.
-  if (story.active in ["","day_end"] and sim.chapters.active == "") or not story.enabled:
+  if (story.active in ["","day_end"] and sim.chapters.active == "" and sim.operations.active == "") or not story.enabled:
    journal_seen_day = sim.day
    if story.active == "day_end": story.finish_dialogue()
    guide_panel.hide()
@@ -641,7 +667,7 @@ func layout_story() -> void:
  var body_font := maxi(18,ceili(16/scale_to_pixels))
  var name_font := maxi(19,ceili(17/scale_to_pixels))
  var w := 348.0 if scale_to_pixels < 1.0 else 324.0
- var body_height := body_font*(4.7 if sim.day >= 2 and sim.chapters.active != "" else 4.15)
+ var body_height := body_font*(4.7 if sim.day >= 2 and (sim.chapters.active != "" or sim.operations.active != "") else 4.15)
  var footer := 66+body_height
  place(story_panel,Rect2(18,71,w,footer+touch+14))
  story_heading.add_theme_font_size_override("font_size",name_font)
@@ -657,14 +683,20 @@ func layout_story() -> void:
  # Share the bottom utility row with the outside control, never the dialogue column.
  place(guide_settings,Rect2(98,hud.size.y-31-touch,180,touch))
  guide_settings.add_theme_font_size_override("font_size",maxi(16,ceili(13/scale_to_pixels)))
- var settings_height := 128+touch*3
- place(guide_panel,Rect2(18,71,470,settings_height))
+ var settings_font := maxi(18,ceili(14/scale_to_pixels))
+ var description_height := settings_font*1.5
+ place(guide_panel,Rect2(18,71,470,60+touch*5+description_height))
  place(guide_close,Rect2(312,12,140,touch))
- place(story_off,Rect2(18,26+touch,434,touch))
- admission_toggle.custom_minimum_size.y = touch
- place(admission_toggle,Rect2(18,38+touch*2,434,touch))
- guide_description.add_theme_font_size_override("font_size",maxi(18,ceili(14/scale_to_pixels)))
- place(guide_description,Rect2(18,50+touch*3,434,72))
+ var settings_buttons := [admission_toggle,training_button,planning_toggle,story_off]
+ for i in range(settings_buttons.size()):
+  var b: Button = settings_buttons[i]
+  b.custom_minimum_size.y = touch
+  b.add_theme_font_size_override("font_size",settings_font)
+  place(b,Rect2(18,20+touch+i*(touch+8),434,touch))
+ guide_description.add_theme_font_size_override("font_size",settings_font)
+ place(guide_description,Rect2(18,52+touch*5,434,description_height))
+ for b in [training_dialog.ok_button,training_dialog.cancel_button]: b.custom_minimum_size.y = touch
+ place(training_dialog.card,Rect2(safe_ui.position+(safe_ui.size-Vector2(540,350))*.5,Vector2(540,350)))
  var offer_font := maxi(20,ceili(16/scale_to_pixels))
  var offer_body := offer_font*3.6
  var offer_footer := 62+offer_body
@@ -843,7 +875,7 @@ func clear_selection() -> void:
  refresh()
 
 func scene_input(event: InputEvent) -> void:
- if confirmation.visible or journal.visible: return
+ if confirmation.visible or training_dialog.visible or journal.visible: return
  var pixel_scale := Vector2(viewport.size)/scene_container.size
  if event is InputEventMouseButton:
   if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed: world.zoom_by(0.88)
@@ -991,6 +1023,15 @@ func refresh() -> void:
  refresh_story()
  refresh_admission()
  refresh_chapters()
+ var utilities := not guide_panel.visible
+ dock.visible = utilities
+ outside_button.visible = utilities
+ outside_label.visible = utilities
+ for node in tool_buttons+tool_labels: node.visible = utilities
+ if not utilities:
+  guide_settings.hide(); toast.hide(); next_day_button.hide()
+ if training_dialog.visible:
+  story_panel.hide(); admission_offer.hide(); goal_ribbon.hide()
  layout_hud()
  if is_instance_valid(world): world.sync(sim,selected_id,0)
 
@@ -1038,6 +1079,7 @@ func publish_web_layout() -> void:
  # Opt-in, read-only QA coordinates. No remote actions or save mutation API.
  var controls := {"patients":patient_button,"first_patient":rows[0],"action":action_button,"pause":pause_button,"zoom_in":zoom_in_button,"zoom_out":zoom_out_button,"settings":guide_settings,"guide_close":guide_close,"story_next":story_next,"story_skip":story_skip,"admission_accept":admission_accept,"admission_decline":admission_decline,"admission_skip":admission_skip,"admission_toggle":admission_toggle}
  var result := {}
+ controls.merge({"training":training_button,"training_buy":training_dialog.ok_button,"training_cancel":training_dialog.cancel_button,"planning_toggle":planning_toggle,"chapter_history":chapter_panel.history_button})
  controls.merge({"chapter_goal":goal_ribbon,"chapter_close":chapter_panel.close_button,"journal_close":journal.close_button,"journal_next":journal.next_button,"journal_open":next_day_button})
  var pixels := ui_display_size/size
  for key in controls:
@@ -1046,3 +1088,47 @@ func publish_web_layout() -> void:
   result[key] = {"x":r.get_center().x*pixels.x,"y":r.get_center().y*pixels.y,"width":r.size.x*pixels.x,"height":r.size.y*pixels.y,"visible":c.is_visible_in_tree()}
  result["_state"] = {"paused":sim.paused,"time":sim.time,"money":sim.money,"day":sim.day,"visits":sim.chapters.total(),"chapter_two_day":sim.chapters.chapter_two_day}
  JavaScriptBridge.eval("window.sunshineControls="+JSON.stringify(result))
+
+func build_training_dialog() -> void:
+ training_dialog = HospitalGameDialog.new()
+ training_dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ training_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
+ add_child(training_dialog)
+ var shade := ColorRect.new()
+ shade.color = Color(.07,.15,.12,.35)
+ shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ training_dialog.add_child(shade)
+ training_dialog.card = panel(training_dialog)
+ var content := VBoxContainer.new()
+ content.add_theme_constant_override("separation",12)
+ training_dialog.card.add_child(content)
+ for text in ["운영 교육 · 500만", "준비된 환자부터 3초간 확인한 뒤\n기존 계획 검토를 순서대로 맡겨요.\n검토 시간과 치료비는 그대로예요."]:
+  var label := label_text(text,27 if text.begins_with("운영") else 23,TEAL if text.begins_with("운영") else INK)
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  content.add_child(label)
+ training_reason_label = label_text("",23,TEAL)
+ training_reason_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+ content.add_child(training_reason_label)
+ var actions := HBoxContainer.new()
+ actions.add_theme_constant_override("separation",12)
+ content.add_child(actions)
+ training_dialog.cancel_button = button("다음에",training_dialog.cancel)
+ training_dialog.ok_button = button("교육 구매 · 500만",training_dialog.accept,true)
+ for b in [training_dialog.cancel_button,training_dialog.ok_button]:
+  b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  actions.add_child(b)
+ training_dialog.confirmed.connect(func():
+  sim.purchase_training()
+  refresh(); persist())
+ training_dialog.canceled.connect(refresh)
+ training_dialog.hide()
+
+func open_training() -> void:
+ refresh()
+ training_dialog.popup_centered()
+ refresh()
+
+func toggle_planning() -> void:
+ sim.set_plan_delegated(not sim.operations.enabled)
+ refresh(); persist()

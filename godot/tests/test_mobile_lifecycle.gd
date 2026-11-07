@@ -23,7 +23,7 @@ func reached() -> bool:
   "ct": return p.get("state") == "ct_scan" and p.elapsed > 1.0
   "therapy": return p.get("state") == "treatment" and p.elapsed > 1.0
   "purchase": return game.sim.expansion_reason().is_empty()
-  "journal","day-two","staff-on","staff-off","chapter-before","chapter-after","chapter-day-four": return game.sim.all_done()
+  "journal","day-two","staff-on","staff-off","chapter-before","chapter-after","chapter-day-four","training-purchase","training-preparing","training-assigned","training-departure","training-journal","training-next": return game.sim.all_done()
   "dual": return game.sim.count_state("treatment") == 2
  return false
 func run() -> void:
@@ -63,6 +63,19 @@ func run() -> void:
    if scenario != "chapter-before": fixture.finish_day(game.sim,2)
    game.refresh()
    if scenario == "chapter-day-four": game.start_day()
+  if scenario.begins_with("training-"):
+   var fixture = load("res://tests/operations_fixture.gd")
+   check(game.sim.restore(fixture.prepare().snapshot()),"normal three-day operating checkpoint plus explicit purchase/toggles")
+   game.sim.paused = false
+   if scenario != "training-purchase":
+    for step in range(10000):
+     game.sim.tick(.1)
+     if scenario == "training-preparing" and game.sim.operations.elapsed >= 1: break
+     if scenario == "training-assigned" and game.sim.count_state("planning") > 0: break
+     if scenario == "training-departure" and game.sim.count_state("leaving") > 0: break
+     if scenario in ["training-journal","training-next"] and game.sim.all_done(): break
+   game.story.disable(); game.refresh()
+   if scenario == "training-next": game.start_day()
   game.story.disable(); game.refresh()
   if scenario == "user-paused": game.toggle_pause()
   var expected: Dictionary = game.sim.snapshot()
@@ -72,6 +85,7 @@ func run() -> void:
   game.sim.tick(120)
   var frozen: Dictionary = game.sim.snapshot()
   check(frozen.patients == expected.patients and frozen.money == expected.money and frozen.time == expected.time,"background never advances treatment or receipts")
+  check(frozen.operations_training == expected.operations_training and frozen.staff_admission == expected.staff_admission,"background freezes both duty preparation clocks")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_FOCUS_IN)
   check(game.sim.paused,"background hold survives focus-in ordering")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
@@ -87,7 +101,7 @@ func run() -> void:
   var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(checkpoint_path))
   var restored: Dictionary = JSON.parse_string(JSON.stringify(game.sim.snapshot()))
   check(not game.store.blocked and game.store.message.contains("불러왔어요"),"main ready loads actual saved file")
-  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission","chapter_progress"]:
+  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission","chapter_progress","operations_training"]:
    check(restored[key] == expected[key],"separate process restores "+key)
   check(game.sim.paused,"relaunch safely waits for user play")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
@@ -114,6 +128,16 @@ func run() -> void:
    if scenario != "chapter-day-four":
     check(game.journal.visible and game.sim.chapters.presented.has(2),"completed journal restores chapter stamp without duplicate award")
    else: check(game.sim.day == 4 and game.sim.ledger.income == 0 and game.sim.ledger.expansion_expense == 0,"next day resets daily ledger and preserves cumulative visits")
+  if scenario.begins_with("training-"):
+   check(game.sim.operations.trained and game.sim.operations.enabled and game.sim.admission.enabled,"training and both explicit preferences retained")
+   check(not game.sim.purchase_training() and game.sim.money == expected.money,"education cannot charge again after restart")
+   if scenario == "training-preparing": check(game.sim.operations.elapsed >= 1 and game.sim.operations.elapsed < 3,"partial preparation resumes at saved clock")
+   game.toggle_pause()
+   if scenario != "training-next":
+    load("res://tests/operations_fixture.gd").finish(game.sim); game.refresh()
+    check(game.sim.operations.total() == 4 and game.sim.operations.chapter_three_day == 4 and game.sim.money == 3000,"continued actual departures exactly four; no duplicate receipts")
+    check(game.journal.visible and game.journal.training_value.text == "500만","education expense and completion journal after relaunch")
+   else: check(game.sim.day == 5 and game.sim.ledger.training_expense == 0 and game.sim.money == 3000,"next-day assets and reset receipts after process restart")
   game.persist()
  var report := {"passed":failures.is_empty(),"checks":checks,"failures":failures,"case":scenario,"phase":mode,"platform":"Linux headless; injected lifecycle notifications + real process restart"}
  FileAccess.open(output.path_join(scenario+"-"+mode+".json"),FileAccess.WRITE).store_string(JSON.stringify(report,"  "))

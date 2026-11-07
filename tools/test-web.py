@@ -11,14 +11,17 @@ parser.add_argument('--mobile-preflight',action='store_true',help='Resize/inset,
 parser.add_argument('--url',help='Actual accessible export URL; defaults to isolated localhost test server')
 parser.add_argument('--touch',action='store_true')
 parser.add_argument('--staff',action='store_true',help='Load a normally operated day-two fixture into this private profile, then test actual delegation input/reload')
+parser.add_argument('--operations',action='store_true',help='Training purchase, explicit duties, real delegated command and saved provenance')
 parser.add_argument('--chapter',action='store_true',help='Actual 11-to-12 departure, chapter journal and browser reload from a normal simulation checkpoint')
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
 parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock allowance per saved-state wait; software WebGL may render far below real time')
 args=parser.parse_args()
+if sum([args.staff,args.chapter,args.operations]) > 1: parser.error('Choose one progression scenario')
 if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
 repo = Path(__file__).resolve().parents[1]
 output = repo / ('artifacts/browser-staff-touch' if args.staff and args.touch else ('artifacts/browser-touch' if args.touch else 'artifacts/browser'))
 if args.chapter: output=repo/('artifacts/browser-chapter-touch' if args.touch else 'artifacts/browser-chapter')
+if args.operations: output=repo/('artifacts/browser-operations-touch' if args.touch else 'artifacts/browser-operations')
 output.mkdir(parents=True, exist_ok=True)
 (output/'results.json').unlink(missing_ok=True)
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -28,7 +31,7 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader'])
-        width,height=(844,350) if (args.staff or args.chapter) and args.touch else ((844,390) if args.touch else (1280,720))
+        width,height=(844,350) if (args.staff or args.chapter or args.operations) and args.touch else ((844,390) if args.touch else (1280,720))
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch,device_scale_factor=args.dpr)
         page.set_default_timeout(120000)
         messages=[]
@@ -104,7 +107,7 @@ try:
         state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])
         story=state.get('first_day_story',{})
         ledger=state.get('daily_ledger',{})
-        assert ledger=={'version':1,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False}, 'Actual opening/day receipts were not saved correctly'
+        assert ledger=={'version':2,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False,'training_expense':0}, 'Actual opening/day receipts were not saved correctly'
         assert story.get('version')==1 and story.get('seen',{}).get('admission'), 'State-driven tutorial was not saved after actual admission'
         page.screenshot(timeout=120000,scale='css',path=str(output/'after-admission.png'))
         preflight={}
@@ -148,11 +151,13 @@ try:
             preflight={'layouts':layouts,'freeze_resume_while_user_paused':True,'actual_page_reload':True,'indexeddb_restored':True,'physical_phone':False}
         staff={}
         chapter={}
-        if args.staff or args.chapter:
+        operations={}
+        if args.staff or args.chapter or args.operations:
             # This is a fresh test-only browser profile, never player storage.
             # Leave the running engine before replacing the fixture so it cannot
             # race the write. Operational state comes from normal day-one commands.
             fixture_path='artifacts/chapter-rehearsal-completion/checkpoint.json' if args.chapter else 'artifacts/staff-video-offer/checkpoint.json'
+            if args.operations: fixture_path='artifacts/operations-rehearsal-education/checkpoint.json'
             fixture=json.loads((repo/fixture_path).read_text())
             if args.staff:
                 fixture['staff_admission']['offer_seen']=False
@@ -176,7 +181,41 @@ try:
             }''',fixture)
             assert replaced==1, replaced
             page.goto(base+('&' if '?' in base else '?')+'playtest=1')
-            if args.chapter:
+            if args.operations:
+                page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                assert page.evaluate('window.sunshineControls._state.day')==4
+                assert page.evaluate('window.sunshineControls._state.paused')
+                # User pause stays in force while reading and buying education.
+                press('settings');press('training')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-training-offer.png'))
+                press('training_cancel')
+                cancelled=wait_saved(lambda s:s['day']==4)
+                assert cancelled['money']==2700 and not cancelled['operations_training']['trained']
+                press('training');press('training_buy')
+                purchased=wait_saved(lambda s:s['operations_training']['trained'])
+                assert purchased['money']==2200 and purchased['daily_ledger']['training_expense']==500
+                assert not purchased['operations_training']['enabled']
+                press('planning_toggle');press('admission_toggle')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-work-management.png'))
+                press('guide_close');press('pause')
+                assigned=wait_saved(lambda s:any(p.get('plan_source')=='staff' for p in s['patients']))
+                first=assigned['patients'][0]
+                assert first['admission_source']=='minji' and first['plan_source']=='staff'
+                assert first['history'].count('plan_queue')==1 and first['history'].count('ct_queue')==1
+                press('patients');press('first_patient');press('pause')
+                live=page.evaluate('window.sunshineControls._state')
+                saved=wait_saved(lambda s:abs(s['time']-live['time'])<.001)
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-automatic-plan.png'))
+                page.reload()
+                page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                restored=wait_saved(lambda s:s['day']==4 and abs(s['time']-saved['time'])<.001)
+                for key in ['patients','operations_training','chapter_progress','daily_ledger','staff_admission','money']:
+                    assert restored[key]==saved[key],key
+                assert page.evaluate('window.sunshineControls._state.paused')
+                press('settings')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored-duties.png'))
+                operations={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'purchase_cancelled':True,'actual_purchase_once':True,'purchase_does_not_enable':True,'explicit_duty_toggles':True,'actual_automatic_admission_and_plan':True,'command_provenance_saved':True,'actual_page_reload':True,'physical_phone':False}
+            elif args.chapter:
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
                 assert page.evaluate('window.sunshineControls._state.visits')==11
                 assert page.evaluate('window.sunshineControls._state.chapter_two_day')==0
@@ -231,6 +270,7 @@ try:
         report['preflight']=preflight
         report['staff']=staff
         report['chapter']=chapter
+        report['operations']=operations
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()

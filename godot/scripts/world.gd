@@ -446,3 +446,6 @@ func pick(point: Vector2) -> int:
  var hit := get_world_3d().direct_space_state.intersect_ray(query)
  if hit.is_empty(): return -1
  return int(hit.collider.get_meta("patient_id",-1))
+
+func plan_response(target: Vector3) -> void:
+ if staff_models.size() > 1: staff_models[1].react("admission",target)

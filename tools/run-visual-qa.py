@@ -22,6 +22,9 @@ p.add_argument('--mobile-preview', action='store_true', help='Record compact saf
 p.add_argument('--performance', action='store_true', help='Measure actual frame time without Movie Maker/fixed FPS')
 p.add_argument('--mobile-check', action='store_true', help='Actual renderer: safe areas, touch-sized UI and input regression')
 p.add_argument('--staff-check', action='store_true', help='Admission delegation UI at four landscape sizes')
+p.add_argument('--planner-portrait',action='store_true')
+p.add_argument('--operations-check',action='store_true')
+p.add_argument('--operations',choices=['education','flow','completion'])
 p.add_argument('--chapter-check', action='store_true', help='Chapter goals, story and journal at four landscape sizes')
 p.add_argument('--chapter', choices=['journal','annex','completion'], help='Normal 1x chapter progression segment')
 p.add_argument('--staff', choices=['offer','flow','restore'], help='Normal 1x admission delegation segment')
@@ -36,6 +39,8 @@ if args.staff and (not args.movie or args.normal or args.motion or args.story or
     p.error('--staff requires --movie alone')
 if args.chapter and (not args.movie or args.staff or args.normal or args.motion or args.story or args.polish or args.brief or args.input_check):
     p.error('--chapter requires --movie alone')
+if args.operations and (not args.movie or args.chapter or args.staff or args.normal or args.motion or args.story or args.polish or args.brief or args.input_check):
+    p.error('--operations requires --movie alone')
 if args.input_check and not args.movie:
     p.error('--input-check requires --movie')
 if args.brief and not args.movie:
@@ -48,7 +53,7 @@ if args.story and (not args.movie or args.normal or args.motion or args.brief or
     p.error('--story requires --movie alone')
 if args.polish and (not args.movie or args.normal or args.motion or args.story or args.brief or args.input_check or args.story_check):
     p.error('--polish requires --movie alone')
-if args.rehearsal and not (args.normal or args.motion or args.story or args.polish or args.staff or args.chapter):
+if args.rehearsal and not (args.normal or args.motion or args.story or args.polish or args.staff or args.chapter or args.operations):
     p.error('--rehearsal requires --normal, --motion or --story')
 if args.art_capture and args.movie:
     p.error('--art-capture and --movie are mutually exclusive')
@@ -95,6 +100,9 @@ with (runtime / 'xorg.log').open('w') as log:
         if args.story_check: script = 'tests/test_story_ui.gd'
         if args.mobile_check: script = 'tests/test_mobile_ui.gd'
         if args.staff_check: script = 'tests/test_staff_ui.gd'
+        if args.planner_portrait: script = 'tests/capture_planner.gd'
+        if args.operations_check: script = 'tests/test_operations_ui.gd'
+        if args.operations: script = 'tests/record_operations.gd'
         if args.chapter_check: script = 'tests/test_chapter_ui.gd'
         if args.chapter: script = 'tests/record_chapters.gd'
         if args.staff: script = 'tests/record_staff_admission.gd'
@@ -108,8 +116,9 @@ with (runtime / 'xorg.log').open('w') as log:
         elif args.movie:
             command += ['--resolution', '844x390' if args.mobile_preview else '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
-        if args.story_check or args.mobile_check or args.story or args.polish or args.staff_check or args.staff or args.chapter_check or args.chapter: command += ['--tutorial']
+        if args.story_check or args.mobile_check or args.story or args.polish or args.staff_check or args.staff or args.chapter_check or args.chapter or args.operations_check or args.operations: command += ['--tutorial']
         if args.chapter: command += [f'--segment={args.chapter}']
+        if args.operations: command += [f'--segment={args.operations}']
         if args.staff: command += [f'--segment={args.staff}']
         if args.polish: command += [f'--segment={args.polish}']
         if args.mobile_preview: command += ['--mobile-preview']
@@ -122,7 +131,7 @@ with (runtime / 'xorg.log').open('w') as log:
         import json
         (args.output_dir/'launch.json').write_text(json.dumps({'argv':command,'platform':'Linux llvmpipe','physical_mobile':False},indent=2))
         with (args.output_dir / 'engine.log').open('w') as engine_log:
-            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=1800 if args.movie else 240)
+            result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=1800 if args.movie else (600 if args.operations_check else 240))
         text = (args.output_dir / 'engine.log').read_text()
         print(text)
         code = result.returncode if result.returncode else (1 if 'SCRIPT ERROR' in text or 'ERROR:' in text else 0)
@@ -131,7 +140,7 @@ with (runtime / 'xorg.log').open('w') as log:
             report = json.loads((args.output_dir / 'movie-results.json').read_text())
             if not report['passed']:
                 raise SystemExit('Movie scenario failed')
-            if args.motion or args.story or args.polish or args.staff or args.chapter:
+            if args.motion or args.story or args.polish or args.staff or args.chapter or args.operations:
                 from encode_motion import encode
                 encode(args.output_dir/'playthrough.avi', args.output_dir/'playthrough.mp4', args.output_dir/'movie-results.json')
             else:

@@ -12,12 +12,16 @@ static func describe(sim: HospitalSimulation, p: Dictionary) -> Dictionary:
    result.reason = "아래 버튼으로 접수해 주세요.\nCT 순서에 등록돼요."
    result.bubble = "접수해 주세요"
    if sim.admission.enabled:
-    result.reason = "민지가 도착 순서대로 접수해요.\n직접 먼저 접수해도 괜찮아요."
+    result.reason = "민지가 순서대로 접수해요.\n직접 접수도 가능해요."
     result.bubble = "민지가 접수해요"
   "plan_ready":
    result.action = "계획 맡기기"
    result.reason = "CT 촬영을 마쳤어요.\n직원에게 검토를 맡겨 주세요."
    result.bubble = "계획 부탁해요"
+   if sim.operations.enabled:
+    result.bubble = "직원이 확인해요"
+    result.reason = "직원이 순서대로 지시를 준비해요.\n직접 먼저 맡겨도 괜찮아요."
+    if sim.operations.candidate_id == p.id: result.reason = "계획 지시 준비 · %d초 남음\n준비 후 기존 검토를 시작해요." % maxi(1,ceili(sim.operations.DELAY-sim.operations.elapsed))
   "ct_queue", "plan_queue", "treatment_queue":
    var destination := {"ct_queue":"CT", "plan_queue":"계획", "treatment_queue":"치료실"}[p.state] as String
    var rank := sim.queue_rank(p.id)
@@ -34,7 +38,7 @@ static func describe(sim: HospitalSimulation, p: Dictionary) -> Dictionary:
   "walk_ct", "walk_plan", "walk_treatment":
    result.action = sim.status_text(p.id)
    result.reason = "도착하면 자동으로 CT 촬영을 시작해요."
-   if p.state == "walk_plan": result.reason = "계획실에 도착하면 검토를 맡겨 주세요."
+   if p.state == "walk_plan": result.reason = "도착하면 직원이 계획 지시를 준비해요." if sim.operations.enabled else "계획실에 도착하면 검토를 맡겨 주세요."
    elif p.state == "walk_treatment": result.reason = "%d번 치료실을 예약했어요. 도착하면 자동으로 치료해요." % (p.room+1)
   "ct_scan", "planning", "treatment":
    if p.state in ["ct_scan","treatment"]:

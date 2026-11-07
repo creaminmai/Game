@@ -68,7 +68,8 @@ func run() -> void:
   check(game.sim.money == 2700 and game.sim.chapters.total() == 12 and game.journal.chapter_stamp.text.contains("2장"),"actual third-day receipts and chapter stamp")
   await click(game.journal.next_button); check(game.sim.day == 4,"chapter completion allows next day")
   await click(game.goal_ribbon); chapter_layout(prefix+" completed history")
-  check(game.chapter_panel.first.text.contains("완료") and game.chapter_panel.second.text.contains("완료"),"both chapters remain in history without chapter-three controls")
+  await click(game.chapter_panel.history_button); chapter_layout(prefix+" previous history")
+  check(game.chapter_panel.first.text.contains("완료") and game.chapter_panel.second.text.contains("완료"),"both completed chapters remain reviewable")
   game.queue_free(); await process_frame; await process_frame
  var report := {"passed":failures.is_empty(),"checks":checks,"failures":failures,"pixel_metrics":pixel_metrics,"platform":"Linux Godot; automated input + simulated safe insets","physical_mobile":false}
  FileAccess.open(output.path_join("results.json"),FileAccess.WRITE).store_string(JSON.stringify(report,"  "))

@@ -30,7 +30,7 @@ func tick(sim: HospitalSimulation, delta: float) -> void:
  elapsed += delta
  if elapsed + .000001 < DELAY: return
  # No scheduled callbacks survive toggles, manual admission, pause or reload.
- sim.admit(first)
+ sim.admit(first,true)
  reset_pending()
 
 func snapshot() -> Dictionary:
