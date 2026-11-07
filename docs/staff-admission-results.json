@@ -1,0 +1,1282 @@
+{
+  "source_commit": "3472bddf4dbed4d0a3f4f21fa6c21247296e042f",
+  "godot": "4.6.3.stable.official.7d41c59c4",
+  "passed": true,
+  "checks": 1755,
+  "checks_exclude_browser_and_movie_scenario_assertions": true,
+  "platform": "Linux llvmpipe, Chromium SwiftShader desktop/touch emulation",
+  "physical_android": false,
+  "physical_iphone": false,
+  "mac_hardware": false,
+  "tests": {
+    "motion": {
+      "checks": 48,
+      "completed": 4,
+      "failures": [],
+      "geometry_contacts": {},
+      "geometry_sample_rate": 60,
+      "max_head_step_60fps": 0.116186797618866,
+      "max_turn_radians_per_frame": 0.436921715736389,
+      "money": 1100,
+      "passed": true,
+      "phases": [
+        {
+          "pose": "walk",
+          "state": "walk_ct",
+          "time": 6.01666666666666
+        },
+        {
+          "pose": "prepare",
+          "state": "ct_scan",
+          "time": 12.8500000000002
+        },
+        {
+          "pose": "lie_down",
+          "state": "ct_scan",
+          "time": 13.0000000000002
+        },
+        {
+          "pose": "service",
+          "state": "ct_scan",
+          "time": 14.2000000000003
+        },
+        {
+          "pose": "rise",
+          "state": "ct_scan",
+          "time": 16.516666666667
+        },
+        {
+          "pose": "walk",
+          "state": "walk_plan",
+          "time": 17.8666666666669
+        },
+        {
+          "pose": "idle",
+          "state": "plan_ready",
+          "time": 21.9166666666667
+        },
+        {
+          "pose": "walk",
+          "state": "walk_treatment",
+          "time": 26.9333333333331
+        },
+        {
+          "pose": "prepare",
+          "state": "treatment",
+          "time": 32.0333333333328
+        },
+        {
+          "pose": "lie_down",
+          "state": "treatment",
+          "time": 32.1833333333328
+        },
+        {
+          "pose": "service",
+          "state": "treatment",
+          "time": 33.3833333333327
+        },
+        {
+          "pose": "rise",
+          "state": "treatment",
+          "time": 60.6999999999978
+        },
+        {
+          "pose": "walk",
+          "state": "leaving",
+          "time": 62.0499999999978
+        },
+        {
+          "pose": "idle",
+          "state": "complete",
+          "time": 65.8666666666642
+        }
+      ],
+      "save_format_changed": false,
+      "simultaneous_treatment": true
+    },
+    "story": {
+      "checks": 84,
+      "failures": [],
+      "mac_or_mobile_hardware_test": false,
+      "passed": true,
+      "saved_scenes": [
+        "welcome",
+        "arrival",
+        "",
+        "ct",
+        "plan",
+        "treatment",
+        "complete",
+        "expansion",
+        "day_end",
+        ""
+      ]
+    },
+    "first_day": {
+      "checks": 70,
+      "failures": [],
+      "mobile_hardware_test": false,
+      "passed": true
+    },
+    "staff": {
+      "checks": 61,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false
+    },
+    "staff_ui": {
+      "checks": 800,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "pixel_metrics": {
+        "1280x720 day-one dialogue/card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 day-one settings": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 delegated card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 delegated settings": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 proposal": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "844x350 day-one dialogue/card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 day-one settings": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 delegated card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 delegated settings": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 proposal": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x390 day-one dialogue/card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 day-one settings": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 delegated card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 delegated settings": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 proposal": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "915x412 day-one dialogue/card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 day-one settings": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 delegated card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 delegated settings": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 proposal": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        }
+      },
+      "platform": "Linux Godot OpenGL llvmpipe; automated mouse input, simulated safe insets"
+    },
+    "lifecycle": {
+      "passed": true,
+      "checks": 198,
+      "process_launches": 20,
+      "isolated_save_directory": "/workspace/Game/.runtime/mobile-lifecycle-g29gq79h",
+      "cases": [
+        {
+          "case": "moving",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "moving",
+          "checks": 11,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "ct",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "ct",
+          "checks": 11,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "therapy",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "therapy",
+          "checks": 11,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "user-paused",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "user-paused",
+          "checks": 11,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "purchase",
+          "checks": 8,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "purchase",
+          "checks": 13,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "journal",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "journal",
+          "checks": 14,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "day-two",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "day-two",
+          "checks": 14,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "dual",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "dual",
+          "checks": 14,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-on",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-on",
+          "checks": 14,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-off",
+          "checks": 7,
+          "failures": [],
+          "passed": true,
+          "phase": "prepare",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        },
+        {
+          "case": "staff-off",
+          "checks": 14,
+          "failures": [],
+          "passed": true,
+          "phase": "restore",
+          "platform": "Linux headless; injected lifecycle notifications + real process restart"
+        }
+      ],
+      "physical_mobile_tested": false
+    },
+    "story_ui": {
+      "actual_pixel_metrics": {
+        "compact CT": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "compact arrival": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "compact welcome": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "desktop CT": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        },
+        "desktop arrival": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        },
+        "desktop welcome": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        }
+      },
+      "automatic_input": true,
+      "checks": 271,
+      "failures": [],
+      "mobile_hardware_test": false,
+      "passed": true,
+      "renderer": "Godot Compatibility / Linux llvmpipe"
+    },
+    "scene": {
+      "android_ios_tested": false,
+      "camera_views": {
+        "default_view": {
+          "center": [
+            -0.0888754799962044,
+            2.07876372337341,
+            -0.222173750400543
+          ],
+          "size": 14.3314647674561
+        },
+        "expanded_view": {
+          "center": [
+            2.95385456085205,
+            2.11792469024658,
+            -0.248526304960251
+          ],
+          "size": 15.5037231445312
+        },
+        "patient_card": {
+          "center": [
+            -0.0888754799962044,
+            2.07876372337341,
+            -0.222173750400543
+          ],
+          "size": 14.3314647674561
+        }
+      },
+      "checks": 172,
+      "completed": 4,
+      "dual_treatment_captured": true,
+      "failures": [],
+      "money_after_day_one": 1100,
+      "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+      "passed": true,
+      "selected_by_real_input": 6
+    },
+    "web_desktop": {
+      "passed": true,
+      "browser": "Chromium desktop / SwiftShader",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.099140022000938,
+      "first_arrived_and_persisted_wall_seconds": 189.9008407270012,
+      "viewport": [
+        1280,
+        720
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {}
+    },
+    "web_touch": {
+      "passed": true,
+      "browser": "Chromium touch emulation",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.0065660719992593,
+      "first_arrived_and_persisted_wall_seconds": 80.04096803500215,
+      "viewport": [
+        844,
+        350
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {
+        "passed": true,
+        "normal_simulation_checkpoint": true,
+        "isolated_indexeddb_fixture": true,
+        "accepted_via_canvas": true,
+        "automatic_admission_once": true,
+        "disabled_via_canvas": true,
+        "real_page_reload": true,
+        "disabled_setting_and_patients_restored": true,
+        "physical_phone": false
+      }
+    }
+  },
+  "movies": [
+    {
+      "path": "docs/media/staff-admission-offer-1x.mp4",
+      "title": "제안 수락 → 자동 접수",
+      "sha256": "b131e531c6c7d45caddf7b2edb77c8356a6b4948221cd5c0a9bd28f44bab0e18",
+      "bytes": 1127867,
+      "result": {
+        "admission_events": [
+          1,
+          2,
+          3
+        ],
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "ct_queue_shown": true,
+        "fps": 24,
+        "manual_admission": false,
+        "manual_plan_commands": 0,
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+        "real_canvas_clicks": 5,
+        "real_file_restored": false,
+        "recorded_frames": 576,
+        "reload_trigger": "QA invokes actual SaveStore.load_into; process restart tested separately",
+        "segment": "offer",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 0.0,
+            "selected": -1,
+            "states": [
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 3.91666666666667,
+            "selected": -1,
+            "states": [
+              "waiting"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 4.20833333333333,
+            "selected": -1,
+            "states": [
+              "waiting"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 6.04166666666667,
+            "selected": -1,
+            "states": [
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 7.125,
+            "selected": -1,
+            "states": [
+              "walk_ct",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 9.375,
+            "selected": 1,
+            "states": [
+              "walk_ct",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 12.0416666666667,
+            "selected": 1,
+            "states": [
+              "walk_ct",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 12.2916666666667,
+            "selected": 1,
+            "states": [
+              "walk_ct",
+              "ct_queue",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 14.0,
+            "selected": 1,
+            "states": [
+              "ct_scan",
+              "ct_queue",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 15.9166666666667,
+            "selected": 1,
+            "states": [
+              "ct_scan",
+              "ct_queue",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 18.0416666666667,
+            "selected": 2,
+            "states": [
+              "ct_scan",
+              "ct_queue",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 18.875,
+            "selected": 2,
+            "states": [
+              "ct_scan",
+              "ct_queue",
+              "ct_queue",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 19.0,
+            "selected": 2,
+            "states": [
+              "walk_plan",
+              "walk_ct",
+              "ct_queue",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 21.3333333333333,
+            "selected": 2,
+            "states": [
+              "walk_plan",
+              "walk_ct",
+              "ct_queue",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 23.0833333333333,
+            "selected": 2,
+            "states": [
+              "plan_ready",
+              "walk_ct",
+              "ct_queue",
+              "waiting"
+            ]
+          }
+        ],
+        "two_rooms_treating": false,
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 577,
+          "delivered_frames": 576,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      }
+    },
+    {
+      "path": "docs/media/staff-admission-flow-1x.mp4",
+      "title": "CT 대기열 → 직접 계획 지시 → 두 치료실",
+      "sha256": "db9b4986ae976bb1462ef71e0b5af7b008aa5e55b07035cfa7865039a390fb78",
+      "bytes": 1917921,
+      "result": {
+        "admission_events": [
+          4
+        ],
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "ct_queue_shown": true,
+        "fps": 24,
+        "manual_admission": false,
+        "manual_plan_commands": 2,
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+        "real_canvas_clicks": 10,
+        "real_file_restored": false,
+        "recorded_frames": 1080,
+        "reload_trigger": "QA invokes actual SaveStore.load_into; process restart tested separately",
+        "segment": "flow",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 0.0,
+            "selected": -1,
+            "states": [
+              "plan_ready",
+              "walk_ct",
+              "ct_queue",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 0.208333333333333,
+            "selected": -1,
+            "states": [
+              "plan_ready",
+              "walk_ct",
+              "ct_queue",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 1.375,
+            "selected": 3,
+            "states": [
+              "plan_ready",
+              "ct_scan",
+              "ct_queue",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 6.08333333333333,
+            "selected": 1,
+            "states": [
+              "plan_ready",
+              "walk_plan",
+              "walk_ct",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 7.20833333333333,
+            "selected": 1,
+            "states": [
+              "planning",
+              "walk_plan",
+              "walk_ct",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 10.6666666666667,
+            "selected": 1,
+            "states": [
+              "planning",
+              "plan_ready",
+              "walk_ct",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 12.125,
+            "selected": 1,
+            "states": [
+              "walk_treatment",
+              "plan_ready",
+              "walk_ct",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 12.9583333333333,
+            "selected": 1,
+            "states": [
+              "walk_treatment",
+              "plan_ready",
+              "ct_scan",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 15.2083333333333,
+            "selected": 2,
+            "states": [
+              "walk_treatment",
+              "planning",
+              "ct_scan",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 17.25,
+            "selected": 2,
+            "states": [
+              "treatment",
+              "planning",
+              "ct_scan",
+              "ct_queue"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 17.9583333333333,
+            "selected": 2,
+            "states": [
+              "treatment",
+              "planning",
+              "walk_plan",
+              "walk_ct"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 20.125,
+            "selected": 2,
+            "states": [
+              "treatment",
+              "walk_treatment",
+              "walk_plan",
+              "walk_ct"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 21.875,
+            "selected": 2,
+            "states": [
+              "treatment",
+              "walk_treatment",
+              "plan_ready",
+              "walk_ct"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 24.375,
+            "selected": -1,
+            "states": [
+              "treatment",
+              "walk_treatment",
+              "plan_ready",
+              "ct_scan"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 29.25,
+            "selected": -1,
+            "states": [
+              "treatment",
+              "walk_treatment",
+              "plan_ready",
+              "walk_plan"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 30.0416666666667,
+            "selected": -1,
+            "states": [
+              "treatment",
+              "treatment",
+              "plan_ready",
+              "walk_plan"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 33.75,
+            "selected": -1,
+            "states": [
+              "treatment",
+              "treatment",
+              "plan_ready",
+              "plan_ready"
+            ]
+          }
+        ],
+        "two_rooms_treating": true,
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 1081,
+          "delivered_frames": 1080,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      }
+    },
+    {
+      "path": "docs/media/staff-admission-restore-1x.mp4",
+      "title": "위임 끄기 → 수동 접수 → 저장 복원",
+      "sha256": "08bd60178530891e5f4a7bdff9355afc422022d00abb8fd0641179d4e1fae29e",
+      "bytes": 1013903,
+      "result": {
+        "admission_events": [
+          2
+        ],
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "ct_queue_shown": true,
+        "fps": 24,
+        "manual_admission": true,
+        "manual_plan_commands": 0,
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+        "real_canvas_clicks": 8,
+        "real_file_restored": true,
+        "recorded_frames": 576,
+        "reload_trigger": "QA invokes actual SaveStore.load_into; process restart tested separately",
+        "segment": "restore",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 0.0,
+            "selected": -1,
+            "states": [
+              "walk_ct",
+              "entering"
+            ]
+          },
+          {
+            "delegated": true,
+            "money": 1100,
+            "paused": false,
+            "seconds": 1.25,
+            "selected": -1,
+            "states": [
+              "walk_ct",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 3.20833333333333,
+            "selected": -1,
+            "states": [
+              "walk_ct",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 4.04166666666667,
+            "selected": -1,
+            "states": [
+              "walk_ct",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 5.66666666666667,
+            "selected": -1,
+            "states": [
+              "ct_scan",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 7.91666666666667,
+            "selected": 2,
+            "states": [
+              "ct_scan",
+              "waiting",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 9.20833333333333,
+            "selected": 2,
+            "states": [
+              "ct_scan",
+              "ct_queue",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 10.0416666666667,
+            "selected": 2,
+            "states": [
+              "ct_scan",
+              "ct_queue",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 10.6666666666667,
+            "selected": 2,
+            "states": [
+              "walk_plan",
+              "walk_ct",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": true,
+            "seconds": 13.2083333333333,
+            "selected": 2,
+            "states": [
+              "walk_plan",
+              "walk_ct",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 20.2083333333333,
+            "selected": 2,
+            "states": [
+              "walk_plan",
+              "walk_ct",
+              "waiting",
+              "entering"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 20.3333333333333,
+            "selected": 2,
+            "states": [
+              "walk_plan",
+              "walk_ct",
+              "waiting",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 21.75,
+            "selected": 2,
+            "states": [
+              "plan_ready",
+              "walk_ct",
+              "waiting",
+              "waiting"
+            ]
+          },
+          {
+            "delegated": false,
+            "money": 1100,
+            "paused": false,
+            "seconds": 23.9583333333333,
+            "selected": 2,
+            "states": [
+              "plan_ready",
+              "ct_scan",
+              "waiting",
+              "waiting"
+            ]
+          }
+        ],
+        "two_rooms_treating": false,
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 577,
+          "delivered_frames": 576,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      }
+    }
+  ],
+  "images": [
+    "images/staff-admission/844x350-dialogue-card.png",
+    "images/staff-admission/844x350-offer.png",
+    "images/staff-admission/844x350-settings.png",
+    "images/staff-admission/844x350-queue-card.png",
+    "images/staff-admission/844x390-offer.png",
+    "images/staff-admission/915x412-settings.png",
+    "images/staff-admission/1280x720-offer.png",
+    "images/staff-admission/1280x720-queue-card.png",
+    "images/staff-admission/chromium-844x350-offer.png",
+    "images/staff-admission/chromium-844x350-settings.png",
+    "images/staff-admission/chromium-844x350-restored.png"
+  ],
+  "packages": [
+    {
+      "path": "artifacts/mobile/SunshineHospital-Web-0.3.0-3472bdd.zip",
+      "bytes": 22610921,
+      "sha256": "735d90b01e224ca99a389e033c60be72542e8f716f4db43e6cf47cf110958b62"
+    },
+    {
+      "path": "artifacts/mac/SunshineHospital-Mac-Godot-3472bdd.zip",
+      "bytes": 14150984,
+      "sha256": "c1f3282e5cf4092ab8942148becd2ddd24ddfc7c4c9abb36b33ffccb480fb973"
+    }
+  ],
+  "public_web_verified": false,
+  "previous_android_apk_includes_this_feature": false,
+  "remote_verification": {
+    "source_main_commit": "3472bddf4dbed4d0a3f4f21fa6c21247296e042f",
+    "source_main_confirmed": true,
+    "web_branch_commit": "5a32d3859c006358899c8580a0cc319210ebe34f",
+    "web_branch_confirmed": true,
+    "public_pages_verified": false
+  }
+}
