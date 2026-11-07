@@ -20,7 +20,7 @@ class ReviewCursor extends Control:
   draw_polyline(points,Color("654d35"),1.5,true)
 
 func click_at(point: Vector2) -> void:
- cursor.position = point
+ cursor.position = point-game.hud.position
  cursor.show()
  var pixels := point*Vector2(root.size)/root.get_visible_rect().size
  var motion := InputEventMouseMotion.new()

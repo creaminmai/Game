@@ -52,7 +52,7 @@ python3 tools/run-visual-qa.py
 
 두 번째 명령은 Linux의 Xorg dummy 드라이버, Mesa OpenGL, xdpyinfo가 필요합니다. Xorg는 로컬 전용 `:98`을 사용하며 TCP를 열지 않습니다. 실행 중인 동일 번호의 X 서버가 있다면 먼저 사용 여부를 확인해야 합니다. QA는 플레이어 저장을 사용하지 않습니다.
 
-Android APK / iOS IPA, 실기기 테스트, 최종 모델·표정, 첫날 이후의 시즌 스토리·퍼즐, 직원 자동 운영, 지역 지도·연구소·세계 네트워크는 아직 없습니다. 원래 프로젝트의 저장 파일은 호환을 검증하지 못했으므로 자동 이전하지 않습니다.
+Android 개발 APK와 Mac→iPhone 웹 전달 묶음은 [모바일 체험 안내](docs/mobile-playtest.md)에 있습니다. iOS IPA, 실기기 테스트, 최종 모델·표정, 첫날 이후의 시즌 스토리·퍼즐, 직원 자동 운영, 지역 지도·연구소·세계 네트워크는 아직 없습니다. 원래 프로젝트의 저장 파일은 호환을 검증하지 못했으므로 자동 이전하지 않습니다.
 
 ## 자료와 작업 원칙
 
@@ -65,3 +65,5 @@ Android APK / iOS IPA, 실기기 테스트, 최종 모델·표정, 첫날 이후
 - [AGENTS.md](AGENTS.md): 검증 후 커밋·main 푸시 등 지속 지침.
 
 커밋된 소스와 선택한 화면 캡처는 Git 원격에 보관합니다. 로컬 저장 파일·전체 QA 결과물·ZIP은 자동으로 원격에 포함되지 않습니다.
+
+모바일 체험 빌드·설치·저장 재개·검증 범위는 [mobile-playtest.md](docs/mobile-playtest.md)를 확인하세요. Android/iPhone 실기기 확인은 별도로 남아 있습니다.

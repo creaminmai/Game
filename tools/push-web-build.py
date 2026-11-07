@@ -9,9 +9,13 @@ site = repo / 'artifacts/web'
 if not (site/'index.wasm').is_file(): raise SystemExit('Run export-game.py Web first')
 def git(*args, **kwargs):
     return subprocess.check_output(['git','-C',str(repo),*args],text=True,**kwargs).strip()
-source = git('rev-parse','HEAD')
+manifest=json.loads((site/'build.json').read_text())
+source=manifest['source_commit']
+if manifest.get('source_dirty',True): raise SystemExit('Export from a clean committed tree before publishing')
+# Preserve the actual build source + checksums even if HEAD now adds review docs.
+manifest['mobile_safari_verified']=False
 (site/'.nojekyll').touch()
-(site/'build.json').write_text(json.dumps({'source_commit':source,'engine':'Godot 4.6.3','target':'Web single-threaded','mobile_safari_verified':False},indent=2))
+(site/'build.json').write_text(json.dumps(manifest,indent=2))
 existing = git('ls-remote','origin','refs/heads/gh-pages')
 parent=[]
 if existing:

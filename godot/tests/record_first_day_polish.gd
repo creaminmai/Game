@@ -28,8 +28,10 @@ func run() -> void:
  for arg in OS.get_cmdline_user_args():
   if arg.begins_with("--output-dir="): output = arg.trim_prefix("--output-dir=")
   if arg.begins_with("--segment="): segment = arg.trim_prefix("--segment=")
- root.size = Vector2i(1280,720)
+ var mobile_preview := "--mobile-preview" in OS.get_cmdline_user_args()
+ root.size = Vector2i(844,390) if mobile_preview else Vector2i(1280,720)
  game = load("res://main.tscn").instantiate()
+ if mobile_preview: game.safe_insets_test = Vector4(47,0,47,21)
  root.add_child(game); game.set_process(false)
  await process_frame
  prepare_checkpoint()
@@ -39,7 +41,7 @@ func run() -> void:
  game.refresh()
  game.world.show_overview()
  while game.world.transition_active: await process_frame
- game.recording_caption = "자동 입력 시연 · 정상 1배속"
+ game.recording_caption = "Linux · 자동 입력 1배속" if mobile_preview else "자동 입력 시연 · 정상 1배속"
  cursor = ReviewCursor.new()
  cursor.mouse_filter = Control.MOUSE_FILTER_IGNORE
  cursor.z_index = 100; cursor.hide()

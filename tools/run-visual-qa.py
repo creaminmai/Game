@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import subprocess
 import time
+import tempfile
+import fcntl
 
 repo = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
@@ -16,6 +18,9 @@ p.add_argument('--movie', action='store_true', help='Record an actual engine pla
 p.add_argument('--brief', action='store_true', help='A shorter movie with 6x simulation and shorter reading pauses')
 p.add_argument('--motion-capture', action='store_true', help='Capture actual intermediate couch poses for visual review')
 p.add_argument('--motion', choices=['admission','therapy','dual'], help='Normal 1x motion segment from a real simulation checkpoint')
+p.add_argument('--mobile-preview', action='store_true', help='Record compact safe-area layout; Linux engine, not a mobile device')
+p.add_argument('--performance', action='store_true', help='Measure actual frame time without Movie Maker/fixed FPS')
+p.add_argument('--mobile-check', action='store_true', help='Actual renderer: safe areas, touch-sized UI and input regression')
 p.add_argument('--story-check', action='store_true', help='Verify the first-day story through actual GUI input')
 p.add_argument('--story', choices=['welcome','completion','ending'], help='Normal 1x first-day tutorial/story recording')
 p.add_argument('--polish', choices=['welcome','expansion','journal'], help='Normal 1x improved first-day play, annex and journal')
@@ -43,11 +48,28 @@ args.output_dir = args.output_dir.resolve()
 args.output_dir.mkdir(parents=True, exist_ok=True)
 runtime = repo / '.runtime'
 runtime.mkdir(exist_ok=True)
+qa_lock=(runtime/'visual-qa.lock').open('w')
+try:
+    fcntl.flock(qa_lock,fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    raise SystemExit('Another visual QA job is using :98; finish it first.')
 env = os.environ.copy()
 for key, child in [('XDG_DATA_HOME', 'visual-data'), ('XDG_CACHE_HOME', 'cache'), ('XDG_CONFIG_HOME', 'config')]:
     env[key] = str(runtime / child)
     Path(env[key]).mkdir(exist_ok=True)
 env.update(DISPLAY=':98', LIBGL_ALWAYS_SOFTWARE='1')
+# Movie Maker chooses its writer size from project window overrides before a
+# SceneTree script can resize. Stage only that config; all source/assets are
+# the actual repository files. Never edit the live project during recording.
+staged = None
+project = repo/'godot'
+if args.mobile_preview and args.movie:
+    staged = tempfile.TemporaryDirectory(prefix='mobile-movie-',dir=runtime)
+    project = Path(staged.name)
+    for child in (repo/'godot').iterdir():
+        if child.name != 'project.godot': (project/child.name).symlink_to(child,target_is_directory=child.is_dir())
+    config=(repo/'godot/project.godot').read_text().replace('window_width_override=1280','window_width_override=844').replace('window_height_override=720','window_height_override=390')
+    (project/'project.godot').write_text(config)
 with (runtime / 'xorg.log').open('w') as log:
     xorg = subprocess.Popen(['Xorg', ':98', '-config', str(repo / 'tools/xorg-dummy.conf'), '-logfile', str(runtime / 'Xorg.98.log'), '-nolisten', 'tcp', '-noreset'], stdout=log, stderr=subprocess.STDOUT)
     try:
@@ -63,23 +85,28 @@ with (runtime / 'xorg.log').open('w') as log:
         if args.normal: script = 'tests/record_normal.gd'
         if args.motion: script = 'tests/record_motion.gd'
         if args.story_check: script = 'tests/test_story_ui.gd'
+        if args.mobile_check: script = 'tests/test_mobile_ui.gd'
+        if args.performance: script = 'tests/measure_mobile_preflight.gd'
         if args.story: script = 'tests/record_story.gd'
         if args.polish: script = 'tests/record_first_day_polish.gd'
         if args.motion_capture: script = 'tests/capture_motion.gd'
-        command = ['godot', '--path', str(repo / 'godot'), '--audio-driver', 'Dummy', '--script', script]
+        command = ['godot', '--path', str(project), '--audio-driver', 'Dummy', '--script', script]
         if args.rehearsal:
-            command += ['--resolution','1280x720','--fixed-fps','24','--disable-render-loop']
+            command += ['--resolution','844x390' if args.mobile_preview else '1280x720','--fixed-fps','24','--disable-render-loop']
         elif args.movie:
-            command += ['--resolution', '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
+            command += ['--resolution', '844x390' if args.mobile_preview else '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
-        if args.story_check or args.story or args.polish: command += ['--tutorial']
+        if args.story_check or args.mobile_check or args.story or args.polish: command += ['--tutorial']
         if args.polish: command += [f'--segment={args.polish}']
+        if args.mobile_preview: command += ['--mobile-preview']
         if args.story: command += [f'--segment={args.story}']
         if args.motion: command += [f'--segment={args.motion}']
         if args.input_check: command += ['--input-check']
         if args.diagnose: command += ['--diagnose']
         if args.portraits: command += ['--portraits']
         if args.brief: command += ['--brief']
+        import json
+        (args.output_dir/'launch.json').write_text(json.dumps({'argv':command,'platform':'Linux llvmpipe','physical_mobile':False},indent=2))
         with (args.output_dir / 'engine.log').open('w') as engine_log:
             result = subprocess.run(command, env=env, stdout=engine_log, stderr=subprocess.STDOUT, timeout=1800 if args.movie else 240)
         text = (args.output_dir / 'engine.log').read_text()
@@ -104,3 +131,4 @@ with (runtime / 'xorg.log').open('w') as log:
         except subprocess.TimeoutExpired:
             xorg.kill()
             xorg.wait()
+        if staged is not None: staged.cleanup()

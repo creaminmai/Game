@@ -86,12 +86,24 @@ var journal_seen_day := -1
 var annex_highlight_pending := false
 var facility_callout: PanelContainer
 var facility_label: Label
+var safe_insets_test := Vector4.ZERO
+var safe_ui := Rect2()
+var web_visibility_callback: JavaScriptObject
+var patient_list_link: Button
+var journey_grid: GridContainer
+var web_inspect := false
+var ui_display_size := Vector2(1280,720)
 
 func _ready() -> void:
  no_save = "--no-save" in OS.get_cmdline_user_args() or "--qa" in OS.get_cmdline_user_args()
  if not no_save: store.load_into(sim,story)
  if store.blocked or ("--qa" in OS.get_cmdline_user_args() and not "--tutorial" in OS.get_cmdline_user_args()): story.disable()
  user_paused = sim.paused
+ if OS.has_feature("web"):
+  web_inspect = bool(JavaScriptBridge.eval("new URLSearchParams(location.search).has('playtest')"))
+  web_visibility_callback = JavaScriptBridge.create_callback(_web_visibility)
+  var browser := JavaScriptBridge.get_interface("window")
+  if browser != null: browser.sunshineBindVisibility(web_visibility_callback)
  var theme_resource := Theme.new()
  var rounded_font := FontVariation.new()
  rounded_font.base_font = load("res://assets/SunshineHangul.otf")
@@ -184,7 +196,7 @@ func build_ui() -> void:
  scene_container.texture = viewport.get_texture()
  # UI floats over the world. Transparent regions never intercept world gestures.
  hud = Control.new()
- hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+ hud.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
  hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
  add_child(hud)
  top_bar = panel(hud)
@@ -268,12 +280,16 @@ func build_ui() -> void:
  dismiss_button.add_theme_font_size_override("font_size",17)
  info.add_child(dismiss_button)
  progress = ProgressBar.new()
- var journey := VBoxContainer.new()
- journey.add_theme_constant_override("separation",4)
+ var journey := GridContainer.new()
+ journey.columns = 1
+ journey_grid = journey
+ journey.add_theme_constant_override("v_separation",4)
+ journey.add_theme_constant_override("h_separation",4)
  content.add_child(journey)
  for i in range(4):
   var stage := PanelContainer.new()
   stage.custom_minimum_size.y = 28
+  stage.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   var stage_content := HBoxContainer.new()
   stage.add_child(stage_content)
   stage_content.add_child(UISkin.picture("res://assets/ui/"+["people","ct","plan","treatment"][i]+".svg",24))
@@ -308,6 +324,7 @@ func build_ui() -> void:
  patient_view_button.add_theme_font_size_override("font_size",13)
  links.add_child(patient_view_button)
  var patient_link := button("환자 목록",toggle_roster)
+ patient_list_link = patient_link
  patient_link.custom_minimum_size.y = 32
  patient_link.add_theme_font_size_override("font_size",13)
  patient_link.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -517,7 +534,7 @@ func refresh_story() -> void:
 
 func layout_story() -> void:
  if not is_instance_valid(story_panel): return
- var scale_to_pixels := float(get_window().size.y)/size.y
+ var scale_to_pixels := ui_display_size.y/size.y
  var touch := maxf(44,ceilf(44/scale_to_pixels))
  var body_font := maxi(18,ceili(16/scale_to_pixels))
  var name_font := maxi(19,ceili(17/scale_to_pixels))
@@ -535,7 +552,7 @@ func layout_story() -> void:
  for b in [story_next,story_skip,guide_settings,story_off,guide_close,action_button,next_day_button,confirmation.ok_button,confirmation.cancel_button]: b.custom_minimum_size.y = touch
  place(story_next,Rect2(w-106,footer,92,touch))
  place(story_skip,Rect2(8,footer,w-126,touch))
- place(guide_settings,Rect2(18,size.y-220,148,touch))
+ place(guide_settings,Rect2(18,hud.size.y-220,148,touch))
  place(guide_panel,Rect2(18,71,400,250))
  place(guide_description,Rect2(18,20,364,120))
  place(story_off,Rect2(18,165,208,touch))
@@ -549,13 +566,16 @@ func layout_story() -> void:
   target = (rows[0] if roster.visible else patient_button) if selected_id != 1 else (action_button if sim.needs_action(p) else null)
  elif sim.all_done(): target = next_day_button
  if target != null and target.is_visible_in_tree() and not target.disabled:
-  place(story_highlight,target.get_global_rect().grow(3))
+  place(story_highlight,Rect2(target.get_global_rect().position-hud.position,target.size).grow(3))
   story_highlight.show()
 
 func layout_hud() -> void:
- var w := size.x
- var h := size.y
- var touch := maxf(44,ceilf(44*size.y/get_window().size.y))
+ ui_display_size = HospitalMobileScreen.display_points(self)
+ safe_ui = HospitalMobileScreen.safe_rect(self,safe_insets_test)
+ place(hud,safe_ui)
+ var w := safe_ui.size.x
+ var h := safe_ui.size.y
+ var touch := maxf(44,ceilf(44*size.y/ui_display_size.y))
  # Render the world at display resolution (capped at 720p), independently of
  # the logical HUD scale. Enlarging a 960px SubViewport blurred model details.
  var pixels := Vector2(get_window().size)
@@ -567,10 +587,10 @@ func layout_hud() -> void:
  place(title,Rect2(78,12,190,38))
  place(day_label,Rect2(w-355,19,185,30))
  place(money_panel,Rect2(w*.43-75,6,150,50))
- place(pause_button,Rect2(w-145,1,maxf(50,touch),maxf(50,touch)))
+ place(pause_button,Rect2(w-23-maxf(64,touch)-maxf(50,touch),1,maxf(50,touch),maxf(50,touch)))
  pause_button.custom_minimum_size = Vector2(maxf(50,touch),maxf(50,touch))
- speed_button.custom_minimum_size.y = touch
- place(speed_button,Rect2(w-77,1,64,maxf(46,touch)))
+ speed_button.custom_minimum_size = Vector2(touch,touch)
+ place(speed_button,Rect2(w-13-maxf(64,touch),1,maxf(64,touch),maxf(46,touch)))
  place(goal_ribbon,Rect2(18,71,415,43))
  place(scene_caption,Rect2(450,77,w-470,24))
  if story.enabled and sim.day == 1: place(scene_caption,Rect2(552,77,w-570,24))
@@ -585,19 +605,31 @@ func layout_hud() -> void:
   tool_buttons[i].custom_minimum_size = Vector2.ONE*maxf(56,touch)
   place(tool_buttons[i],Rect2(dock_x+22+i*91,h-31-maxf(56,touch),maxf(56,touch),maxf(56,touch)))
   place(tool_labels[i],Rect2(dock_x+6+i*91,h-31,88,24))
- place(outside_button,Rect2(18,h-89,66,66))
+ outside_button.custom_minimum_size = Vector2.ONE*maxf(66,touch)
+ place(outside_button,Rect2(18,h-31-maxf(66,touch),maxf(66,touch),maxf(66,touch)))
  place(outside_label,Rect2(6,h-27,90,22))
- place(zoom_in_button,Rect2(18,h-145,44,44))
- place(zoom_out_button,Rect2(70,h-145,44,44))
- place(selection_panel,Rect2(w-252,77,238,minf(414,h-94)))
+ for b in [zoom_in_button,zoom_out_button,dismiss_button,roster_close,patient_view_button,patient_list_link]:
+  b.custom_minimum_size = Vector2(touch,touch)
+ for row in rows: row.custom_minimum_size.y = maxf(56,touch)
+ place(zoom_in_button,Rect2(18,h-101-touch,touch,touch))
+ place(zoom_out_button,Rect2(26+touch,h-101-touch,touch,touch))
+ var compact := ui_display_size.y/size.y < 1.0
+ journey_grid.columns = 4 if compact else 1
+ for caption in stage_labels: caption.visible = not compact
+ detail.add_theme_font_size_override("font_size",22 if compact else 16)
+ reason_label.add_theme_font_size_override("font_size",22 if compact else 13)
+ reason_label.custom_minimum_size.y = 48 if compact else 60
+ action_button.add_theme_font_size_override("font_size",22 if compact else 16)
+ var card_width := 280.0 if compact else 238.0
+ place(selection_panel,Rect2(w-card_width-14,77,card_width,h-94))
  place(next_day_button,Rect2((w-380)*0.5,h-153,380,54))
- notice.add_theme_font_size_override("font_size",maxi(16,ceili(16*size.y/get_window().size.y)))
+ notice.add_theme_font_size_override("font_size",maxi(16,ceili(16*size.y/ui_display_size.y)))
  toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
  place(toast,Rect2((w-420)*.5,h-187,420,88))
- place(roster,Rect2(w-366,96,352,334))
+ place(roster,Rect2(w-366,76,352,h-90))
  orientation_hint.visible = w < h
  place(orientation_hint,Rect2(24,142,w-48,70))
- place(confirmation.card,Rect2(30 if outside else (w-540)*.5,(h-310)*.5,540,310))
+ place(confirmation.card,Rect2(safe_ui.position+Vector2(30 if outside else (w-540)*.5,(h-310)*.5),Vector2(540,310)))
  layout_story()
  if is_instance_valid(journal): journal.layout(self)
  if is_instance_valid(world):
@@ -609,9 +641,10 @@ func layout_hud() -> void:
   # use the tighter safe area. A card never participates in fitting the model.
   var operating := Rect2(24,76,w-48,h-108)
   var scale_to_render := Vector2(viewport.size)/size
-  world.set_play_area(Rect2(safe.position*scale_to_render,safe.size*scale_to_render),Rect2(operating.position*scale_to_render,operating.size*scale_to_render))
+  world.set_play_area(Rect2((safe.position+safe_ui.position)*scale_to_render,safe.size*scale_to_render),Rect2((operating.position+safe_ui.position)*scale_to_render,operating.size*scale_to_render))
   update_bubble()
   update_facility_callout()
+ if web_inspect: publish_web_layout()
 
 func update_facility_callout() -> void:
  facility_callout.hide()
@@ -624,13 +657,13 @@ func update_facility_callout() -> void:
   if not world.inside_marker.visible: return
   at = Vector3(10,3,1)
   facility_label.text = "새 치료실 · 운영 중 ✓"
- var point: Vector2 = world.camera.unproject_position(at)*size/Vector2(viewport.size)
- var right := selection_panel.position.x-12 if selection_panel.visible and not outside else size.x-18
- facility_label.add_theme_font_size_override("font_size",maxi(18,ceili(16*size.y/get_window().size.y)))
+ var point: Vector2 = world.camera.unproject_position(at)*size/Vector2(viewport.size)-hud.position
+ var right := selection_panel.position.x-12 if selection_panel.visible and not outside else hud.size.x-18
+ facility_label.add_theme_font_size_override("font_size",maxi(18,ceili(16*size.y/ui_display_size.y)))
  var width := 300.0
  var left := clampf(point.x-width*.5,18,right-width)
- if outside and confirmation.visible: left = maxf(left,confirmation.card.get_rect().end.x+12)
- place(facility_callout,Rect2(left,clampf(point.y-76,122,size.y-210),width,52))
+ if outside and confirmation.visible: left = maxf(left,confirmation.card.get_rect().end.x-hud.position.x+12)
+ place(facility_callout,Rect2(left,clampf(point.y-76,122,hud.size.y-210),width,52))
  facility_callout.show()
 
 func show_notice(message: String) -> void:
@@ -649,9 +682,9 @@ func update_bubble() -> void:
  if story_panel.visible: return
  if p.is_empty() or outside or roster.visible or confirmation.visible or not world.actors.has(id): return
  var actor: Node3D = world.actors[id]
- var anchor: Vector2 = world.camera.unproject_position(actor.head.global_position+Vector3(0,.6,0))*size/Vector2(viewport.size)
+ var anchor: Vector2 = world.camera.unproject_position(actor.head.global_position+Vector3(0,.6,0))*size/Vector2(viewport.size)-hud.position
  var rect := Rect2(anchor-Vector2(66,38),Vector2(132,36))
- var safe := Rect2(world.play_area.position*size/Vector2(viewport.size),world.play_area.size*size/Vector2(viewport.size))
+ var safe := Rect2(world.play_area.position*size/Vector2(viewport.size)-hud.position,world.play_area.size*size/Vector2(viewport.size))
  if not safe.encloses(rect): return
  bubble_text.text = Feedback.describe(sim,p).bubble
  if story.enabled and sim.day == 1 and id == 1 and p.state in ["waiting","plan_ready"] and selected_id != 1:
@@ -864,3 +897,22 @@ func _notification(what: int) -> void:
   set_pause_hold("application_focus" if what == NOTIFICATION_APPLICATION_FOCUS_IN else "application_background",false)
  if what == NOTIFICATION_WM_CLOSE_REQUEST:
   persist()
+
+func _web_visibility(arguments: Array) -> void:
+ # Safari may suspend requestAnimationFrame without a native focus notification.
+ # Visibility is an independent hold and never cancels a user/outside pause.
+ if arguments.is_empty(): return
+ set_pause_hold("web_hidden",bool(arguments[0]))
+ persist()
+
+func publish_web_layout() -> void:
+ # Opt-in, read-only QA coordinates. No remote actions or save mutation API.
+ var controls := {"patients":patient_button,"first_patient":rows[0],"action":action_button,"pause":pause_button,"zoom_in":zoom_in_button,"zoom_out":zoom_out_button,"settings":guide_settings,"guide_close":guide_close,"story_next":story_next,"story_skip":story_skip}
+ var result := {}
+ var pixels := ui_display_size/size
+ for key in controls:
+  var c: Control = controls[key]
+  var r := c.get_global_rect()
+  result[key] = {"x":r.get_center().x*pixels.x,"y":r.get_center().y*pixels.y,"width":r.size.x*pixels.x,"height":r.size.y*pixels.y,"visible":c.is_visible_in_tree()}
+ result["_state"] = {"paused":sim.paused,"time":sim.time,"money":sim.money,"day":sim.day}
+ JavaScriptBridge.eval("window.sunshineControls="+JSON.stringify(result))

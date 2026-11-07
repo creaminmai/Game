@@ -69,7 +69,7 @@ func present(sim: HospitalSimulation) -> void:
  show()
 
 func layout(game: Control) -> void:
- game.place(card,Rect2((game.size.x-570)*.5,(game.size.y-448)*.5,570,448))
+ game.place(card,Rect2(game.safe_ui.position+(game.safe_ui.size-Vector2(570,448))*.5,Vector2(570,448)))
 
 func _unhandled_key_input(event: InputEvent) -> void:
  if visible and event.is_action_pressed("ui_cancel"):
