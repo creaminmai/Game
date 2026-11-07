@@ -1,0 +1,107 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": true,
+  "day_two_without_first_day_dialogue": false,
+  "dialogues": [
+    "complete",
+    "expansion"
+  ],
+  "final_money": 500,
+  "fps": 24,
+  "mobile_performance_test": false,
+  "passed": true,
+  "real_canvas_clicks": 9,
+  "recorded_frames": 696,
+  "segment": "completion",
+  "simulation_speed": 1,
+  "trace": [
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "treatment",
+      "paused": false,
+      "video_seconds": 0.0
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "leaving",
+      "paused": false,
+      "video_seconds": 1.625
+    },
+    {
+      "day": 1,
+      "dialogue": "complete",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "leaving",
+      "paused": false,
+      "video_seconds": 1.66666666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "complete",
+      "line": 1,
+      "money": 1100,
+      "patient_state": "leaving",
+      "paused": false,
+      "video_seconds": 4.29166666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "complete",
+      "line": 1,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 5.45833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "expansion",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 6.91666666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "expansion",
+      "line": 1,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 9.54166666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "expansion",
+      "line": 2,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 12.1666666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 14.7916666666667
+    }
+  ],
+  "encoding": {
+    "paused_setup_frames_removed": 1,
+    "source_frames": 697,
+    "delivered_frames": 696,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}

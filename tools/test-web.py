@@ -8,7 +8,9 @@ from playwright.sync_api import sync_playwright
 parser=argparse.ArgumentParser()
 parser.add_argument('--touch',action='store_true')
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
+parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock allowance per saved-state wait; software WebGL may render far below real time')
 args=parser.parse_args()
+if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
 repo = Path(__file__).resolve().parents[1]
 output = repo / ('artifacts/browser-touch' if args.touch else 'artifacts/browser')
 output.mkdir(parents=True, exist_ok=True)
@@ -42,12 +44,14 @@ try:
           }
           return results;
         }'''
-        def wait_saved(predicate, timeout=300):
+        def wait_saved(predicate, timeout=None):
             # Await each IndexedDB read explicitly. A resolved undefined JS
             # handle is not evidence that the requested saved state exists.
-            deadline=time.monotonic()+timeout
+            deadline=time.monotonic()+(args.save_timeout if timeout is None else timeout)
             while time.monotonic()<deadline:
-                for state in page.evaluate(read_saves):
+                states=page.evaluate(read_saves)
+                (output/'last-save-state.json').write_text(json.dumps(states,indent=2))
+                for state in states:
                     if predicate(state): return state
                 page.wait_for_timeout(1000)
             (output/'failed-save-state.json').write_text(json.dumps(page.evaluate(read_saves),indent=2))

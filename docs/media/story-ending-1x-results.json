@@ -1,0 +1,79 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": true,
+  "day_two_without_first_day_dialogue": true,
+  "dialogues": [
+    "day_end"
+  ],
+  "final_money": 1100,
+  "fps": 24,
+  "mobile_performance_test": false,
+  "passed": true,
+  "real_canvas_clicks": 3,
+  "recorded_frames": 480,
+  "segment": "ending",
+  "simulation_speed": 1,
+  "trace": [
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 0.0
+    },
+    {
+      "day": 1,
+      "dialogue": "day_end",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 1.0
+    },
+    {
+      "day": 1,
+      "dialogue": "day_end",
+      "line": 1,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 3.625
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "complete",
+      "paused": false,
+      "video_seconds": 6.25
+    },
+    {
+      "day": 2,
+      "dialogue": "",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "entering",
+      "paused": false,
+      "video_seconds": 7.29166666666667
+    },
+    {
+      "day": 2,
+      "dialogue": "",
+      "line": 0,
+      "money": 1100,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 11.125
+    }
+  ],
+  "encoding": {
+    "paused_setup_frames_removed": 12,
+    "source_frames": 492,
+    "delivered_frames": 480,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}

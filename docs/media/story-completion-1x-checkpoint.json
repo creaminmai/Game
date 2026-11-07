@@ -1,0 +1,147 @@
+{
+  "day": 1,
+  "expanded": false,
+  "first_day_story": {
+    "active": "",
+    "enabled": true,
+    "line": 0,
+    "seen": {
+      "admission": true,
+      "arrival": true,
+      "ct": true,
+      "plan": true,
+      "treatment": true,
+      "welcome": true
+    },
+    "selected_first": true,
+    "stage": "treatment",
+    "version": 1
+  },
+  "implementation": "sunshine-rebuild-2026-11",
+  "lifetime_completed": 0,
+  "max_treating": 1,
+  "money": 900,
+  "next_arrival": 24.0,
+  "patients": [
+    {
+      "elapsed": 28.4166666666663,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue",
+        "walk_treatment",
+        "treatment"
+      ],
+      "id": 1,
+      "name": "김영수",
+      "next_state": "treatment",
+      "paid": false,
+      "position": [
+        4.0,
+        0.0,
+        3.0
+      ],
+      "queue_order": 6,
+      "room": 0,
+      "route": [],
+      "state": "treatment"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue"
+      ],
+      "id": 2,
+      "name": "이정호",
+      "next_state": "plan_ready",
+      "paid": false,
+      "position": [
+        3.59999990463257,
+        0.0,
+        -1.79999995231628
+      ],
+      "queue_order": 8,
+      "room": -1,
+      "route": [],
+      "state": "treatment_queue"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue"
+      ],
+      "id": 3,
+      "name": "박상철",
+      "next_state": "plan_ready",
+      "paid": false,
+      "position": [
+        2.40000009536743,
+        0.0,
+        -1.0
+      ],
+      "queue_order": 10,
+      "room": -1,
+      "route": [],
+      "state": "treatment_queue"
+    },
+    {
+      "elapsed": 3.63333333333333,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning"
+      ],
+      "id": 4,
+      "name": "최민석",
+      "next_state": "plan_ready",
+      "paid": false,
+      "position": [
+        3.59999990463257,
+        0.0,
+        -1.0
+      ],
+      "queue_order": 11,
+      "room": -1,
+      "route": [],
+      "state": "planning"
+    }
+  ],
+  "serial": 11,
+  "time": 58.349999999998,
+  "version": 2
+}

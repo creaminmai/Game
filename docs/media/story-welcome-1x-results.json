@@ -1,0 +1,200 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": false,
+  "day_two_without_first_day_dialogue": false,
+  "dialogues": [
+    "welcome",
+    "arrival",
+    "admission",
+    "ct",
+    "plan"
+  ],
+  "final_money": 900,
+  "fps": 24,
+  "mobile_performance_test": false,
+  "passed": true,
+  "real_canvas_clicks": 14,
+  "recorded_frames": 1104,
+  "segment": "welcome",
+  "simulation_speed": 1,
+  "trace": [
+    {
+      "day": 1,
+      "dialogue": "welcome",
+      "line": 0,
+      "money": 900,
+      "patient_state": "entering",
+      "paused": false,
+      "video_seconds": 0.0
+    },
+    {
+      "day": 1,
+      "dialogue": "welcome",
+      "line": 1,
+      "money": 900,
+      "patient_state": "entering",
+      "paused": false,
+      "video_seconds": 2.625
+    },
+    {
+      "day": 1,
+      "dialogue": "welcome",
+      "line": 1,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 3.91666666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "welcome",
+      "line": 2,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 5.25
+    },
+    {
+      "day": 1,
+      "dialogue": "arrival",
+      "line": 0,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 7.875
+    },
+    {
+      "day": 1,
+      "dialogue": "arrival",
+      "line": 1,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 10.5
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 13.125
+    },
+    {
+      "day": 1,
+      "dialogue": "admission",
+      "line": 0,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 14.1666666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "admission",
+      "line": 1,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 16.7916666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "waiting",
+      "paused": false,
+      "video_seconds": 19.4166666666667
+    },
+    {
+      "day": 1,
+      "dialogue": "ct",
+      "line": 0,
+      "money": 900,
+      "patient_state": "walk_ct",
+      "paused": false,
+      "video_seconds": 20.4583333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "ct",
+      "line": 1,
+      "money": 900,
+      "patient_state": "walk_ct",
+      "paused": false,
+      "video_seconds": 23.0833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "walk_ct",
+      "paused": false,
+      "video_seconds": 25.7083333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "ct_scan",
+      "paused": false,
+      "video_seconds": 27.25
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "walk_plan",
+      "paused": false,
+      "video_seconds": 32.25
+    },
+    {
+      "day": 1,
+      "dialogue": "plan",
+      "line": 0,
+      "money": 900,
+      "patient_state": "plan_ready",
+      "paused": false,
+      "video_seconds": 36.3333333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "plan",
+      "line": 1,
+      "money": 900,
+      "patient_state": "plan_ready",
+      "paused": false,
+      "video_seconds": 38.9583333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "plan_ready",
+      "paused": false,
+      "video_seconds": 41.5833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "line": 0,
+      "money": 900,
+      "patient_state": "planning",
+      "paused": false,
+      "video_seconds": 42.625
+    }
+  ],
+  "encoding": {
+    "paused_setup_frames_removed": 1,
+    "source_frames": 1105,
+    "delivered_frames": 1104,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}

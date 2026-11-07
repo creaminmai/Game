@@ -1,0 +1,169 @@
+{
+  "day": 1,
+  "expanded": true,
+  "first_day_story": {
+    "active": "",
+    "enabled": true,
+    "line": 0,
+    "seen": {
+      "admission": true,
+      "arrival": true,
+      "complete": true,
+      "ct": true,
+      "expansion": true,
+      "plan": true,
+      "treatment": true,
+      "welcome": true
+    },
+    "selected_first": true,
+    "stage": "complete",
+    "version": 1
+  },
+  "implementation": "sunshine-rebuild-2026-11",
+  "lifetime_completed": 4,
+  "max_treating": 2,
+  "money": 1100,
+  "next_arrival": 24.0,
+  "patients": [
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue",
+        "walk_treatment",
+        "treatment",
+        "leaving",
+        "complete"
+      ],
+      "id": 1,
+      "name": "김영수",
+      "next_state": "complete",
+      "paid": true,
+      "position": [
+        0.0,
+        0.0,
+        7.0
+      ],
+      "queue_order": 6,
+      "room": 0,
+      "route": [],
+      "state": "complete"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue",
+        "walk_treatment",
+        "treatment",
+        "leaving",
+        "complete"
+      ],
+      "id": 2,
+      "name": "이정호",
+      "next_state": "complete",
+      "paid": true,
+      "position": [
+        0.0,
+        0.0,
+        7.0
+      ],
+      "queue_order": 8,
+      "room": 0,
+      "route": [],
+      "state": "complete"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue",
+        "walk_treatment",
+        "treatment",
+        "leaving",
+        "complete"
+      ],
+      "id": 3,
+      "name": "박상철",
+      "next_state": "complete",
+      "paid": true,
+      "position": [
+        0.0,
+        0.0,
+        7.0
+      ],
+      "queue_order": 10,
+      "room": 1,
+      "route": [],
+      "state": "complete"
+    },
+    {
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan",
+        "walk_plan",
+        "plan_ready",
+        "plan_queue",
+        "planning",
+        "treatment_queue",
+        "walk_treatment",
+        "treatment",
+        "leaving"
+      ],
+      "id": 4,
+      "name": "최민석",
+      "next_state": "complete",
+      "paid": true,
+      "position": [
+        0.0,
+        0.0,
+        5.23000144958496
+      ],
+      "queue_order": 12,
+      "room": 0,
+      "route": [
+        [
+          0.0,
+          0.0,
+          7.0
+        ]
+      ],
+      "state": "leaving"
+    }
+  ],
+  "serial": 12,
+  "time": 134.083333333332,
+  "version": 2
+}
