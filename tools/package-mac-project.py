@@ -50,6 +50,7 @@ def main():
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
     ).encode()
     payload[f"{root}/KMH에 설치.command"] = (repo / "tools/mac-install.command").read_bytes()
+    payload[f"{root}/햇살병원/첫날 이야기 체험.command"] = (repo / "tools/mac-first-day.command").read_bytes()
     guide = (repo / "docs/mac-play.md").read_bytes()
     payload[f"{root}/먼저 읽어주세요.txt"] = guide
     payload[f"{root}/햇살병원/Mac 실행 안내.txt"] = guide

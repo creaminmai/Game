@@ -9,10 +9,12 @@ const INK := Color("634833")
 const MUTED := Color("8d8069")
 var sim = Sim.new()
 var store = Store.new()
+var story := FirstDayStory.new()
 var world: HospitalWorld
 var selected_id := -1
 var outside := false
-var previous_pause := false
+var user_paused := false
+var pause_holds: Dictionary = {}
 var stats: Label
 var notice: Label
 var scene_caption: Label
@@ -66,10 +68,21 @@ var speech_bubble: PanelContainer
 var bubble_text: Label
 var recording_caption := ""
 var patient_view_button: Button
+var story_panel: Panel
+var story_portrait: TextureRect
+var story_heading: Label
+var story_text: Label
+var story_summary: Label
+var story_next: Button
+var story_skip: Button
+var story_off: Button
+var story_highlight: Panel
 
 func _ready() -> void:
  no_save = "--no-save" in OS.get_cmdline_user_args() or "--qa" in OS.get_cmdline_user_args()
- if not no_save: store.load_into(sim)
+ if not no_save: store.load_into(sim,story)
+ if store.blocked or ("--qa" in OS.get_cmdline_user_args() and not "--tutorial" in OS.get_cmdline_user_args()): story.disable()
+ user_paused = sim.paused
  var theme_resource := Theme.new()
  var rounded_font := FontVariation.new()
  rounded_font.base_font = load("res://assets/SunshineHangul.otf")
@@ -221,6 +234,9 @@ func build_ui() -> void:
   b.custom_minimum_size = Vector2(44,44)
   hud.add_child(b)
  selection_panel = panel(hud)
+ # Text wrapping settles after container sorting; shrink the first opened card
+ # immediately when its minimum height changes, rather than waiting for a tick.
+ selection_panel.minimum_size_changed.connect(func(): layout_hud.call_deferred())
  var content := VBoxContainer.new()
  content.add_theme_constant_override("separation",5)
  selection_panel.add_child(content)
@@ -373,9 +389,104 @@ func build_ui() -> void:
  confirmation.confirmed.connect(confirm_expansion)
  confirmation.canceled.connect(func(): show_notice("증축을 취소했어요"))
  confirmation.hide()
+ build_story_ui()
  resized.connect(layout_hud)
  get_window().size_changed.connect(func(): layout_hud.call_deferred())
  layout_hud.call_deferred()
+
+func build_story_ui() -> void:
+ story_panel = Panel.new()
+ story_panel.add_theme_stylebox_override("panel",UISkin.frame())
+ hud.add_child(story_panel)
+ story_portrait = UISkin.picture("res://assets/ui/portrait-minji.png",52)
+ story_panel.add_child(story_portrait)
+ story_heading = label_text("",13,TEAL)
+ story_panel.add_child(story_heading)
+ story_text = label_text("",14)
+ story_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+ story_panel.add_child(story_text)
+ story_summary = label_text("",13,TEAL)
+ story_panel.add_child(story_summary)
+ story_next = button("다음",advance_story,true)
+ story_skip = button("건너뛰기",skip_story)
+ story_skip.tooltip_text = "현재 대화 건너뛰기"
+ for b in [story_next,story_skip]:
+  b.add_theme_font_size_override("font_size",13)
+  story_panel.add_child(b)
+ story_off = button("안내 끄기",disable_story)
+ story_off.add_theme_font_size_override("font_size",12)
+ hud.add_child(story_off)
+ story_highlight = Panel.new()
+ var outline := style(Color.TRANSPARENT,Color("4cbaa5"),18)
+ outline.set_border_width_all(3)
+ story_highlight.add_theme_stylebox_override("panel",outline)
+ story_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ story_highlight.z_index = 10
+ hud.add_child(story_highlight)
+ story_panel.hide()
+ story_off.hide()
+ story_highlight.hide()
+
+func advance_story() -> void:
+ story.next_line(sim)
+ refresh()
+ persist()
+
+func skip_story() -> void:
+ story.finish_dialogue()
+ refresh()
+ persist()
+
+func disable_story() -> void:
+ story.disable()
+ refresh()
+ persist()
+
+func refresh_story() -> void:
+ story.sync(sim,selected_id,not outside and pause_holds.is_empty() and not confirmation.visible)
+ story_panel.visible = story.enabled and story.active != "" and not outside and not roster.visible and not confirmation.visible and sim.day == 1
+ story_off.visible = story.enabled and sim.day == 1 and not confirmation.visible
+ if story_panel.visible:
+  var lines: Array = story.lines(sim)
+  var speech: Array = lines[mini(story.line,lines.size()-1)]
+  story_heading.text = "다시 켜진 간판\n%s  ·  %d/%d" % [speech[0],story.line+1,lines.size()]
+  story_text.text = speech[1]
+  story_portrait.texture = load("res://assets/ui/portrait-patient-1.png" if speech[0] == "김영수" else "res://assets/ui/portrait-minji.png")
+  story_next.text = "다음" if story.line < lines.size()-1 else "닫기"
+  story_next.tooltip_text = "다음 대사" if story.line < lines.size()-1 else "대화 닫기"
+  story_summary.visible = story.active == "day_end"
+  story_summary.text = story.day_summary(sim)
+ var hint := story.hint(sim,selected_id,outside)
+ if not hint.is_empty(): goal.text = hint
+ goal_ribbon.visible = not story_panel.visible
+
+func layout_story() -> void:
+ if not is_instance_valid(story_panel): return
+ var w := minf(304,size.x-284)
+ var extra := 40.0 if story_summary.visible else 0.0
+ place(story_panel,Rect2(18,71,w,212+extra))
+ place(story_portrait,Rect2(14,17,52,52))
+ place(story_heading,Rect2(78,14,w-94,44))
+ place(story_text,Rect2(14,78,w-28,70))
+ story_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+ place(story_summary,Rect2(14,149,w-28,36))
+ place(story_next,Rect2(14,156+extra,64,44))
+ place(story_skip,Rect2(84,156+extra,100,44))
+ if story_panel.visible:
+  place(story_off,Rect2(208,227+extra,100,44))
+ else:
+  place(story_off,Rect2(442,71,100,44))
+ story_highlight.hide()
+ if not story.enabled or story_panel.visible or outside or sim.day != 1 or confirmation.visible: return
+ var p: Dictionary = sim.get_patient(1)
+ if p.is_empty(): return
+ var target: Control = null
+ if p.state in ["entering","waiting","plan_ready"]:
+  target = (rows[0] if roster.visible else patient_button) if selected_id != 1 else (action_button if sim.needs_action(p) else null)
+ elif sim.all_done(): target = next_day_button
+ if target != null and target.is_visible_in_tree() and not target.disabled:
+  place(story_highlight,target.get_global_rect().grow(3))
+  story_highlight.show()
 
 func layout_hud() -> void:
  var w := size.x
@@ -396,6 +507,10 @@ func layout_hud() -> void:
  place(speed_button,Rect2(w-79,9,64,46))
  place(goal_ribbon,Rect2(18,71,415,43))
  place(scene_caption,Rect2(450,77,w-470,24))
+ if story.enabled and sim.day == 1: place(scene_caption,Rect2(552,77,w-570,24))
+ if not recording_caption.is_empty():
+  place(scene_caption,Rect2(w-258,h-28,248,24))
+  scene_caption.add_theme_stylebox_override("normal",style(Color(.99,.97,.9,.94),Color.TRANSPARENT,8))
  var dock_x := (w-392)*0.5
  place(dock,Rect2(dock_x,h-91,392,88))
  for i in range(tool_buttons.size()):
@@ -412,6 +527,7 @@ func layout_hud() -> void:
  orientation_hint.visible = w < h
  place(orientation_hint,Rect2(24,142,w-48,70))
  place(confirmation.card,Rect2((w-540)*0.5,(h-310)*0.5,540,310))
+ layout_story()
  if is_instance_valid(world):
   var right := w-18
   if selection_panel.visible: right = selection_panel.position.x-12
@@ -437,6 +553,7 @@ func update_bubble() -> void:
   id = sim.next_action_patient(-1)
   p = sim.get_patient(id)
  speech_bubble.hide()
+ if story_panel.visible: return
  if p.is_empty() or outside or roster.visible or confirmation.visible or not world.actors.has(id): return
  var actor: Node3D = world.actors[id]
  var anchor: Vector2 = world.camera.unproject_position(actor.head.global_position+Vector3(0,.6,0))*size/Vector2(viewport.size)
@@ -444,6 +561,8 @@ func update_bubble() -> void:
  var safe := Rect2(world.play_area.position*size/Vector2(viewport.size),world.play_area.size*size/Vector2(viewport.size))
  if not safe.encloses(rect): return
  bubble_text.text = Feedback.describe(sim,p).bubble
+ if story.enabled and sim.day == 1 and id == 1 and p.state in ["waiting","plan_ready"] and selected_id != 1:
+  bubble_text.text = "저를 선택해 주세요"
  place(speech_bubble,rect)
  speech_bubble.show()
 
@@ -515,18 +634,25 @@ func perform_action() -> void:
 
 func toggle_pause() -> void:
  if outside: return
- sim.paused = not sim.paused
+ user_paused = not (sim.paused if pause_holds.is_empty() else user_paused)
+ sim.paused = user_paused or not pause_holds.is_empty()
  refresh()
+
+func set_pause_hold(reason: String, held: bool) -> void:
+ # Temporary holds never overwrite the player's pause intent, even when nested.
+ if pause_holds.is_empty(): user_paused = sim.paused
+ if held: pause_holds[reason] = true
+ else: pause_holds.erase(reason)
+ sim.paused = user_paused or not pause_holds.is_empty()
 
 func toggle_outside() -> void:
  if not outside:
   roster.hide()
-  previous_pause = sim.paused
-  sim.paused = true
+  set_pause_hold("outside",true)
   outside = true
  else:
   outside = false
-  sim.paused = previous_pause
+  set_pause_hold("outside",false)
  world.show_outside(outside)
  refresh()
 
@@ -591,6 +717,7 @@ func refresh() -> void:
  selection_panel.visible = not p.is_empty() and not outside and not sim.all_done()
  next_day_button.visible = sim.all_done()
  next_day_button.disabled = outside
+ refresh_story()
  layout_hud()
  if is_instance_valid(world): world.sync(sim,selected_id,0)
 
@@ -602,6 +729,7 @@ func _process(delta: float) -> void:
  sim.tick(delta*playback_speed)
  world.sync(sim,selected_id,delta*playback_speed if not sim.paused else 0.0)
  update_bubble()
+ story_highlight.modulate.a = .78+.14*sin(Time.get_ticks_msec()/650.0)
  ui_time += delta
  save_time += delta
  if ui_time >= 0.15:
@@ -613,8 +741,14 @@ func _process(delta: float) -> void:
 
 func persist() -> void:
  if no_save: return
- if not store.save(sim) and not store.message.is_empty(): show_notice(store.message)
+ if not store.save(sim,story) and not store.message.is_empty(): show_notice(store.message)
 
 func _notification(what: int) -> void:
- if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+ if not is_instance_valid(world): return
+ if what in [NOTIFICATION_APPLICATION_FOCUS_OUT,NOTIFICATION_APPLICATION_PAUSED]:
+  set_pause_hold("application_focus" if what == NOTIFICATION_APPLICATION_FOCUS_OUT else "application_background",true)
+  persist()
+ elif what in [NOTIFICATION_APPLICATION_FOCUS_IN,NOTIFICATION_APPLICATION_RESUMED]:
+  set_pause_hold("application_focus" if what == NOTIFICATION_APPLICATION_FOCUS_IN else "application_background",false)
+ if what == NOTIFICATION_WM_CLOSE_REQUEST:
   persist()

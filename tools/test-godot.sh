@@ -21,3 +21,10 @@ with open('artifacts/motion-unit/results.json') as f:
     result=json.load(f)
 assert result['passed'] and not result['geometry_contacts'], result
 PY
+godot --headless --path godot --script tests/test_story.gd -- --qa --tutorial 2>&1 | tee .runtime/story.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/story.log; then exit 1; fi
+python3 - <<'PY'
+import json
+with open('artifacts/story-unit/results.json') as f:
+    assert json.load(f)['passed']
+PY
