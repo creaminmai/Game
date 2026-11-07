@@ -1,0 +1,2834 @@
+{
+  "web_backup": {
+    "web_branch_commit": "9ef3e293db69ee4c3f43e32eb69b1fa66cb77c8b",
+    "source_commit": "e08a2b3668b6f3f800d62c4da7c0618bb28f158a",
+    "pages_publication_verified": false
+  },
+  "game_runtime_unchanged_since_build": true,
+  "passed": true,
+  "source_commit": "e08a2b3668b6f3f800d62c4da7c0618bb28f158a",
+  "version": "0.5.0-dev",
+  "native_checks": 5292,
+  "tests": {
+    "operations-unit": {
+      "checks": 251,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot headless; separate test save"
+    },
+    "operations-ui": {
+      "checks": 1436,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "pixel_metrics": {
+        "1280x720 enabled": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 growth": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 history": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 introduction": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 journal": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 locked": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 planner": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 preparing": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 purchase": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 settings and card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "844x350 enabled": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 growth": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 history": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 introduction": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 journal": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 locked": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 planner": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 preparing": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 purchase": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 settings and card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x390 enabled": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 growth": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 history": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 introduction": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 journal": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 locked": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 planner": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 preparing": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 purchase": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 settings and card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "915x412 enabled": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 growth": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 history": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 introduction": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 journal": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 locked": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 planner": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 preparing": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 purchase": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 settings and card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        }
+      },
+      "platform": "Linux Godot OpenGL llvmpipe; automatic mouse input and synthetic safe insets"
+    },
+    "chapter-unit": {
+      "checks": 524,
+      "failures": [],
+      "passed": true
+    },
+    "chapter-ui": {
+      "checks": 1076,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "pixel_metrics": {
+        "1280x720 built not used": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 completed history": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 dual goals": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 final journal": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 first journal": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 growth dialogue": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 initial goals": {
+          "action_px": "(117.3333, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 previous history": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 selected card and goals": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "844x350 built not used": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 completed history": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 dual goals": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 final journal": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 first journal": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 growth dialogue": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 initial goals": {
+          "action_px": "(71.30568, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 previous history": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 selected card and goals": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x390 built not used": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 completed history": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 dual goals": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 final journal": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 first journal": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 growth dialogue": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 initial goals": {
+          "action_px": "(79.4863, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 previous history": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 selected card and goals": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "915x412 built not used": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 completed history": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 dual goals": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 final journal": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 first journal": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 growth dialogue": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 initial goals": {
+          "action_px": "(83.94495, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 previous history": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 selected card and goals": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        }
+      },
+      "platform": "Linux Godot; automated input + simulated safe insets"
+    },
+    "staff-unit": {
+      "checks": 61,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false
+    },
+    "staff-ui": {
+      "checks": 776,
+      "failures": [],
+      "passed": true,
+      "physical_mobile": false,
+      "pixel_metrics": {
+        "1280x720 day-one dialogue/card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 day-one settings": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 delegated card": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 delegated settings": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "1280x720 proposal": {
+          "action_px": "(280.0, 58.66667)",
+          "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+          "story_body_px": 24.0000007152557,
+          "window": "(1280, 720)"
+        },
+        "844x350 day-one dialogue/card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 day-one settings": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 delegated card": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 delegated settings": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x350 proposal": {
+          "action_px": "(163.3548, 44.07407)",
+          "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+          "story_body_px": 16.2037029862404,
+          "window": "(844, 350)"
+        },
+        "844x390 day-one dialogue/card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 day-one settings": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 delegated card": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 delegated settings": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "844x390 proposal": {
+          "action_px": "(182.0959, 44.05555)",
+          "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+          "story_body_px": 16.6111108064651,
+          "window": "(844, 390)"
+        },
+        "915x412 day-one dialogue/card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 day-one settings": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 delegated card": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 delegated settings": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        },
+        "915x412 proposal": {
+          "action_px": "(192.3103, 44.25185)",
+          "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+          "story_body_px": 16.0222216844559,
+          "window": "(915, 412)"
+        }
+      },
+      "platform": "Linux Godot OpenGL llvmpipe; automated mouse input, simulated safe insets"
+    },
+    "story-ui": {
+      "actual_pixel_metrics": {
+        "compact CT": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "compact arrival": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "compact welcome": {
+          "body_px": 16.6111108064651,
+          "name_px": 17.3333330154419,
+          "next_button_px": "(66.47945, 44.05555)",
+          "panel_px": "(251.4657, 170.7695)"
+        },
+        "desktop CT": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        },
+        "desktop arrival": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        },
+        "desktop welcome": {
+          "body_px": 24.0000007152557,
+          "name_px": 25.3333340883255,
+          "next_button_px": "(122.6667, 62.66667)",
+          "panel_px": "(432.0, 264.9333)"
+        }
+      },
+      "checks": 265,
+      "failures": [],
+      "passed": true,
+      "renderer": "Godot Compatibility / Linux llvmpipe"
+    },
+    "operations-scene": {
+      "checks": 172,
+      "failures": [],
+      "passed": true
+    },
+    "mobile-lifecycle": {
+      "passed": true,
+      "checks": 478,
+      "process_launches": 38,
+      "physical_mobile_tested": false
+    },
+    "motion-unit": {
+      "checks": 48,
+      "failures": [],
+      "geometry_contacts": {},
+      "passed": true
+    },
+    "story-unit": {
+      "checks": 84,
+      "failures": [],
+      "passed": true
+    },
+    "first-day-polish-unit": {
+      "checks": 70,
+      "failures": [],
+      "passed": true
+    },
+    "simulation": {
+      "passed": true,
+      "checks": 51,
+      "evidence": ".runtime/operations-final-tests.log"
+    }
+  },
+  "videos": {
+    "education": {
+      "automatic_input": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "fps": 24,
+      "journal_shown": false,
+      "normal_planning_shown": false,
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+      "preparation_shown": false,
+      "real_canvas_clicks": 7,
+      "real_file_restored": false,
+      "recorded_frames": 600,
+      "segment": "education",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2700,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 0.0,
+          "states": [
+            [
+              1,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": false
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2700,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 3.91666666666667,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": false
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2700,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 6.20833333333333,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": false
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2700,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 9.33333333333333,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": false
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2700,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 12.0416666666667,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": false
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 14.2083333333333,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": false,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 15.9166666666667,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 17.2083333333333,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 18.0416666666667,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              4,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": false,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 21.3333333333333,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              4,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        }
+      ],
+      "two_rooms_actually_treating": false,
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 601,
+        "delivered_frames": 600,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/operations-education-1x.mp4",
+      "sha256": "22e507bbf5d1dc9fd3adc14b64cf5e3bd200ab76920c4d518b3180f93025ea41",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 844,
+            "height": 390,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "25.000000",
+          "size": "327311"
+        }
+      }
+    },
+    "flow": {
+      "automatic_input": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "fps": 24,
+      "journal_shown": false,
+      "normal_planning_shown": true,
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+      "preparation_shown": true,
+      "real_canvas_clicks": 5,
+      "real_file_restored": false,
+      "recorded_frames": 2040,
+      "segment": "flow",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 0.0,
+          "states": [
+            [
+              1,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 3.91666666666667,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 6.04166666666667,
+          "states": [
+            [
+              1,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              2,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 6.875,
+          "states": [
+            [
+              1,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 9.33333333333333,
+          "states": [
+            [
+              1,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 12.0416666666667,
+          "states": [
+            [
+              1,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              3,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 12.2916666666667,
+          "states": [
+            [
+              1,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 13.75,
+          "states": [
+            [
+              1,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 15.9166666666667,
+          "states": [
+            [
+              1,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 18.0416666666667,
+          "states": [
+            [
+              1,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              4,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 18.75,
+          "states": [
+            [
+              1,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "waiting",
+              "none",
+              "none"
+            ],
+            [
+              4,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 18.875,
+          "states": [
+            [
+              1,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 21.3333333333333,
+          "states": [
+            [
+              1,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 1,
+          "qualified": 0,
+          "seconds": 22.8333333333333,
+          "states": [
+            [
+              1,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "waiting",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 1,
+          "qualified": 0,
+          "seconds": 24.2916666666667,
+          "states": [
+            [
+              1,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 1,
+          "qualified": 0,
+          "seconds": 25.0416666666667,
+          "states": [
+            [
+              1,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              2,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 25.7916666666667,
+          "states": [
+            [
+              1,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_queue",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 30.0416666666667,
+          "states": [
+            [
+              1,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 30.7916666666667,
+          "states": [
+            [
+              1,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 2,
+          "qualified": 0,
+          "seconds": 34.625,
+          "states": [
+            [
+              1,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 2,
+          "qualified": 0,
+          "seconds": 35.9166666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "walk_ct",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 2,
+          "qualified": 0,
+          "seconds": 36.9166666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              3,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 37.5833333333333,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "ct_scan",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_queue",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 41.9166666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "walk_ct",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 42.5833333333333,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "walk_plan",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "walk_ct",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 3,
+          "qualified": 0,
+          "seconds": 45.8333333333333,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "walk_ct",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 3,
+          "qualified": 0,
+          "seconds": 48.2083333333333,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "plan_ready",
+              "minji",
+              "none"
+            ],
+            [
+              4,
+              "ct_scan",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 48.7916666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "ct_scan",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 52.5,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "ct_scan",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 53.2083333333333,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "planning",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "walk_plan",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 53.7916666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "walk_plan",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": 4,
+          "qualified": 0,
+          "seconds": 57.7083333333333,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "plan_ready",
+              "minji",
+              "none"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 60.6666666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "planning",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2200,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 65.6666666666667,
+          "states": [
+            [
+              1,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2400,
+          "preparing": -1,
+          "qualified": 0,
+          "seconds": 65.9166666666667,
+          "states": [
+            [
+              1,
+              "leaving",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2400,
+          "preparing": -1,
+          "qualified": 1,
+          "seconds": 69.75,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2400,
+          "preparing": -1,
+          "qualified": 1,
+          "seconds": 70.875,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "treatment_queue",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 2600,
+          "preparing": -1,
+          "qualified": 1,
+          "seconds": 82.5,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "leaving",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "treatment",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "walk_treatment",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        }
+      ],
+      "two_rooms_actually_treating": true,
+      "two_rooms_without_patient_card": true,
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 2041,
+        "delivered_frames": 2040,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "software_render_threads": 2,
+      "path": "docs/media/operations-flow-1x.mp4",
+      "sha256": "ddc02b90fac3d1e90f758d132da8b4c3b29fefe28002e71f3750cee92edd21e7",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 844,
+            "height": 390,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "85.000000",
+          "size": "1483371"
+        }
+      }
+    },
+    "completion": {
+      "automatic_input": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "fps": 24,
+      "journal_shown": true,
+      "normal_planning_shown": false,
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+      "preparation_shown": false,
+      "real_canvas_clicks": 6,
+      "real_file_restored": true,
+      "recorded_frames": 696,
+      "segment": "completion",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 0,
+          "day": 4,
+          "journal": false,
+          "money": 3000,
+          "preparing": -1,
+          "qualified": 3,
+          "seconds": 0.0,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "leaving",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 4,
+          "day": 4,
+          "journal": false,
+          "money": 3000,
+          "preparing": -1,
+          "qualified": 4,
+          "seconds": 1.875,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "complete",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 4,
+          "day": 4,
+          "journal": true,
+          "money": 3000,
+          "preparing": -1,
+          "qualified": 4,
+          "seconds": 2.0,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "complete",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 4,
+          "day": 4,
+          "journal": false,
+          "money": 3000,
+          "preparing": -1,
+          "qualified": 4,
+          "seconds": 8.20833333333333,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "complete",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 4,
+          "day": 4,
+          "journal": true,
+          "money": 3000,
+          "preparing": -1,
+          "qualified": 4,
+          "seconds": 14.375,
+          "states": [
+            [
+              1,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              2,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              3,
+              "complete",
+              "minji",
+              "staff"
+            ],
+            [
+              4,
+              "complete",
+              "minji",
+              "staff"
+            ]
+          ],
+          "training": true
+        },
+        {
+          "auto_admission": true,
+          "auto_planning": true,
+          "chapter_three_day": 4,
+          "day": 5,
+          "journal": false,
+          "money": 3000,
+          "preparing": -1,
+          "qualified": 4,
+          "seconds": 17.2083333333333,
+          "states": [
+            [
+              1,
+              "entering",
+              "none",
+              "none"
+            ]
+          ],
+          "training": true
+        }
+      ],
+      "two_rooms_actually_treating": false,
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 697,
+        "delivered_frames": 696,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/operations-completion-1x.mp4",
+      "sha256": "fd4ade675f41b32cec5a215f0f991764646c173acc1fc794a1513e30f7e003c8",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 844,
+            "height": 390,
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "29.000000",
+          "size": "414684"
+        }
+      }
+    }
+  },
+  "browser": {
+    "browser": {
+      "passed": true,
+      "browser": "Chromium desktop / SwiftShader",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 4.801578366001195,
+      "first_arrived_and_persisted_wall_seconds": 221.13995706599962,
+      "viewport": [
+        1280,
+        720
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {},
+      "operations": {}
+    },
+    "browser-operations-touch": {
+      "passed": true,
+      "browser": "Chromium touch emulation",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 5.064793453995662,
+      "first_arrived_and_persisted_wall_seconds": 96.95414027299557,
+      "viewport": [
+        844,
+        350
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {},
+      "operations": {
+        "passed": true,
+        "normal_simulation_checkpoint": true,
+        "isolated_indexeddb_fixture": true,
+        "purchase_cancelled": true,
+        "actual_purchase_once": true,
+        "purchase_does_not_enable": true,
+        "explicit_duty_toggles": true,
+        "actual_automatic_admission_and_plan": true,
+        "command_provenance_saved": true,
+        "actual_page_reload": true,
+        "normal_checkpoint_count": 2,
+        "continuous_web_playthrough": false,
+        "physical_phone": false
+      }
+    }
+  },
+  "android": {
+    "passed": true,
+    "apk": "SunshineHospital-0.5.0-dev.apk",
+    "bytes": 66981706,
+    "sha256": "5497d1fc2a8aff41afc5932266d9049c96f6e6fd6a97821b698c7dab29212796",
+    "certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "debug": true,
+    "landscape": true,
+    "min_sdk": 24,
+    "target_sdk": 36,
+    "architectures": [
+      "arm64-v8a",
+      "x86_64"
+    ],
+    "alignment_16kb": true,
+    "device_list": "* daemon not running; starting now at tcp:5037\n* daemon started successfully\nList of devices attached\n\n",
+    "installation_tested": false,
+    "android_runtime_tested": false,
+    "store_release": false,
+    "version": "0.5.0-dev",
+    "source_commit": "e08a2b3668b6f3f800d62c4da7c0618bb28f158a",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-3",
+      "operations-training",
+      "planning-delegation"
+    ],
+    "same_development_signer_as_previous": true
+  },
+  "delivery": {
+    "version": "0.5.0-dev",
+    "version_code": 500,
+    "source_commit": "e08a2b3668b6f3f800d62c4da7c0618bb28f158a",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-3",
+      "operations-training",
+      "planning-delegation"
+    ],
+    "godot": "4.6.3.stable.official.7d41c59c4",
+    "application_id": "org.creaminmai.sunshinehospital.playtest",
+    "passed": true,
+    "source_dirty": false,
+    "development_certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "android_hardware_tested": false,
+    "iphone_hardware_tested": false,
+    "files": {
+      "artifacts/android/SunshineHospital-0.5.0-dev.apk": {
+        "bytes": 66981706,
+        "sha256": "5497d1fc2a8aff41afc5932266d9049c96f6e6fd6a97821b698c7dab29212796"
+      },
+      "artifacts/mobile/SunshineHospital-Web-0.5.0-dev-e08a2b3.zip": {
+        "bytes": 22654168,
+        "sha256": "ca314ea1cb7ee6b7e4b848f9dab9ec949f9b30aed6a6b77c9dae701afdf4bd87"
+      }
+    }
+  },
+  "physical_android": false,
+  "physical_iphone": false,
+  "public_pages_verified": false,
+  "mobile_performance_measured": false,
+  "browser_timing_note": "Software-rendered cloud regression runs, partly concurrent with recording. Loading wall times are not device performance measurements."
+}

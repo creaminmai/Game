@@ -40,11 +40,12 @@ func run() -> void:
  var first_frame := Engine.get_process_frames()
  var duration: int = {"education":25,"flow":85,"completion":29}[segment]
  var done := {}; var trace: Array = []; var last := ""
- var dual := false; var prepared := false; var assigned := false; var journal_seen := false; var restored := false
+ var dual := false; var dual_uncovered := false; var prepared := false; var assigned := false; var journal_seen := false; var restored := false
  game.set_process(true)
  while Engine.get_process_frames()-first_frame < duration*24:
   var seconds := float(Engine.get_process_frames()-first_frame)/24.0
   dual = dual or HospitalChapterProgress.simultaneous(game.sim)
+  dual_uncovered = dual_uncovered or (HospitalChapterProgress.simultaneous(game.sim) and not game.selection_panel.visible)
   prepared = prepared or game.sim.operations.candidate_id > 0
   assigned = assigned or game.sim.count_state("planning") > 0
   journal_seen = journal_seen or game.journal.visible
@@ -64,6 +65,8 @@ func run() -> void:
   elif segment == "flow":
    if seconds >= 4 and not done.has("select"):
     await select_patient(1); done.select = true
+   elif seconds >= 36 and not done.has("dismiss"):
+    await click(game.dismiss_button); done.dismiss = true
    elif game.sim.operations.total() >= 1 and not done.has("goals"):
     await click(game.goal_ribbon); done.goals = seconds
    elif done.has("goals") and seconds > float(done.goals)+8 and not done.has("close"):
@@ -90,9 +93,9 @@ func run() -> void:
  game.set_process(false)
  var ok: bool = game.playback_speed == 1.0
  if segment == "education": ok = ok and game.sim.operations.trained and game.sim.operations.enabled and not game.sim.admission.enabled and game.sim.money == 2200
- elif segment == "flow": ok = ok and dual and prepared and assigned and game.sim.operations.total() >= 1 and done.has("goals")
+ elif segment == "flow": ok = ok and dual and dual_uncovered and prepared and assigned and game.sim.operations.total() >= 1 and done.has("goals")
  else: ok = ok and journal_seen and restored and game.sim.day == 5 and game.sim.operations.total() == 4 and game.sim.operations.chapter_three_day == 4 and game.sim.money == 3000 and game.sim.ledger.training_expense == 0
- var result := {"passed":ok,"segment":segment,"automatic_input":true,"platform":"Linux Godot 4.6.3 OpenGL llvmpipe","physical_mobile":false,"simulation_speed":1,"fps":24,"recorded_frames":Engine.get_process_frames()-first_frame,"real_canvas_clicks":click_count,"two_rooms_actually_treating":dual,"preparation_shown":prepared,"normal_planning_shown":assigned,"journal_shown":journal_seen,"real_file_restored":restored,"checkpoint_prepared_by_normal_simulation":true,"trace":trace}
+ var result := {"passed":ok,"segment":segment,"automatic_input":true,"platform":"Linux Godot 4.6.3 OpenGL llvmpipe","physical_mobile":false,"simulation_speed":1,"fps":24,"recorded_frames":Engine.get_process_frames()-first_frame,"real_canvas_clicks":click_count,"two_rooms_actually_treating":dual,"two_rooms_without_patient_card":dual_uncovered,"preparation_shown":prepared,"normal_planning_shown":assigned,"journal_shown":journal_seen,"real_file_restored":restored,"checkpoint_prepared_by_normal_simulation":true,"trace":trace}
  FileAccess.open(output.path_join("movie-results.json"),FileAccess.WRITE).store_string(JSON.stringify(result,"  "))
  print("OPERATIONS MOVIE: ",JSON.stringify(result))
  quit(0 if ok else 1)

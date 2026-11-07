@@ -157,30 +157,33 @@ try:
             # Leave the running engine before replacing the fixture so it cannot
             # race the write. Operational state comes from normal day-one commands.
             fixture_path='artifacts/chapter-rehearsal-completion/checkpoint.json' if args.chapter else 'artifacts/staff-video-offer/checkpoint.json'
-            if args.operations: fixture_path='artifacts/operations-rehearsal-education/checkpoint.json'
+            if args.operations: fixture_path='artifacts/operations-web-checkpoints/education.json'
             fixture=json.loads((repo/fixture_path).read_text())
             if args.staff:
                 fixture['staff_admission']['offer_seen']=False
                 fixture['first_day_story']=state['first_day_story']
             from urllib.parse import urljoin
-            page.goto(urljoin(base,'LICENSE-Godot.txt'))
-            replaced=page.evaluate('''async data => {
-              let replaced=0;
-              for(const info of await indexedDB.databases()) {
-                const db=await new Promise((ok,no)=>{const r=indexedDB.open(info.name);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
-                for(const name of db.objectStoreNames) {
-                  const rows=await new Promise((ok,no)=>{const t=db.transaction(name),s=t.objectStore(name),k=s.getAllKeys(),v=s.getAll();t.oncomplete=()=>ok([k.result,v.result]);t.onerror=()=>no(t.error)});
-                  for(let i=0;i<rows[0].length;i++) {
-                    let parsed;try{parsed=JSON.parse(new TextDecoder().decode(rows[1][i].contents))}catch{continue}
-                    if(parsed.implementation!=='sunshine-rebuild-2026-11')continue;
-                    const value=rows[1][i];value.contents=new TextEncoder().encode(JSON.stringify(data));value.timestamp=new Date();
-                    await new Promise((ok,no)=>{const t=db.transaction(name,'readwrite');t.objectStore(name).put(value,rows[0][i]);t.oncomplete=ok;t.onerror=()=>no(t.error)});replaced++;
-                  }
-                }db.close();
-              }return replaced;
-            }''',fixture)
-            assert replaced==1, replaced
-            page.goto(base+('&' if '?' in base else '?')+'playtest=1')
+            def load_checkpoint(data):
+                page.goto(urljoin(base,'LICENSE-Godot.txt'))
+                replaced=page.evaluate('''async data => {
+                  let replaced=0;
+                  for(const info of await indexedDB.databases()) {
+                    const db=await new Promise((ok,no)=>{const r=indexedDB.open(info.name);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+                    for(const name of db.objectStoreNames) {
+                      const rows=await new Promise((ok,no)=>{const t=db.transaction(name),s=t.objectStore(name),k=s.getAllKeys(),v=s.getAll();t.oncomplete=()=>ok([k.result,v.result]);t.onerror=()=>no(t.error)});
+                      for(let i=0;i<rows[0].length;i++) {
+                        let parsed;try{parsed=JSON.parse(new TextDecoder().decode(rows[1][i].contents))}catch{continue}
+                        if(parsed.implementation!=='sunshine-rebuild-2026-11')continue;
+                        const value=rows[1][i];value.contents=new TextEncoder().encode(JSON.stringify(data));value.timestamp=new Date();
+                        await new Promise((ok,no)=>{const t=db.transaction(name,'readwrite');t.objectStore(name).put(value,rows[0][i]);t.oncomplete=ok;t.onerror=()=>no(t.error)});replaced++;
+                      }
+                    }db.close();
+                  }return replaced;
+                }''',data)
+                assert replaced==1, replaced
+                page.goto(base+('&' if '?' in base else '?')+'playtest=1')
+                page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+            load_checkpoint(fixture)
             if args.operations:
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
                 assert page.evaluate('window.sunshineControls._state.day')==4
@@ -198,6 +201,16 @@ try:
                 press('planning_toggle');press('admission_toggle')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-work-management.png'))
                 press('guide_close');press('pause')
+                admitted=wait_saved(lambda s:s['patients'][0].get('admission_source')=='minji')
+                assert admitted['patients'][0]['history'].count('ct_queue')==1
+                assert admitted['money']==2200 and admitted['daily_ledger']['training_expense']==500
+                # A second explicitly documented checkpoint starts at 2.5/3 s
+                # of real preparation. It was produced by normal native commands,
+                # not by editing work status or attributing manual work to staff.
+                planning_fixture=json.loads((repo/'artifacts/operations-web-checkpoints/planning.json').read_text())
+                load_checkpoint(planning_fixture)
+                assert page.evaluate('window.sunshineControls._state.paused')
+                press('pause')
                 assigned=wait_saved(lambda s:any(p.get('plan_source')=='staff' for p in s['patients']))
                 first=assigned['patients'][0]
                 assert first['admission_source']=='minji' and first['plan_source']=='staff'
@@ -214,7 +227,7 @@ try:
                 assert page.evaluate('window.sunshineControls._state.paused')
                 press('settings')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored-duties.png'))
-                operations={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'purchase_cancelled':True,'actual_purchase_once':True,'purchase_does_not_enable':True,'explicit_duty_toggles':True,'actual_automatic_admission_and_plan':True,'command_provenance_saved':True,'actual_page_reload':True,'physical_phone':False}
+                operations={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'purchase_cancelled':True,'actual_purchase_once':True,'purchase_does_not_enable':True,'explicit_duty_toggles':True,'actual_automatic_admission_and_plan':True,'command_provenance_saved':True,'actual_page_reload':True,'normal_checkpoint_count':2,'continuous_web_playthrough':False,'physical_phone':False}
             elif args.chapter:
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
                 assert page.evaluate('window.sunshineControls._state.visits')==11
