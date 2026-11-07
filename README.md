@@ -27,17 +27,17 @@ CLI가 준비된 Linux 환경에서는 다음을 실행합니다.
 
 ## 영상과 직접 체험
 
-[최신 첫날 이야기 영상 3개](docs/first-day-story.html) · [튜토리얼·저장과 한계](docs/first-day-story.md) · [이전 캐릭터 동작 영상](docs/character-motion.html) · [이전 카메라 전후 비교](docs/stable-camera.html) · [체험 빌드와 게시 상태](docs/play-review.md) · [남은 작업과 다음 순서](docs/roadmap.md)
+[최신 첫날 플레이·별관·일지 영상](docs/first-day-polish.html) · [변경·검증·남은 요소](docs/first-day-polish.md) · [이전 첫날 이야기 영상](docs/first-day-story.html) · [이전 캐릭터 동작 영상](docs/character-motion.html) · [이전 카메라 전후 비교](docs/stable-camera.html) · [체험 빌드와 게시 상태](docs/play-review.md) · [남은 작업과 다음 순서](docs/roadmap.md)
 
 Mac/iPhone을 위한 웹 빌드를 준비했습니다. 공개 플레이 링크는 Pages 게시 후 실제 접속을 확인해야 합니다.
 
-![실제 엔진의 첫날 CT 안내 화면](docs/images/first-day-story/ct.png)
+![실제 엔진의 오늘의 병원 일지](docs/images/first-day-polish/desktop-09-journal.png)
 
 ## 현재 상태
 
 이전 클라우드의 게임 코드는 확보하지 못했습니다. 이 저장소의 게임은 사용자 인계서와 원본 기획서를 바탕으로 **재구현**한 프로토타입입니다. 이전 코드의 복구본이 아닙니다.
 
-현재 기능: 별도 Blender/GLB 모델을 사용한 가로 3D 병원 내부, 병원 외관, 환자·직원 모델, 대기 좌석·책 읽기·호흡·깜박임, 거리 기반 보행·부드러운 회전·검사/치료 자세 전환·민지 응대, 4명 진료, FIFO 장비 예약, 치료별관, 다음 날, 로컬 저장, 환자 목록·조작 필요 표시·대기 순서, 실제 행동에 연결한 첫날 튜토리얼과 민지·김영수 이야기.
+현재 기능: 별도 Blender/GLB 모델을 사용한 가로 3D 병원 내부, 병원 외관, 환자·직원 모델, 대기 좌석·책 읽기·호흡·깜박임, 거리 기반 보행·부드러운 회전·검사/치료 자세 전환·민지 응대, 4명 진료, FIFO 장비 예약, 치료별관, 다음 날, 로컬 저장, 환자 목록·조작 필요 표시·대기 순서, 실제 행동에 연결한 첫날 튜토리얼과 민지·김영수 이야기, 안내 다시 켜기, 별관 완공 피드백, 실제 거래 기록의 오늘의 병원 일지.
 
 초기 자금 900만, 환자당 200만, 증축 600만은 운영 검증용 임시 밸런스입니다. 환자·성과는 게임 내 가상 설정입니다.
 

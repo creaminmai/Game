@@ -1,5 +1,7 @@
 # 첫날 튜토리얼과 첫 환자 이야기 · 다시 켜진 간판
 
+> 이전 `764f582` 구현의 기록입니다. 짧은 첫 인사·안내 다시 켜기·별관 완공·병원 일지의 최신 변경은 [첫날 플레이 개선](first-day-polish.md)을 보세요. 아래의 당시 한계는 현재 기능과 구분합니다.
+
 새 게임에서 민지와 김영수를 만나 실제 선택 → 접수 → CT → 계획 맡기기 → 치료 → 오늘 일정 완료 → 귀가를 익힌다. [실제 엔진 영상](first-day-story.html)과 [Mac 실행 안내](mac-play.md)를 함께 본다.
 
 ## 구현
@@ -28,7 +30,7 @@
 - [첫 일정 완료·증축 안내·외부 예정지·구매 버튼 입력 · 29초](media/story-completion-1x.mp4)
 - [네 환자 귀가·실제 첫날 기록·2일차 진입 · 20초](media/story-ending-1x.mp4)
 
-각 MP4 옆의 `-results.json`에는 클릭 수·상태 추적·프레임 수를, `-checkpoint.json`에는 녹화 시작 상태를 남긴다. 반복 생성은 `python3 tools/run-visual-qa.py --movie --story welcome --output-dir artifacts/story-welcome`이며 `completion`, `ending`도 같은 방식이다. `--rehearsal`로 렌더 없는 입력 시나리오를 먼저 확인할 수 있다.
+각 MP4 옆의 `-results.json`에는 클릭 수·상태 추적·프레임 수를, `-checkpoint.json`에는 녹화 시작 상태를 남긴다. 당시 커밋 `764f582`에서의 반복 생성은 `python3 tools/run-visual-qa.py --movie --story welcome --output-dir artifacts/story-welcome`이며 `completion`, `ending`도 같은 방식이다. `--rehearsal`로 렌더 없는 입력 시나리오를 먼저 확인할 수 있다. 현재 개선 버전의 재현에는 [새 녹화 명령](first-day-polish.md)의 `--polish`를 사용한다.
 
 ## 확인 범위와 남은 요소
 

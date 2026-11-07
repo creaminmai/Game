@@ -1,0 +1,118 @@
+{
+  "automatic_input": true,
+  "checkpoint_prepared_by_normal_simulation": true,
+  "daily_ledger": {
+    "expansion_expense": 600,
+    "income": 200,
+    "new_annex": true,
+    "opening_money": 900,
+    "version": 1
+  },
+  "day_two_without_first_day_dialogue": false,
+  "dialogues": [],
+  "final_money": 500,
+  "first_admission_video_seconds": -1.0,
+  "fps": 24,
+  "journal_shown": false,
+  "mobile_performance_test": false,
+  "passed": true,
+  "purchase_camera_stable": true,
+  "real_canvas_clicks": 4,
+  "recorded_frames": 720,
+  "segment": "expansion",
+  "simulation_speed": 1,
+  "trace": [
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 1100,
+      "outside": false,
+      "patient_state": "leaving",
+      "treating": 0,
+      "video_seconds": 0.0
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": false,
+      "journal": false,
+      "line": 0,
+      "money": 1100,
+      "outside": true,
+      "patient_state": "leaving",
+      "treating": 0,
+      "video_seconds": 1.20833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": true,
+      "journal": false,
+      "line": 0,
+      "money": 500,
+      "outside": true,
+      "patient_state": "leaving",
+      "treating": 0,
+      "video_seconds": 8.20833333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": true,
+      "journal": false,
+      "line": 0,
+      "money": 500,
+      "outside": false,
+      "patient_state": "leaving",
+      "treating": 0,
+      "video_seconds": 12.2083333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": true,
+      "journal": false,
+      "line": 0,
+      "money": 500,
+      "outside": false,
+      "patient_state": "complete",
+      "treating": 0,
+      "video_seconds": 14.8333333333333
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": true,
+      "journal": false,
+      "line": 0,
+      "money": 500,
+      "outside": false,
+      "patient_state": "complete",
+      "treating": 1,
+      "video_seconds": 16.625
+    },
+    {
+      "day": 1,
+      "dialogue": "",
+      "expanded": true,
+      "journal": false,
+      "line": 0,
+      "money": 500,
+      "outside": false,
+      "patient_state": "complete",
+      "treating": 2,
+      "video_seconds": 21.4166666666667
+    }
+  ],
+  "two_rooms_treating": true,
+  "encoding": {
+    "paused_setup_frames_removed": 1,
+    "source_frames": 721,
+    "delivered_frames": 720,
+    "gameplay_frames_removed": 0,
+    "speed_changed": false
+  }
+}

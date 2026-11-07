@@ -1,0 +1,942 @@
+{
+  "verified_gameplay_commit": "a4af74fb5f1e93f4546e30ed7d38d6d846469df6",
+  "baseline_commit": "6878018fb3ecbad5af57513668fa8e6e66bb0809",
+  "date_kst": "2026-11-07",
+  "environment": "Godot 4.6.3 / Compatibility / Linux Mesa llvmpipe; Chromium software WebGL",
+  "simulation": {
+    "checks": 51,
+    "passed": true
+  },
+  "motion": {
+    "checks": 48,
+    "completed": 4,
+    "failures": [],
+    "geometry_contacts": {},
+    "geometry_sample_rate": 60,
+    "max_head_step_60fps": 0.116186797618866,
+    "max_turn_radians_per_frame": 0.436921715736389,
+    "money": 1100,
+    "passed": true,
+    "phases": [
+      {
+        "pose": "walk",
+        "state": "walk_ct",
+        "time": 6.01666666666666
+      },
+      {
+        "pose": "prepare",
+        "state": "ct_scan",
+        "time": 12.8500000000002
+      },
+      {
+        "pose": "lie_down",
+        "state": "ct_scan",
+        "time": 13.0000000000002
+      },
+      {
+        "pose": "service",
+        "state": "ct_scan",
+        "time": 14.2000000000003
+      },
+      {
+        "pose": "rise",
+        "state": "ct_scan",
+        "time": 16.516666666667
+      },
+      {
+        "pose": "walk",
+        "state": "walk_plan",
+        "time": 17.8666666666669
+      },
+      {
+        "pose": "idle",
+        "state": "plan_ready",
+        "time": 21.9166666666667
+      },
+      {
+        "pose": "walk",
+        "state": "walk_treatment",
+        "time": 26.9333333333331
+      },
+      {
+        "pose": "prepare",
+        "state": "treatment",
+        "time": 32.0333333333328
+      },
+      {
+        "pose": "lie_down",
+        "state": "treatment",
+        "time": 32.1833333333328
+      },
+      {
+        "pose": "service",
+        "state": "treatment",
+        "time": 33.3833333333327
+      },
+      {
+        "pose": "rise",
+        "state": "treatment",
+        "time": 60.6999999999978
+      },
+      {
+        "pose": "walk",
+        "state": "leaving",
+        "time": 62.0499999999978
+      },
+      {
+        "pose": "idle",
+        "state": "complete",
+        "time": 65.8666666666642
+      }
+    ],
+    "save_format_changed": false,
+    "simultaneous_treatment": true
+  },
+  "story": {
+    "checks": 84,
+    "failures": [],
+    "mac_or_mobile_hardware_test": false,
+    "passed": true,
+    "saved_scenes": [
+      "welcome",
+      "arrival",
+      "",
+      "ct",
+      "plan",
+      "treatment",
+      "complete",
+      "expansion",
+      "day_end",
+      ""
+    ]
+  },
+  "polish": {
+    "checks": 70,
+    "failures": [],
+    "mobile_hardware_test": false,
+    "passed": true
+  },
+  "native_regression": {
+    "android_ios_tested": false,
+    "camera_views": {
+      "default_view": {
+        "center": [
+          -0.0888754799962044,
+          2.07876372337341,
+          -0.222173750400543
+        ],
+        "size": 14.3314647674561
+      },
+      "expanded_view": {
+        "center": [
+          2.95385456085205,
+          2.11792469024658,
+          -0.248526304960251
+        ],
+        "size": 15.5037231445312
+      },
+      "patient_card": {
+        "center": [
+          -0.0888754799962044,
+          2.07876372337341,
+          -0.222173750400543
+        ],
+        "size": 14.3314647674561
+      }
+    },
+    "checks": 172,
+    "completed": 4,
+    "dual_treatment_captured": true,
+    "failures": [],
+    "money_after_day_one": 1100,
+    "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+    "passed": true,
+    "selected_by_real_input": 6
+  },
+  "native_ui": {
+    "actual_pixel_metrics": {
+      "compact CT": {
+        "body_px": 16.6111108064651,
+        "name_px": 17.3333330154419,
+        "next_button_px": "(66.47945, 44.05555)",
+        "panel_px": "(251.4657, 170.7695)"
+      },
+      "compact arrival": {
+        "body_px": 16.6111108064651,
+        "name_px": 17.3333330154419,
+        "next_button_px": "(66.47945, 44.05555)",
+        "panel_px": "(251.4657, 170.7695)"
+      },
+      "compact welcome": {
+        "body_px": 16.6111108064651,
+        "name_px": 17.3333330154419,
+        "next_button_px": "(66.47945, 44.05555)",
+        "panel_px": "(251.4657, 170.7695)"
+      },
+      "desktop CT": {
+        "body_px": 24.0000007152557,
+        "name_px": 25.3333340883255,
+        "next_button_px": "(122.6667, 62.66667)",
+        "panel_px": "(432.0, 264.9333)"
+      },
+      "desktop arrival": {
+        "body_px": 24.0000007152557,
+        "name_px": 25.3333340883255,
+        "next_button_px": "(122.6667, 62.66667)",
+        "panel_px": "(432.0, 264.9333)"
+      },
+      "desktop welcome": {
+        "body_px": 24.0000007152557,
+        "name_px": 25.3333340883255,
+        "next_button_px": "(122.6667, 62.66667)",
+        "panel_px": "(432.0, 264.9333)"
+      }
+    },
+    "automatic_input": true,
+    "checks": 271,
+    "failures": [],
+    "mobile_hardware_test": false,
+    "passed": true,
+    "renderer": "Godot Compatibility / Linux llvmpipe"
+  },
+  "browser_desktop": {
+    "passed": true,
+    "browser": "Chromium desktop / SwiftShader",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "first_day_story_saved": true,
+    "daily_ledger_saved": true,
+    "story_stage": "ct",
+    "mobile_tested": false
+  },
+  "browser_touch": {
+    "passed": true,
+    "browser": "Chromium touch emulation",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "first_day_story_saved": true,
+    "daily_ledger_saved": true,
+    "story_stage": "ct",
+    "mobile_tested": false
+  },
+  "mac_package": {
+    "zip": "/workspace/Game/artifacts/mac/SunshineHospital-Mac-Godot-a4af74f.zip",
+    "bytes": 14127528,
+    "source_commit": "a4af74fb5f1e93f4546e30ed7d38d6d846469df6",
+    "project_files": 145,
+    "sha256": "31647d82298d3b9a2a74e6b7d05087558ae53d339d8dbe727f24ce2437af3f68",
+    "passed": true,
+    "source_hashes_verified": 145,
+    "fresh_import": true,
+    "no_save_preview_launch": true,
+    "polish_checks": 70,
+    "mac_hardware_test": false
+  },
+  "native_assertions_total": 696,
+  "videos": {
+    "welcome": {
+      "path": "docs/media/first-day-welcome-1x.mp4",
+      "sha256": "167e6409029fc3d9a7f784cf31c1f6e75fe1844883967ebdb9725484fad09c36",
+      "result": {
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": false,
+        "daily_ledger": {
+          "expansion_expense": 0,
+          "income": 0,
+          "new_annex": false,
+          "opening_money": 900,
+          "version": 1
+        },
+        "day_two_without_first_day_dialogue": false,
+        "dialogues": [
+          "welcome",
+          "arrival",
+          "ct"
+        ],
+        "final_money": 900,
+        "first_admission_video_seconds": 9.04166666666667,
+        "fps": 24,
+        "journal_shown": false,
+        "mobile_performance_test": false,
+        "passed": true,
+        "purchase_camera_stable": true,
+        "real_canvas_clicks": 5,
+        "recorded_frames": 576,
+        "segment": "welcome",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "day": 1,
+            "dialogue": "welcome",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "entering",
+            "treating": 0,
+            "video_seconds": 0.0
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "entering",
+            "treating": 0,
+            "video_seconds": 3.20833333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "waiting",
+            "treating": 0,
+            "video_seconds": 3.91666666666667
+          },
+          {
+            "day": 1,
+            "dialogue": "arrival",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "waiting",
+            "treating": 0,
+            "video_seconds": 4.0
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "waiting",
+            "treating": 0,
+            "video_seconds": 7.20833333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "ct",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "walk_ct",
+            "treating": 0,
+            "video_seconds": 9.25
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "walk_ct",
+            "treating": 0,
+            "video_seconds": 12.4583333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "ct_scan",
+            "treating": 0,
+            "video_seconds": 16.0416666666667
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 900,
+            "outside": false,
+            "patient_state": "walk_plan",
+            "treating": 0,
+            "video_seconds": 21.0416666666667
+          }
+        ],
+        "two_rooms_treating": false,
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 577,
+          "delivered_frames": 576,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "24.000000",
+          "size": "1101224"
+        }
+      },
+      "full_decode_passed": true
+    },
+    "expansion": {
+      "path": "docs/media/first-day-expansion-1x.mp4",
+      "sha256": "775c7257a153d52b023f5d8a6c4d6a6732ed0a3c171bf160163c329c4da1a937",
+      "result": {
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "daily_ledger": {
+          "expansion_expense": 600,
+          "income": 200,
+          "new_annex": true,
+          "opening_money": 900,
+          "version": 1
+        },
+        "day_two_without_first_day_dialogue": false,
+        "dialogues": [],
+        "final_money": 500,
+        "first_admission_video_seconds": -1.0,
+        "fps": 24,
+        "journal_shown": false,
+        "mobile_performance_test": false,
+        "passed": true,
+        "purchase_camera_stable": true,
+        "real_canvas_clicks": 4,
+        "recorded_frames": 720,
+        "segment": "expansion",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 1100,
+            "outside": false,
+            "patient_state": "leaving",
+            "treating": 0,
+            "video_seconds": 0.0
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": false,
+            "journal": false,
+            "line": 0,
+            "money": 1100,
+            "outside": true,
+            "patient_state": "leaving",
+            "treating": 0,
+            "video_seconds": 1.20833333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 500,
+            "outside": true,
+            "patient_state": "leaving",
+            "treating": 0,
+            "video_seconds": 8.20833333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 500,
+            "outside": false,
+            "patient_state": "leaving",
+            "treating": 0,
+            "video_seconds": 12.2083333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 500,
+            "outside": false,
+            "patient_state": "complete",
+            "treating": 0,
+            "video_seconds": 14.8333333333333
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 500,
+            "outside": false,
+            "patient_state": "complete",
+            "treating": 1,
+            "video_seconds": 16.625
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 500,
+            "outside": false,
+            "patient_state": "complete",
+            "treating": 2,
+            "video_seconds": 21.4166666666667
+          }
+        ],
+        "two_rooms_treating": true,
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 721,
+          "delivered_frames": 720,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "30.000000",
+          "size": "1511672"
+        }
+      },
+      "full_decode_passed": true
+    },
+    "journal": {
+      "path": "docs/media/first-day-journal-1x.mp4",
+      "sha256": "da9c1dc180083f52e9ab1035a535563c88828a4b8fa59bd3c72e2e8e0b4ffe12",
+      "result": {
+        "automatic_input": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "daily_ledger": {
+          "expansion_expense": 0,
+          "income": 0,
+          "new_annex": false,
+          "opening_money": 1100,
+          "version": 1
+        },
+        "day_two_without_first_day_dialogue": true,
+        "dialogues": [],
+        "final_money": 1100,
+        "first_admission_video_seconds": -1.0,
+        "fps": 24,
+        "journal_shown": true,
+        "mobile_performance_test": false,
+        "passed": true,
+        "purchase_camera_stable": true,
+        "real_canvas_clicks": 1,
+        "recorded_frames": 432,
+        "segment": "journal",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 1100,
+            "outside": false,
+            "patient_state": "complete",
+            "treating": 0,
+            "video_seconds": 0.0
+          },
+          {
+            "day": 1,
+            "dialogue": "",
+            "expanded": true,
+            "journal": true,
+            "line": 0,
+            "money": 1100,
+            "outside": false,
+            "patient_state": "complete",
+            "treating": 0,
+            "video_seconds": 1.0
+          },
+          {
+            "day": 2,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 1100,
+            "outside": false,
+            "patient_state": "entering",
+            "treating": 0,
+            "video_seconds": 7.20833333333333
+          },
+          {
+            "day": 2,
+            "dialogue": "",
+            "expanded": true,
+            "journal": false,
+            "line": 0,
+            "money": 1100,
+            "outside": false,
+            "patient_state": "waiting",
+            "treating": 0,
+            "video_seconds": 11.0416666666667
+          }
+        ],
+        "two_rooms_treating": false,
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 433,
+          "delivered_frames": 432,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "color_space": "bt709",
+            "r_frame_rate": "24/1"
+          }
+        ],
+        "format": {
+          "duration": "18.000000",
+          "size": "666051"
+        }
+      },
+      "full_decode_passed": true
+    }
+  },
+  "first_admission_comparison": {
+    "baseline_video_seconds": 20.4583333333333,
+    "new_video_seconds": 9.04166666666667,
+    "note": "Different automated reading timings, not a player speed benchmark. No in-game dialogue time limit."
+  },
+  "source_sha256": {
+    "godot/assets/FONT-LICENSE.txt": "849f4ea9c214fa4ac3593b770c699f387534b11ce671264c1b10d85bdcb5997b",
+    "godot/assets/SunshineHangul.otf": "f5f8f716bf82e27a2bf6a26af625293ec8f5192cfcae08ca790fb10a797ed2ca",
+    "godot/assets/SunshineHangul.otf.import": "57ef14281006dde8c2131c64691e5b876e4c4da32e2caac29fb125bf656f25af",
+    "godot/assets/daylight.tres": "f40b2882d0fd6358fad419108f8d2c13ca8193d304f3afd01bfba41a09608aea",
+    "godot/assets/models/asset-report.json": "c1d9030f174142249fe46f9a835b1eb624726cb427bdc1583853db5dcb01ef47",
+    "godot/assets/models/hospital-interior.glb": "aa52a200868874d2c9dd500080caa2dbd3a2d25d22619c656e21aa0b818715f4",
+    "godot/assets/models/hospital-interior.glb.import": "3c940635cee7e9d90725f74610370e0e6cde1b51b8ba4e506ee929800e865ae7",
+    "godot/assets/models/hospital-interior_Coral woven upholstery.png": "a8bbe489fd49d1f8ffc7e5b4ad944abe5b3eec6c0df870e034b1d50fd2d92679",
+    "godot/assets/models/hospital-interior_Coral woven upholstery.png.import": "b6d3507b657400d0abbc54069361d7b2c3a3b1b09353ac8743404cfb142c3fbd",
+    "godot/assets/models/hospital-interior_Honey oak.png": "64ec71cd23b0dc311757f8192edae73ae802cdb6bc5343591cd60cafd0c1dc4d",
+    "godot/assets/models/hospital-interior_Honey oak.png.import": "a08bba897aee15d1b96a36f04c6a7b7e305f6217080d896a2b156103bde74fbc",
+    "godot/assets/models/hospital-interior_Warm linen.png": "40828678a674e6f0887e4a72794a931501b3329dab55aff36ee27033cc5f2c3c",
+    "godot/assets/models/hospital-interior_Warm linen.png.import": "04ec0b9041eb09de25d712a226027d52d58f79bb8bbc3678a4024276d8e75bb9",
+    "godot/assets/models/hospital-interior_hospital-interior-ao.png": "0929cc34ddf59f59e8283b6d3ae44867fcb3f32ba6cebd83e8d0e7f444583621",
+    "godot/assets/models/hospital-interior_hospital-interior-ao.png.import": "c9bfcc3c3b32fe6cf88c8fd5cbb0d0546dfc74308020def1c1b460bc097ee2a6",
+    "godot/assets/models/import_hospital.gd": "709fa19648d761a0b2f59fd6651b655c88d644aa2469c5d9b6fb4cd953cc2761",
+    "godot/assets/models/import_hospital.gd.uid": "d1dd6dff7908e756ad0dff8e4f70ca250f2aa388ce671ced2ec970df79da74be",
+    "godot/assets/models/nurse.glb": "50d98229933dd2c26f376a91c89b29cc60733c762c744ab1cc5b7eee132928c1",
+    "godot/assets/models/nurse.glb.import": "f8971aff9393255874e7e7854f5ac7b29d6f96b5479184382ea928986eca940d",
+    "godot/assets/models/nurse_Warm linen.png": "40828678a674e6f0887e4a72794a931501b3329dab55aff36ee27033cc5f2c3c",
+    "godot/assets/models/nurse_Warm linen.png.import": "6a1102c3dae6f0b12bc138c69bf20dcafe057ad648d3f98ccc5695da5f74cd1b",
+    "godot/assets/models/patient.glb": "f755ce6536536ea0c31aed63777f218bf6d01a9488268d1c298dff895300e384",
+    "godot/assets/models/patient.glb.import": "7f62cc95a8741aaf28cb2e007b0e7510c231400cc7b9220e9e4ccd72a478b820",
+    "godot/assets/models/patient_Warm linen.png": "40828678a674e6f0887e4a72794a931501b3329dab55aff36ee27033cc5f2c3c",
+    "godot/assets/models/patient_Warm linen.png.import": "eb0f9ea1dc5d336907ef0600ca8741ff0955b71224393ea3ff4ee9df8d616d54",
+    "godot/assets/models/treatment-annex.glb": "469ed0fb759aa0ea9da7545aac5247105e8c3d53632280e62c7ede7d355141c3",
+    "godot/assets/models/treatment-annex.glb.import": "2b763106b6ac51eeef28d17279d132edcf5017c2824d7c96b04913e35061b41a",
+    "godot/assets/models/treatment-annex_Honey oak.png": "64ec71cd23b0dc311757f8192edae73ae802cdb6bc5343591cd60cafd0c1dc4d",
+    "godot/assets/models/treatment-annex_Honey oak.png.import": "858145873b25040779fbb21cf0775a7e6de39e659b8dc8bde92828bf7dc893c1",
+    "godot/assets/models/treatment-annex_Warm linen.png": "40828678a674e6f0887e4a72794a931501b3329dab55aff36ee27033cc5f2c3c",
+    "godot/assets/models/treatment-annex_Warm linen.png.import": "f8cbfed1a7d236f1f5a0f965791d1cbfa74e781fb60a811090d88e17f36038ca",
+    "godot/assets/models/treatment-annex_treatment-annex-ao.png": "2caf8503f7c74a446f04e8b71a6205fa247c287e087a6ca58f42e474b90c66dc",
+    "godot/assets/models/treatment-annex_treatment-annex-ao.png.import": "78f7f68aa9de812ab24e79ba952ba86b646a3f0d471bce245ea00eb818f59bf4",
+    "godot/assets/shaders/blink.gdshader": "4853a7b5357b19b223eb5a6a4b330cb5d5c5016a3f02e060668143424c86145b",
+    "godot/assets/shaders/blink.gdshader.uid": "93ed580f923a4d5b908f03d3af9b0562028c6f7520ce6b5003801520a2368032",
+    "godot/assets/textures/Coral woven upholstery.png": "a8bbe489fd49d1f8ffc7e5b4ad944abe5b3eec6c0df870e034b1d50fd2d92679",
+    "godot/assets/textures/Coral woven upholstery.png.import": "e70388a4af4581972d41658619719cab172d3281f8023dc790cf59a626861397",
+    "godot/assets/textures/Honey oak.png": "64ec71cd23b0dc311757f8192edae73ae802cdb6bc5343591cd60cafd0c1dc4d",
+    "godot/assets/textures/Honey oak.png.import": "03a745303bcfefa9d972de349c9cf15aaa46da2ebc0fed7f9186ea02a7f996e6",
+    "godot/assets/textures/Warm linen.png": "40828678a674e6f0887e4a72794a931501b3329dab55aff36ee27033cc5f2c3c",
+    "godot/assets/textures/Warm linen.png.import": "d46f6c01b515a47aa15dd5ce5561059becb4159adb3077642a01336c066720ca",
+    "godot/assets/textures/hospital-interior-ao.png": "0929cc34ddf59f59e8283b6d3ae44867fcb3f32ba6cebd83e8d0e7f444583621",
+    "godot/assets/textures/hospital-interior-ao.png.import": "d63ac95ed6de8ba2cbf36e331186c29e1d1f228e590206ccd1295ceec66773e3",
+    "godot/assets/textures/treatment-annex-ao.png": "2caf8503f7c74a446f04e8b71a6205fa247c287e087a6ca58f42e474b90c66dc",
+    "godot/assets/textures/treatment-annex-ao.png.import": "45eaca9402f0e52b659c1fe6fe54c97a28add975f4b82cd17b6f88a4e234a586",
+    "godot/assets/ui/attention.svg": "ee51f999539ada5ed077ed7643c9609c96e0c4e54e2ab5def2cbe21baaa69950",
+    "godot/assets/ui/attention.svg.import": "dbcd558288bcfcb48748c9d8b0930eab07150c81ebbce976793e3f2148c0f757",
+    "godot/assets/ui/build.svg": "1e1daee7bb3c08f9f34f1aa0385f3c56b4356edf682d5dafcc78b2323bdc728b",
+    "godot/assets/ui/build.svg.import": "fb9f2e62516083d02b70431862acffae7d94c6b5cbe5ed3ed175ac44182488d9",
+    "godot/assets/ui/coin.svg": "5f21661d8805e6bd61a537e39f0e62aa6796f376e8e9fc65da7861dc96a57537",
+    "godot/assets/ui/coin.svg.import": "8907e6d12635be2778279880220acbddd39a5212eaf54a49b64f9e499a7856c7",
+    "godot/assets/ui/ct.svg": "7f87b6b2d9323ee0e12382c347087b75ea99a7bc2812d90d1b0aa4391a0eef77",
+    "godot/assets/ui/ct.svg.import": "4cfce97566f7f03639c35607bb092e5cfb1b56bd9f53893184327b02cfcc39b4",
+    "godot/assets/ui/gold-button.svg": "0515c2ca16bbfa9c65e4d0edfc97b373ad573961f18846ada1741f298f131f98",
+    "godot/assets/ui/gold-button.svg.import": "d354c2d2c97418e7bf79210a0602e37a71c4ef19ce27e2ac4b88a73e1b1fc328",
+    "godot/assets/ui/outside.svg": "9bcb74f44c6ff0d888708e898ce9612c1611ddd1eed206e619cb096c1d7c29ab",
+    "godot/assets/ui/outside.svg.import": "b09e325bb1f8eb65900502251a4320fe1f35f40ba42919aebdcb30b9c87fed9c",
+    "godot/assets/ui/overview.svg": "9bcb74f44c6ff0d888708e898ce9612c1611ddd1eed206e619cb096c1d7c29ab",
+    "godot/assets/ui/overview.svg.import": "8b1dcf2267b21b6ec9d24808b7b41e8991af3ea6a1ef24d6302ef86abc7d94f5",
+    "godot/assets/ui/panel.svg": "e2f5b78b6bf4f600fb013d7c8f1c05484182639f93c3c0bbc9ad848fa8094c66",
+    "godot/assets/ui/panel.svg.import": "cb1c026b1d649e7d68f4ceb389c83dc4d3dbde0175e53e1d8f61fa067c9e9ec4",
+    "godot/assets/ui/people.svg": "045f420eb0f0fb330a6047e0328b7eec8fed312a39611a78caf5452356a56061",
+    "godot/assets/ui/people.svg.import": "1f2e41ecc0212090a97ee98e9eab743cb9e24a219d4ec588c3bc9d5ad9e12c1f",
+    "godot/assets/ui/plan.svg": "184c6d5c2208380bb324a4574929062aa5bf51165a0870e12aa7fd6255cbe133",
+    "godot/assets/ui/plan.svg.import": "34cff58b14413b960c1595ead4be1785ce677caaabd6394361c819cbf2d7bc3c",
+    "godot/assets/ui/portrait-minji.png": "9b919b4543c2468b615c1adaf73bb80a92ef65c0614c722c662698e5fef849f9",
+    "godot/assets/ui/portrait-minji.png.import": "624835a6c214ade490972d82f49034caf944bf882e9de7f885bb8a154c8c0416",
+    "godot/assets/ui/portrait-patient-1.png": "7e79d4b7406ccbb43f38145b69e6593cfc8c99fbdaac63bdb0853f105c8567bf",
+    "godot/assets/ui/portrait-patient-1.png.import": "9721c8e73fe2ce8509d007314244763d8314df895fde2c7796ae1408ece7510e",
+    "godot/assets/ui/portrait-patient-2.png": "8ffb961e2acd433c0f2617ef95550715457aae97d5a4a8f45fa603b8a9eed483",
+    "godot/assets/ui/portrait-patient-2.png.import": "955a8fdd44ea2efe0121a015d938a3cd6c7e1094a02dc1c4f2f014bc4ac57a72",
+    "godot/assets/ui/portrait-patient-3.png": "ef3b9b92d7fc799925aec2c2d39d2ddeb1576b53a1bc7fbfcc53c525eed11c9f",
+    "godot/assets/ui/portrait-patient-3.png.import": "c359ffd768e5c2b1d2cb5a7689e8095ea0ed0d0cc49f6a04d6f2b83425e2376d",
+    "godot/assets/ui/portrait-patient-4.png": "953124569d3c90b5f686b58cb281284d876ee1c867a3852cd6054e50aff0b3d9",
+    "godot/assets/ui/portrait-patient-4.png.import": "f97fb74bb4657e8e1ac25b111287b8f94418fb40b6e8881464c7bb7810b5fa2e",
+    "godot/assets/ui/portrait_mask.gdshader": "2b59057bf1c697fd40b0524b9ea54c2a92ad0e70dfee99495c3da0393310e89b",
+    "godot/assets/ui/portrait_mask.gdshader.uid": "cd007761724aa396da8e57a60bc1152d28b01e2ef158b52e9a699897d4d2e608",
+    "godot/assets/ui/primary.svg": "806283dff5868568eb7394bc943d5c17805814aea29599b31fb71f10055af104",
+    "godot/assets/ui/primary.svg.import": "796ac05c37b50de2d5680c4b89c85f421a41f8deb9846b6de15f056e1c3cfb84",
+    "godot/assets/ui/speech.svg": "a2fabad0deff9e588e02dedbc8765acbd7920f798238dc883fcdb5a4ed48360d",
+    "godot/assets/ui/speech.svg.import": "da0ae1c1c1029837ae51702f456a8a00d6481b9dbadaf57f3c8abd1ec3934389",
+    "godot/assets/ui/sun.svg": "eef27017b2a87dcce5fd5eb3589e2337d7a1fb1ed3ebb128bc87048c4ae433fd",
+    "godot/assets/ui/sun.svg.import": "cf6680c64489f09837b430896a97560e3f4f32ad234609657fd05cdddabd73ab",
+    "godot/assets/ui/treatment.svg": "00e2a927da554313f005878f76e4a020383605a8102a5045aac709831a2de4ec",
+    "godot/assets/ui/treatment.svg.import": "3c6cccd15f290a341d5d5ca2a3dc5053f7a1284ba3029081c4e00e323a4a32d3",
+    "godot/assets/window_reflection.gdshader": "b529a1d820e184acb836ce32bf5588c4ffbecb5278f29f36ace675d4ac1d7c0b",
+    "godot/assets/window_reflection.gdshader.uid": "945f75ca0c39dc67cee92193e202dd4f03a34fc0ef30905fbe6898fc7d84aab8",
+    "godot/export_presets.cfg": "6202cfea4339ef8157c26fc5a6e5da621f665ae903c98b48055df0e42c448c6a",
+    "godot/main.tscn": "7ef9d761967482873de426c8d2ec4853109873d2ff491179c55cb3aa7c6ad641",
+    "godot/project.godot": "bbb323b1a91f8b58c7389b8e99406fee864b4e3a433f6cacf37243bfe66209ce",
+    "godot/scripts/actor.gd": "a7749630d7502a6e89dc56deb7a5caf5854f2375e53cbf72d41114e7c55a6c34",
+    "godot/scripts/actor.gd.uid": "cc73912f6df1e76413cc0f0e21ac1b6b8c1094906c85c4d876a42523c4d9eda4",
+    "godot/scripts/character_motion.gd": "cf045323ad87612ea3478c7e9fb20d94502d292d566900c432706c3e24bb1826",
+    "godot/scripts/character_motion.gd.uid": "f8afa1ede6927e0ce939c6a00dc5d31d819834fff599880e3c721a88a01d6981",
+    "godot/scripts/daily_ledger.gd": "58e18d4e4f10c40bb73bc5973bc266a3c98bed4e4b55f4768567ab71fa33c363",
+    "godot/scripts/daily_ledger.gd.uid": "3a77fa1b002a4322c1d32e5738d5ecb657c3f3433cd7a02a97e8c1d40883d29e",
+    "godot/scripts/day_journal.gd": "c0401ed72a20da4de06429cf5192a31a3da28b97620d228d725a700ad6c2c2fc",
+    "godot/scripts/day_journal.gd.uid": "6d5619521dbf8be6a720680cd80a0b34ff470790e3674eca4723495b29dc1c04",
+    "godot/scripts/first_day_story.gd": "d97be8d7bb37e2185d1b7add786441a773b07a183287e9375d9feceb99eafd8b",
+    "godot/scripts/first_day_story.gd.uid": "f84d39f922c86c5a820fc0518eb8a5c07310e549adc4f9618f4ec9225f2c25b5",
+    "godot/scripts/furnishings.gd": "070f17e467b7838a47d091e23ee9328107b08ac089c0093c66e9a687ed5acf81",
+    "godot/scripts/furnishings.gd.uid": "d227954a79b07ca7c3ece6ca846fab9d764492625f690e721c242bfb2ee3a66d",
+    "godot/scripts/game_dialog.gd": "1ff6d919a8dedcb482b81a960acbcefd02a770d59012317e996d23e35f720352",
+    "godot/scripts/game_dialog.gd.uid": "78de84e157a3739a37c196ec61146374b6bc896fc4cc071862aca7059b14bfef",
+    "godot/scripts/geometry.gd": "32cd9959c52c293e0e3890ea4d45eb2a37a7fd934ee833e75a0e3eed5855cbbb",
+    "godot/scripts/geometry.gd.uid": "638e3234c55026b64373b59a36bff48abd3452c8c42219f3cb4b8a050e77a1d4",
+    "godot/scripts/hospital_simulation.gd": "4cbc2697d8916123f0e5b6b99abe5a0cb9e344e65abce9b909f3fe36eca33abe",
+    "godot/scripts/hospital_simulation.gd.uid": "5489444c9f518c8bd8ce1505f3a4acd508b962d7ed48f97f3a0a76fa5477a06b",
+    "godot/scripts/hud_button.gd": "32da28f6a4e5a88ecca878506147292c8d9a86d001ebf4589dea529705d1f89d",
+    "godot/scripts/hud_button.gd.uid": "a5249eb64b89944c617669bb5658b1749ec191ee9cd498c72007f80ba817f616",
+    "godot/scripts/main.gd": "02da2bc042cbd6a907f0ec1c29cca8ac16d520016fff368fffb79b8bb19368da",
+    "godot/scripts/main.gd.uid": "74ea0169cb5d85f66a2a763ca1cb8b241cbf23a596e1c8d2200b40bb49cfeabf",
+    "godot/scripts/patient_feedback.gd": "71cb551c17616f7ca30786bc94b5ebf6043955c0bde4345e9d665202148b6884",
+    "godot/scripts/patient_feedback.gd.uid": "6ba7f26e08fbc99fca9e325dbb99aeebbd40c3c4d50c10796861d4883e7f7b17",
+    "godot/scripts/save_store.gd": "83edbb14decf6a41cd6730d99bd2b709bba2059bfaf329056dfcad1bddc19c73",
+    "godot/scripts/save_store.gd.uid": "7b120bcba7d87be21631e306f5f49503e05928eab884f3041a41657d0df56eef",
+    "godot/scripts/ui_skin.gd": "27045176088378bbabab1b00390c7bde2b4d373e6e3ca0f1be0279e6bb0fc41d",
+    "godot/scripts/ui_skin.gd.uid": "9501c6be01972c83f2dbbbe26b5b8602d363a2cec2ad60924107c89d173286ed",
+    "godot/scripts/world.gd": "3208a95e8f4332f813507763aa1c91907d76fa1476cc06339655f0ccdc1b93c2",
+    "godot/scripts/world.gd.uid": "7eb9fde129ab45acd278a21c1bd30814a5a7f9b1b607cdff614718c642dbbf79",
+    "godot/tests/capture_art.gd": "5b8d1c4ed7eb9cba13307ce7c27896010af2069b5ed0ad93539e10074ed5ed0f",
+    "godot/tests/capture_art.gd.uid": "1671176a9c59d0a8f237e6a45d14cf1b2cf564737be8aea479fb9d2d0f53d7da",
+    "godot/tests/capture_motion.gd": "8b00c319ffdb576d0434d31e8b378465d6a5e9fd82d01742a12fa3b9cbfadd38",
+    "godot/tests/capture_motion.gd.uid": "738e18b0111a9d1cabece475b899d98effb32a22f429f0335d1a980e25d8b128",
+    "godot/tests/record_first_day_polish.gd": "d47856885073fd0c8c4d7bb2b2227e502af39604c869f92c5e8a83d6c6034bea",
+    "godot/tests/record_first_day_polish.gd.uid": "4d5d0c9058de5a7190d14aca083edb4a0610523f6bef87ac7e9618c26ee25d08",
+    "godot/tests/record_motion.gd": "edf7743ecfa3c7127f0ed8ec782a31597d8cd8a5591621f813c1f3c24d61ee06",
+    "godot/tests/record_motion.gd.uid": "6ad4771a4c979bce414b5c1bd38ced644b31359adb31f90f5e2a3b0997310b55",
+    "godot/tests/record_normal.gd": "920384625c0d955afdd5678f0ea448d4b0a81eb6103dce7df7d1e84f9a33cb60",
+    "godot/tests/record_normal.gd.uid": "2a24f963d12f0a967b01856461010ca68cfd84eeaddaf5264cb82329d142b89a",
+    "godot/tests/record_play.gd": "2527efcf9c51e6ccfd20cbb847c23511faa8e670b4aaf120fdb3648f2d4264e0",
+    "godot/tests/record_play.gd.uid": "e89d3168023ba70af9e195f85d31fb1fffc20d64655a1bc0ae09449f7829f350",
+    "godot/tests/record_story.gd": "ef0ad25ddf1294359d6a7214291ca067fff1c36f8766203f7791e0b3a478cc5d",
+    "godot/tests/record_story.gd.uid": "5ba6acef8e7f98b206cfbda023e59ba6a3a519bef1046001440560e8852b1de4",
+    "godot/tests/test_first_day_polish.gd": "aa7f643ea6fde3f2c907c5ef158e8433197c80d98de22d9f2c572c4603e3aeb8",
+    "godot/tests/test_first_day_polish.gd.uid": "24078b28f3f247329709123a40f0cdf46578a2f4e361a83ebd92fa83be9e8b1e",
+    "godot/tests/test_hospital.gd": "46754634959fa569c31ca46157cf6879d5a3dcdef86eb6fac43067c8aebcd360",
+    "godot/tests/test_hospital.gd.uid": "4ac160e9833e573f789a7f9644938a14320f410545f872a8e71c0b63e9ca07dc",
+    "godot/tests/test_motion.gd": "4137e430861c8d9d4da455ec7ffcd4590d24862cb9380bf434c931d1babbb490",
+    "godot/tests/test_motion.gd.uid": "baea172a6c689b4f9ba799718c0e1551d5a2e64374faf4df875fd740f728bcf3",
+    "godot/tests/test_scene.gd": "de265919d89325d53aa5f7da693fd1c84b898283254c9942e090443d3291b3da",
+    "godot/tests/test_scene.gd.uid": "3c09cd6e1eb15003596722d97fce930dc89f0160c60228d5142eeb4a27abe6e5",
+    "godot/tests/test_story.gd": "9568a47743bade03e9396a62258f638eff5668afced553f82ffe33dc3c562cbc",
+    "godot/tests/test_story.gd.uid": "5686e88487168b18fce13e83003093e73c85bca6f686e9e314cc0817cf6ff329",
+    "godot/tests/test_story_ui.gd": "b82d0a23d8fb21e9468c00ec051868263ffa717c7a2dcabb484ed1fdf19dcbd5",
+    "godot/tests/test_story_ui.gd.uid": "caea774199455f035ab35a40d093eae18e5bd5bc712a14a472f8d4afdf2f4291"
+  },
+  "verification_helper_sha256": {
+    "tools/run-visual-qa.py": "5b65df0649816fe711ec41133a5825623f17dea14e432cf620e2a60b07d6fd67",
+    "tools/test-godot.sh": "18881ad976117adcb8e3e9f433ee2c66289b9a9b81ee98f08d548ac60cdbff4b",
+    "tools/test-web.py": "0d0c5b3254c472765ca1d686d23e959f165a9b5201be08df488715918061689b",
+    "tools/package-mac-project.py": "da969e47965eb0d9bdabf0f31897500bd617b84bcba6c4f6338d7b6e36612cea"
+  },
+  "web_build_sha256": {
+    "artifacts/web/index.pck": "7c92d78fbaca4c0977db53ca71385f6d14646a6c9eb4223dd9f645cea19be598",
+    "artifacts/web/index.wasm": "26b61ce95247012ab3dca3ff51e96d1cdbff44ee91a8c20a83e150afca83f1b6"
+  },
+  "save_schema": {
+    "container_version": 2,
+    "new_optional_field": "daily_ledger",
+    "legacy_spending": "explicitly unknown",
+    "old_v2_supported": true
+  },
+  "limits": [
+    "No Mac/iPhone hardware, Safari, thermal or battery test",
+    "No public Pages access verification",
+    "Existing portraits and pivot animation; no voice/lip sync",
+    "Cosmetic construction completion only, no detailed construction process",
+    "Current-day journal only; legacy spending explicitly unknown"
+  ],
+  "screenshots": {
+    "docs/images/first-day-polish/compact-01-welcome.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "0963318086372ce80c6719931394068d858132c6a78984c143be68f4631b341f"
+    },
+    "docs/images/first-day-polish/compact-02-arrival.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "fe5edea17cedf4ab25c22917b9b8ae26518637f082cfae314b785070fad33f0a"
+    },
+    "docs/images/first-day-polish/compact-03-admission.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "f291adc524a23429e67110bb2d57605b507a108c8c746cc0eb8d8f918af1c99c"
+    },
+    "docs/images/first-day-polish/compact-04-ct.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "705efd83d8a6338200bb14051780e6128d781935f77bc3c7cddb503431f342c4"
+    },
+    "docs/images/first-day-polish/compact-05-settings.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "fc6610b094ae0a8299842607799afbbbd06be79ea96853314f535f4eaa51c29a"
+    },
+    "docs/images/first-day-polish/compact-06-purchase.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "563b13b5b9bd98e13f4d6ea167de13df853a05dec4f02e6e386b6fdb67d42211"
+    },
+    "docs/images/first-day-polish/compact-07-built.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "9649dd5d874aec4c467b4f3bde4ea762f4f8b8a893faf47f31564787294683e5"
+    },
+    "docs/images/first-day-polish/compact-08-new-room.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "3fee822513eaf9bb65b6b627f94eb70fe9a017fb87b6ff1c38e066b53ec854b2"
+    },
+    "docs/images/first-day-polish/compact-09-journal.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "6ff4870b1fde1c1549915e87f298c3c3a44bdf122665d9d9606751d367d3bbfb"
+    },
+    "docs/images/first-day-polish/compact-10-day-two.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "b553b6860651728455f8a33524a20d43ee36ba7d1c467918e277618cd885618c"
+    },
+    "docs/images/first-day-polish/compact-11-journal-no-expansion.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "dd0a906e61ec76f5a5ee3939eb3268f0ac41cf52200b79193a3c2d2971994d01"
+    },
+    "docs/images/first-day-polish/compact-12-journal-legacy.png": {
+      "width": 844,
+      "height": 390,
+      "sha256": "2f568e3d9bf8679589a89261aac8d9c700961b45fdfa6f22fc508c4ed85ecdee"
+    },
+    "docs/images/first-day-polish/desktop-01-welcome.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "69aca9292c6a2547d92322ae9997014c35304d7d6a8f7dbb5095d309936fec53"
+    },
+    "docs/images/first-day-polish/desktop-02-arrival.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "6b2d43ecaa93c555ad69d03c7ed8dbb6944e12c38e0e8b03cb8dd8c25ada821a"
+    },
+    "docs/images/first-day-polish/desktop-03-admission.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "ea4751df9ad4e2625fbcad94167e5c686234d3116508d98dab3c0c5645a00e20"
+    },
+    "docs/images/first-day-polish/desktop-04-ct.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "62d7607eb2ece1292f3b4e511048575d4fdf2b035ba669dd03d9bff0ddf2dbaa"
+    },
+    "docs/images/first-day-polish/desktop-05-settings.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "36bcb02f5b46cfaa0663122cc116057e07d70b0d6afeee7155644aeb9ae464d7"
+    },
+    "docs/images/first-day-polish/desktop-06-purchase.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "6034f7a2c7fe8e0daf44c6c370fed068b7144247cb8747c5744625792a596796"
+    },
+    "docs/images/first-day-polish/desktop-07-built.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "f4502d852baa28a52ada1572cd01a396d1279ebdef884683efc09fdebcc64cbb"
+    },
+    "docs/images/first-day-polish/desktop-08-new-room.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "6b1608c2198a89012acac71549a6ba25188f9e08b8f16563f0a80548f28e74cc"
+    },
+    "docs/images/first-day-polish/desktop-09-journal.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "5fb524856c3494e3e7d0e8464abd223275321e41c438578f9c2f1424d266ba45"
+    },
+    "docs/images/first-day-polish/desktop-10-day-two.png": {
+      "width": 1280,
+      "height": 720,
+      "sha256": "53a7ee9b800d18f2c008d2c7388cea39fdac04aa59747ac8822ef9d6377a4c8b"
+    }
+  }
+}
