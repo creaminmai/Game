@@ -7,7 +7,7 @@ output = repo/'artifacts/mobile-lifecycle'
 output.mkdir(parents=True,exist_ok=True)
 isolated = Path(tempfile.mkdtemp(prefix='mobile-lifecycle-',dir=repo/'.runtime'))
 reports=[]
-for case in ['moving','ct','therapy','user-paused','purchase','journal','day-two','dual']:
+for case in ['moving','ct','therapy','user-paused','purchase','journal','day-two','dual','staff-on','staff-off']:
     env=os.environ.copy()
     env.update(XDG_DATA_HOME=str(isolated/case),XDG_CACHE_HOME=str(repo/'.runtime/cache'),XDG_CONFIG_HOME=str(repo/'.runtime/config'))
     for mode in ['prepare','restore']:

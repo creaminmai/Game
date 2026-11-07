@@ -10,12 +10,13 @@ parser.add_argument('--dpr',type=float,default=1,help='Emulated device pixel rat
 parser.add_argument('--mobile-preflight',action='store_true',help='Resize/inset, background and real page reload checks in a private context')
 parser.add_argument('--url',help='Actual accessible export URL; defaults to isolated localhost test server')
 parser.add_argument('--touch',action='store_true')
+parser.add_argument('--staff',action='store_true',help='Load a normally operated day-two fixture into this private profile, then test actual delegation input/reload')
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
 parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock allowance per saved-state wait; software WebGL may render far below real time')
 args=parser.parse_args()
 if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
 repo = Path(__file__).resolve().parents[1]
-output = repo / ('artifacts/browser-touch' if args.touch else 'artifacts/browser')
+output = repo / ('artifacts/browser-staff-touch' if args.staff and args.touch else ('artifacts/browser-touch' if args.touch else 'artifacts/browser'))
 output.mkdir(parents=True, exist_ok=True)
 (output/'results.json').unlink(missing_ok=True)
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -25,7 +26,7 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader'])
-        width,height=(844,390) if args.touch else (1280,720)
+        width,height=(844,350) if args.staff and args.touch else ((844,390) if args.touch else (1280,720))
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch,device_scale_factor=args.dpr)
         page.set_default_timeout(120000)
         messages=[]
@@ -143,10 +144,58 @@ try:
             assert page.evaluate('window.sunshineControls._state.paused'),'Reload automatically unpaused user'
             assert restored['money']==after['money'] and restored['daily_ledger']==after['daily_ledger'] and restored['patients']==after['patients'],'Real browser reload changed saved operations'
             preflight={'layouts':layouts,'freeze_resume_while_user_paused':True,'actual_page_reload':True,'indexeddb_restored':True,'physical_phone':False}
+        staff={}
+        if args.staff:
+            # This is a fresh test-only browser profile, never player storage.
+            # Leave the running engine before replacing the fixture so it cannot
+            # race the write. Operational state comes from normal day-one commands.
+            fixture=json.loads((repo/'artifacts/staff-video-offer/checkpoint.json').read_text())
+            fixture['staff_admission']['offer_seen']=False
+            fixture['first_day_story']=state['first_day_story']
+            from urllib.parse import urljoin
+            page.goto(urljoin(base,'LICENSE-Godot.txt'))
+            replaced=page.evaluate('''async data => {
+              let replaced=0;
+              for(const info of await indexedDB.databases()) {
+                const db=await new Promise((ok,no)=>{const r=indexedDB.open(info.name);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+                for(const name of db.objectStoreNames) {
+                  const rows=await new Promise((ok,no)=>{const t=db.transaction(name),s=t.objectStore(name),k=s.getAllKeys(),v=s.getAll();t.oncomplete=()=>ok([k.result,v.result]);t.onerror=()=>no(t.error)});
+                  for(let i=0;i<rows[0].length;i++) {
+                    let parsed;try{parsed=JSON.parse(new TextDecoder().decode(rows[1][i].contents))}catch{continue}
+                    if(parsed.implementation!=='sunshine-rebuild-2026-11')continue;
+                    const value=rows[1][i];value.contents=new TextEncoder().encode(JSON.stringify(data));value.timestamp=new Date();
+                    await new Promise((ok,no)=>{const t=db.transaction(name,'readwrite');t.objectStore(name).put(value,rows[0][i]);t.oncomplete=ok;t.onerror=()=>no(t.error)});replaced++;
+                  }
+                }db.close();
+              }return replaced;
+            }''',fixture)
+            assert replaced==1, replaced
+            page.goto(base+('&' if '?' in base else '?')+'playtest=1')
+            page.wait_for_function('window.sunshineControls?.admission_accept.visible',timeout=int(args.save_timeout*1000))
+            assert page.evaluate('window.sunshineControls._state.day')==2
+            page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-offer.png'))
+            press('admission_accept');press('pause')
+            admitted_state=wait_saved(lambda s:s['day']==2 and s['staff_admission']['enabled'] and s['patients'][0]['state'] not in ['waiting','entering'])
+            assert admitted_state['patients'][0]['history'].count('ct_queue')==1
+            press('settings')
+            page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-settings.png'))
+            press('admission_toggle');press('guide_close');press('pause')
+            page.wait_for_function('window.sunshineControls._state.paused')
+            live=page.evaluate('window.sunshineControls._state')
+            saved=wait_saved(lambda s:not s['staff_admission']['enabled'] and abs(s['time']-live['time'])<.001)
+            page.reload()
+            page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+            restored=wait_saved(lambda s:s['day']==2 and not s['staff_admission']['enabled'] and abs(s['time']-saved['time'])<.001)
+            assert page.evaluate('window.sunshineControls._state.paused')
+            assert restored['patients']==saved['patients'] and restored['daily_ledger']==saved['daily_ledger'] and restored['money']==saved['money']
+            assert not page.evaluate('window.sunshineControls.admission_accept.visible')
+            page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored.png'))
+            staff={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'accepted_via_canvas':True,'automatic_admission_once':True,'disabled_via_canvas':True,'real_page_reload':True,'disabled_setting_and_patients_restored':True,'physical_phone':False}
         (output/'console.log').write_text('\n'.join(messages))
         assert not any('SCRIPT ERROR' in m or m.startswith('pageerror:') for m in messages), 'Browser runtime error'
         report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':True,'daily_ledger_saved':True,'story_stage':story['stage'],'mobile_tested':False,'wasm_engine_start_wall_seconds':loader_done_seconds,'first_arrived_and_persisted_wall_seconds':initial_seconds,'viewport':[width,height],'device_pixel_ratio':args.dpr,'url_kind':'provided URL' if args.url else 'loopback only','godot':'4.6.3','renderer':'Chromium SwiftShader WebGL2'}
         report['preflight']=preflight
+        report['staff']=staff
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()

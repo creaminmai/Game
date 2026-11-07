@@ -21,6 +21,8 @@ p.add_argument('--motion', choices=['admission','therapy','dual'], help='Normal 
 p.add_argument('--mobile-preview', action='store_true', help='Record compact safe-area layout; Linux engine, not a mobile device')
 p.add_argument('--performance', action='store_true', help='Measure actual frame time without Movie Maker/fixed FPS')
 p.add_argument('--mobile-check', action='store_true', help='Actual renderer: safe areas, touch-sized UI and input regression')
+p.add_argument('--staff-check', action='store_true', help='Admission delegation UI at four landscape sizes')
+p.add_argument('--staff', choices=['offer','flow','restore'], help='Normal 1x admission delegation segment')
 p.add_argument('--story-check', action='store_true', help='Verify the first-day story through actual GUI input')
 p.add_argument('--story', choices=['welcome','completion','ending'], help='Normal 1x first-day tutorial/story recording')
 p.add_argument('--polish', choices=['welcome','expansion','journal'], help='Normal 1x improved first-day play, annex and journal')
@@ -28,6 +30,8 @@ p.add_argument('--normal', action='store_true', help='54 seconds at normal 1x sp
 p.add_argument('--rehearsal', action='store_true', help='Run the normal-speed input scenario with fixed time but without rendering or a movie')
 p.add_argument('--input-check', action='store_true', help='Quick Movie Maker input regression check')
 args = p.parse_args()
+if args.staff and (not args.movie or args.normal or args.motion or args.story or args.polish or args.brief or args.input_check):
+    p.error('--staff requires --movie alone')
 if args.input_check and not args.movie:
     p.error('--input-check requires --movie')
 if args.brief and not args.movie:
@@ -40,7 +44,7 @@ if args.story and (not args.movie or args.normal or args.motion or args.brief or
     p.error('--story requires --movie alone')
 if args.polish and (not args.movie or args.normal or args.motion or args.story or args.brief or args.input_check or args.story_check):
     p.error('--polish requires --movie alone')
-if args.rehearsal and not (args.normal or args.motion or args.story or args.polish):
+if args.rehearsal and not (args.normal or args.motion or args.story or args.polish or args.staff):
     p.error('--rehearsal requires --normal, --motion or --story')
 if args.art_capture and args.movie:
     p.error('--art-capture and --movie are mutually exclusive')
@@ -86,6 +90,8 @@ with (runtime / 'xorg.log').open('w') as log:
         if args.motion: script = 'tests/record_motion.gd'
         if args.story_check: script = 'tests/test_story_ui.gd'
         if args.mobile_check: script = 'tests/test_mobile_ui.gd'
+        if args.staff_check: script = 'tests/test_staff_ui.gd'
+        if args.staff: script = 'tests/record_staff_admission.gd'
         if args.performance: script = 'tests/measure_mobile_preflight.gd'
         if args.story: script = 'tests/record_story.gd'
         if args.polish: script = 'tests/record_first_day_polish.gd'
@@ -96,7 +102,8 @@ with (runtime / 'xorg.log').open('w') as log:
         elif args.movie:
             command += ['--resolution', '844x390' if args.mobile_preview else '1280x720', '--write-movie', str(args.output_dir / 'playthrough.avi'), '--fixed-fps', '24']
         command += ['--', '--qa', f'--output-dir={args.output_dir}']
-        if args.story_check or args.mobile_check or args.story or args.polish: command += ['--tutorial']
+        if args.story_check or args.mobile_check or args.story or args.polish or args.staff_check or args.staff: command += ['--tutorial']
+        if args.staff: command += [f'--segment={args.staff}']
         if args.polish: command += [f'--segment={args.polish}']
         if args.mobile_preview: command += ['--mobile-preview']
         if args.story: command += [f'--segment={args.story}']
@@ -117,7 +124,7 @@ with (runtime / 'xorg.log').open('w') as log:
             report = json.loads((args.output_dir / 'movie-results.json').read_text())
             if not report['passed']:
                 raise SystemExit('Movie scenario failed')
-            if args.motion or args.story or args.polish:
+            if args.motion or args.story or args.polish or args.staff:
                 from encode_motion import encode
                 encode(args.output_dir/'playthrough.avi', args.output_dir/'playthrough.mp4', args.output_dir/'movie-results.json')
             else:

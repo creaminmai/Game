@@ -23,7 +23,7 @@ func reached() -> bool:
   "ct": return p.get("state") == "ct_scan" and p.elapsed > 1.0
   "therapy": return p.get("state") == "treatment" and p.elapsed > 1.0
   "purchase": return game.sim.expansion_reason().is_empty()
-  "journal","day-two": return game.sim.all_done()
+  "journal","day-two","staff-on","staff-off": return game.sim.all_done()
   "dual": return game.sim.count_state("treatment") == 2
  return false
 func run() -> void:
@@ -46,6 +46,11 @@ func run() -> void:
    game.confirm_expansion()
    check(game.sim.expanded and game.sim.ledger.expansion_expense == 600,"purchase charged once")
   if scenario == "day-two": game.start_day()
+  if scenario in ["staff-on","staff-off"]:
+   game.start_day()
+   game.sim.set_admission_delegated(true)
+   game.sim.tick(5)
+   if scenario == "staff-off": game.sim.set_admission_delegated(false)
   game.story.disable(); game.refresh()
   if scenario == "user-paused": game.toggle_pause()
   var expected: Dictionary = game.sim.snapshot()
@@ -70,7 +75,7 @@ func run() -> void:
   var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(checkpoint_path))
   var restored: Dictionary = JSON.parse_string(JSON.stringify(game.sim.snapshot()))
   check(not game.store.blocked and game.store.message.contains("불러왔어요"),"main ready loads actual saved file")
-  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed"]:
+  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission"]:
    check(restored[key] == expected[key],"separate process restores "+key)
   check(game.sim.paused,"relaunch safely waits for user play")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
@@ -83,6 +88,11 @@ func run() -> void:
   if scenario == "journal": check(game.journal.visible and game.journal.values[3].text == "1100만","journal resumes actual 800/600/1100 ledger")
   if scenario == "day-two": check(game.sim.day == 2 and game.sim.ledger.income == 0 and game.sim.ledger.expansion_expense == 0,"new day resets receipts only")
   if scenario == "dual": check(game.world.actors.size() == game.sim.patients.size() and game.sim.count_state("treatment") == 2,"both restored treatment actors exist")
+  if scenario in ["staff-on","staff-off"]:
+   check(game.sim.admission.enabled == (scenario == "staff-on") and game.sim.admission.offer_seen,"separate process retains explicit consent/refusal")
+   check(not game.story.enabled and not game.admission_offer.visible,"relaunch does not replay proposal with guidance off")
+   game.toggle_pause(); game.sim.tick(2)
+   check(game.sim.serial == (1 if scenario == "staff-on" else 0),"resume runs only consented duty, exactly once")
   game.persist()
  var report := {"passed":failures.is_empty(),"checks":checks,"failures":failures,"case":scenario,"phase":mode,"platform":"Linux headless; injected lifecycle notifications + real process restart"}
  FileAccess.open(output.path_join(scenario+"-"+mode+".json"),FileAccess.WRITE).store_string(JSON.stringify(report,"  "))

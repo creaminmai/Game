@@ -11,6 +11,9 @@ static func describe(sim: HospitalSimulation, p: Dictionary) -> Dictionary:
    result.action = "접수하기"
    result.reason = "아래 버튼으로 접수해 주세요.\nCT 순서에 등록돼요."
    result.bubble = "접수해 주세요"
+   if sim.admission.enabled:
+    result.reason = "민지가 도착 순서대로 접수해요.\n직접 먼저 접수해도 괜찮아요."
+    result.bubble = "민지가 접수해요"
   "plan_ready":
    result.action = "계획 맡기기"
    result.reason = "CT 촬영을 마쳤어요.\n직원에게 검토를 맡겨 주세요."

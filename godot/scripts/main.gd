@@ -93,6 +93,13 @@ var patient_list_link: Button
 var journey_grid: GridContainer
 var web_inspect := false
 var ui_display_size := Vector2(1280,720)
+var admission_toggle: Button
+var admission_offer: Panel
+var admission_offer_text: Label
+var admission_accept: Button
+var admission_decline: Button
+var admission_skip: Button
+var admission_offer_open := false
 
 func _ready() -> void:
  no_save = "--no-save" in OS.get_cmdline_user_args() or "--qa" in OS.get_cmdline_user_args()
@@ -115,6 +122,7 @@ func _ready() -> void:
  world = World.new()
  viewport.add_child(world)
  sim.changed.connect(on_change)
+ sim.admitted.connect(func(id: int): world.reception_response(sim.get_patient(id).position))
  if not store.message.is_empty(): show_notice(store.message)
  refresh()
 
@@ -456,12 +464,35 @@ func build_story_ui() -> void:
  guide_panel = Panel.new()
  guide_panel.add_theme_stylebox_override("panel",UISkin.frame())
  hud.add_child(guide_panel)
+ var settings_title := label_text("운영 설정",24,TEAL)
+ guide_panel.add_child(settings_title)
+ place(settings_title,Rect2(18,18,260,40))
  guide_description = label_text("첫날 안내 설정\n켜면 현재 할 일부터 안내해요.\n이미 지난 이야기는 반복하지 않아요.",21)
+ guide_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
  guide_panel.add_child(guide_description)
  story_off = button("안내 끄기",toggle_guidance)
  guide_close = button("게임으로",toggle_guide_settings,true)
  for b in [story_off,guide_close]: guide_panel.add_child(b)
+ admission_toggle = button("",toggle_admission)
+ guide_panel.add_child(admission_toggle)
  guide_panel.hide()
+ admission_offer = Panel.new()
+ admission_offer.add_theme_stylebox_override("panel",UISkin.frame())
+ hud.add_child(admission_offer)
+ var portrait := UISkin.picture("res://assets/ui/portrait-minji.png",44)
+ admission_offer.add_child(portrait)
+ place(portrait,Rect2(14,12,44,44))
+ var heading := label_text("민지 · 접수 위임",24,TEAL)
+ admission_offer.add_child(heading)
+ place(heading,Rect2(70,16,350,36))
+ admission_offer_text = label_text("접수는 제가 맡아볼까요?\n치료 계획은 직접 맡겨 주세요.",22)
+ admission_offer_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+ admission_offer.add_child(admission_offer_text)
+ admission_accept = button("접수 맡기기",answer_admission_offer.bind(true),true)
+ admission_decline = button("직접 할게요",answer_admission_offer.bind(false))
+ admission_skip = button("이번 제안 건너뛰기",answer_admission_offer.bind(false))
+ for b in [admission_accept,admission_decline,admission_skip]: admission_offer.add_child(b)
+ admission_offer.hide()
  story_highlight = Panel.new()
  var outline := style(Color.TRANSPARENT,Color("4cbaa5"),18)
  outline.set_border_width_all(3)
@@ -496,6 +527,34 @@ func toggle_guidance() -> void:
  else: story.enable_current(sim,selected_id)
  refresh()
  persist()
+
+func answer_admission_offer(accepted: bool) -> void:
+ sim.set_admission_delegated(accepted)
+ admission_offer_open = false
+ refresh()
+ persist()
+
+func toggle_admission() -> void:
+ if sim.set_admission_delegated(not sim.admission.enabled):
+  admission_offer_open = false
+  refresh()
+  persist()
+
+func refresh_admission() -> void:
+ if not story.enabled: admission_offer_open = false
+ if sim.day >= 2 and not sim.admission.offer_seen and story.enabled and not outside and pause_holds.is_empty() and not guide_panel.visible and not journal.visible and not confirmation.visible and not roster.visible:
+  admission_offer_open = true
+  sim.admission.offer_seen = true
+  persist()
+ admission_offer.visible = admission_offer_open and not outside and not guide_panel.visible and not journal.visible and not confirmation.visible and not roster.visible
+ guide_settings.text = "안내 설정" if sim.day == 1 else ("설정 · 접수\n민지에게 맡김" if sim.admission.enabled else "설정 · 접수\n직접")
+ admission_toggle.disabled = sim.day < 2
+ admission_toggle.text = "접수 위임 · 2일차부터 가능" if sim.day < 2 else ("접수: 민지에게 맡김 → 직접 하기" if sim.admission.enabled else "접수: 직접 → 민지에게 맡기기")
+ guide_description.text = "접수 위임은 무료예요.\n치료 계획은 직접 맡겨 주세요."
+ story_off.text = "첫날 안내: 켜짐 → 끄기" if story.enabled else "첫날 안내: 꺼짐 → 다시 켜기"
+ zoom_in_button.visible = not guide_panel.visible and not admission_offer.visible
+ zoom_out_button.visible = zoom_in_button.visible
+ if admission_offer.visible: goal_ribbon.hide()
 
 func open_journal() -> void:
  if outside or not sim.all_done(): return
@@ -552,11 +611,29 @@ func layout_story() -> void:
  for b in [story_next,story_skip,guide_settings,story_off,guide_close,action_button,next_day_button,confirmation.ok_button,confirmation.cancel_button]: b.custom_minimum_size.y = touch
  place(story_next,Rect2(w-106,footer,92,touch))
  place(story_skip,Rect2(8,footer,w-126,touch))
- place(guide_settings,Rect2(18,hud.size.y-220,148,touch))
- place(guide_panel,Rect2(18,71,400,250))
- place(guide_description,Rect2(18,20,364,120))
- place(story_off,Rect2(18,165,208,touch))
- place(guide_close,Rect2(240,165,142,touch))
+ # Share the bottom utility row with the outside control, never the dialogue column.
+ place(guide_settings,Rect2(98,hud.size.y-31-touch,180,touch))
+ guide_settings.add_theme_font_size_override("font_size",maxi(16,ceili(13/scale_to_pixels)))
+ var settings_height := 128+touch*3
+ place(guide_panel,Rect2(18,71,470,settings_height))
+ place(guide_close,Rect2(312,12,140,touch))
+ place(story_off,Rect2(18,26+touch,434,touch))
+ admission_toggle.custom_minimum_size.y = touch
+ place(admission_toggle,Rect2(18,38+touch*2,434,touch))
+ guide_description.add_theme_font_size_override("font_size",maxi(18,ceili(14/scale_to_pixels)))
+ place(guide_description,Rect2(18,50+touch*3,434,72))
+ var offer_font := maxi(20,ceili(16/scale_to_pixels))
+ var offer_body := offer_font*3.6
+ var offer_footer := 62+offer_body
+ place(admission_offer,Rect2(18,71,470,offer_footer+touch*2+24))
+ admission_offer_text.add_theme_font_size_override("font_size",offer_font)
+ place(admission_offer_text,Rect2(14,62,442,offer_body))
+ for b in [admission_accept,admission_decline,admission_skip]:
+  b.custom_minimum_size.y = touch
+  b.add_theme_font_size_override("font_size",maxi(18,ceili(15/scale_to_pixels)))
+ place(admission_accept,Rect2(14,offer_footer,215,touch))
+ place(admission_decline,Rect2(241,offer_footer,215,touch))
+ place(admission_skip,Rect2(14,offer_footer+touch+8,442,touch))
  story_highlight.hide()
  if not story.enabled or story_panel.visible or guide_panel.visible or journal.visible or outside or sim.day != 1 or confirmation.visible: return
  var p: Dictionary = sim.get_patient(1)
@@ -758,7 +835,6 @@ func perform_action() -> void:
  if p.is_empty(): return
  if p.state == "waiting":
   if sim.admit(selected_id):
-   world.reception_response(p.position)
    if selected_id == 1: story.acknowledge_action("admit")
  elif p.state == "plan_ready":
   if sim.assign_plan(selected_id) and selected_id == 1: story.acknowledge_action("plan")
@@ -837,7 +913,7 @@ func refresh() -> void:
   var id := i+1
   var p: Dictionary = sim.get_patient(id)
   var active := id == selected_id and not p.is_empty()
-  var need: bool = not p.is_empty() and sim.needs_action(p)
+  var need: bool = not p.is_empty() and sim.needs_player_action(p)
   var patient_name: String = p.name if not p.is_empty() else Sim.NAMES[(i+sim.day-1)%4]
   rows[i].text = "%s  %s     %s" % ["●" if active else "%02d" % id,patient_name,sim.status_text(id)]
   rows[i].disabled = p.is_empty()
@@ -862,6 +938,7 @@ func refresh() -> void:
  next_day_button.visible = sim.all_done()
  next_day_button.disabled = outside
  refresh_story()
+ refresh_admission()
  layout_hud()
  if is_instance_valid(world): world.sync(sim,selected_id,0)
 
@@ -907,7 +984,7 @@ func _web_visibility(arguments: Array) -> void:
 
 func publish_web_layout() -> void:
  # Opt-in, read-only QA coordinates. No remote actions or save mutation API.
- var controls := {"patients":patient_button,"first_patient":rows[0],"action":action_button,"pause":pause_button,"zoom_in":zoom_in_button,"zoom_out":zoom_out_button,"settings":guide_settings,"guide_close":guide_close,"story_next":story_next,"story_skip":story_skip}
+ var controls := {"patients":patient_button,"first_patient":rows[0],"action":action_button,"pause":pause_button,"zoom_in":zoom_in_button,"zoom_out":zoom_out_button,"settings":guide_settings,"guide_close":guide_close,"story_next":story_next,"story_skip":story_skip,"admission_accept":admission_accept,"admission_decline":admission_decline,"admission_skip":admission_skip,"admission_toggle":admission_toggle}
  var result := {}
  var pixels := ui_display_size/size
  for key in controls:

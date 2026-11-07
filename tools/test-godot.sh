@@ -36,3 +36,11 @@ import json
 with open('artifacts/first-day-polish-unit/results.json') as f:
     assert json.load(f)['passed']
 PYTEST
+
+godot --headless --path godot --script tests/test_staff_admission.gd -- --qa --tutorial 2>&1 | tee .runtime/staff-unit.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/staff-unit.log; then exit 1; fi
+python3 - <<'PYTEST'
+import json
+with open('artifacts/staff-unit/results.json') as f:
+    assert json.load(f)['passed']
+PYTEST

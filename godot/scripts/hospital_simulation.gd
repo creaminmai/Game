@@ -2,6 +2,7 @@ class_name HospitalSimulation
 extends RefCounted
 
 signal changed
+signal admitted(id: int)
 const MAX_PATIENTS := 4
 const VISIT_FEE := 200
 const EXPANSION_COST := 600
@@ -29,6 +30,7 @@ var treatment_owners: Array[int] = [-1]
 var serial := 0
 var max_treating := 0
 var ledger := HospitalDailyLedger.new()
+var admission := HospitalAdmissionDuty.new()
 
 func _init() -> void:
  spawn()
@@ -88,12 +90,20 @@ func count_state(state: String) -> int:
 func needs_action(p: Dictionary) -> bool:
  return p.state in ["waiting", "plan_ready"]
 
+func needs_player_action(p: Dictionary) -> bool:
+ return p.state == "plan_ready" or (p.state == "waiting" and not admission.enabled)
+
+func set_admission_delegated(value: bool) -> bool:
+ if not admission.set_enabled(value,day): return false
+ changed.emit()
+ return true
+
 func next_action_patient(current: int) -> int:
  # Cycle only on an explicit user action; never steal a selection during refresh.
  for offset in range(1, MAX_PATIENTS + 1):
   var id := ((maxi(current, 0) + offset - 1) % MAX_PATIENTS) + 1
   var p := get_patient(id)
-  if not p.is_empty() and needs_action(p): return id
+  if not p.is_empty() and needs_player_action(p): return id
  return -1
 
 func queue_rank(id: int) -> int:
@@ -108,6 +118,7 @@ func status_text(id: int) -> String:
  var p := get_patient(id)
  if p.is_empty(): return "도착 예정 · %d초 후" % maxi(0, ceili((id - 1) * 6.0 - time))
  var caption: String = CAPTIONS[p.state]
+ if p.state == "waiting" and admission.enabled: caption = "민지 접수 대기"
  var rank := queue_rank(id)
  if rank > 0: caption += " · %d번째" % rank
  return caption
@@ -117,6 +128,7 @@ func admit(id: int) -> bool:
  if paused or p.is_empty() or p.state != "waiting": return false
  enqueue(p, "ct_queue")
  dispatch()
+ admitted.emit(id)
  return true
 
 func assign_plan(id: int) -> bool:
@@ -204,6 +216,7 @@ func _step(delta: float) -> void:
       if p.room == 1: points = [Vector3(10,0,5.2),Vector3(4,0,5.2)]
       points.append(Vector3(1.5,0,3)); points.append(Vector3(0,0,3)); points.append(Vector3(0,0,7))
       travel(p, "leaving", points, "complete")
+ admission.tick(self,delta)
  dispatch()
  max_treating = maxi(max_treating, count_state("treatment"))
 
@@ -232,6 +245,7 @@ func start_next_day() -> bool:
  time = 0.0
  next_arrival = 6.0
  serial = 0
+ admission.reset_pending()
  ct_owner = -1
  planner_owner = -1
  treatment_owners.assign([-1, -1] if expanded else [-1])
@@ -248,7 +262,7 @@ func snapshot() -> Dictionary:
   for point in p.route: copy.route.append([point.x,point.y,point.z])
   saved.append(copy)
  return {"version": 2,"implementation": "sunshine-rebuild-2026-11", "day": day,"lifetime_completed": lifetime_completed,"time": time,"next_arrival": next_arrival,
-  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot()}
+  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot()}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= low and value <= high
@@ -324,6 +338,9 @@ func restore(data: Variant) -> bool:
  if data.lifetime_completed < paid_count or data.next_arrival != minf(24.0, candidate.size()*6.0): return false
  var candidate_ledger := HospitalDailyLedger.from_save(data.get("daily_ledger"),paid_count,int(data.money),data.expanded)
  if candidate_ledger == null: return false
+ var candidate_admission := HospitalAdmissionDuty.from_save(data.get("staff_admission"),int(data.day),candidate)
+ if candidate_admission == null: return false
+ admission = candidate_admission
  ledger = candidate_ledger
  patients = candidate
  day = int(data.day); lifetime_completed = int(data.lifetime_completed)
