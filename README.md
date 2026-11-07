@@ -6,6 +6,7 @@ Godot **4.6.3**로 제작 중인 Mac/iPhone 가로 화면 중심의 3D 병원 �
 ## 실행
 
 Godot 4.6.3에서 [`godot/project.godot`](godot/project.godot)을 가져온 뒤 **F6이 아닌 F5(프로젝트 실행)** 를 누르세요.
+Mac용 프로젝트 ZIP과 `KMH/05_게임` 설치 도우미는 [Mac 실행 안내](docs/mac-play.md)를 참고하세요. `python3 tools/package-mac-project.py`로 현재 커밋의 휴대용 프로젝트 ZIP을 만듭니다.
 CLI가 준비된 Linux 환경에서는 다음을 실행합니다.
 
 ```sh
