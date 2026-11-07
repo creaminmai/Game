@@ -770,7 +770,7 @@ func open_expansion() -> void:
 
 func confirm_expansion() -> void:
  if sim.purchase_expansion():
-  world.add_wing()
+  world.add_wing(false)
   world.celebrate_expansion()
   annex_highlight_pending = outside
   if not outside: world.highlight_annex_inside()

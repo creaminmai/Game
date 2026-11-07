@@ -101,6 +101,8 @@ func run() -> void:
  check(fresh.sim.restore(saved),"save during completion animation restores")
  fresh.refresh()
  check(fresh.world.wing_built and fresh.world.exterior_annex.visible and fresh.world.celebration_elapsed < 0,"load during animation is immediately a complete usable facility")
+ var fitted: Dictionary = fresh.world.fitted_view(fresh.world.operating_bounds(),fresh.world.operating_area)
+ check(absf(fresh.world.camera.size-fitted.size) < .001 and fresh.world.view_center.distance_to(fitted.center) < .001,"restored expanded hospital starts at the correct fitted operating view")
  check(fresh.sim.money == funds and fresh.sim.ledger.expansion_expense == 600,"cosmetic playback has no economic authority")
  game.world.update_expansion_feedback(5)
  check(not game.world.expansion_sparkles.visible and game.world.exterior_annex.visible,"completion effect ends with the building visible")

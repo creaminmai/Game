@@ -380,7 +380,7 @@ func update_expansion_feedback(delta: float) -> void:
    inside_elapsed = -1
    inside_marker.hide()
 
-func add_wing() -> void:
+func add_wing(fit_restored_view: bool = true) -> void:
  if wing_built: return
  wing_built = true
  var annex: Node3D = load("res://assets/models/treatment-annex.glb").instantiate()
@@ -391,7 +391,9 @@ func add_wing() -> void:
  staff(Vector3(11.8,0,1),"별관 치료사")
  exterior_annex.visible = true
  expansion_sign.visible = false
- # Purchase feedback never changes camera position or zoom.
+ # A restored facility needs its correct initial operating view. An explicit
+ # purchase passes false so it cannot overwrite the player's current camera.
+ if fit_restored_view and auto_frame and overview_mode: frame_camera()
 
 func show_outside(value: bool) -> void:
  outside = value
