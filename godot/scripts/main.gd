@@ -105,6 +105,7 @@ var planning_toggle: Button
 var training_dialog: HospitalGameDialog
 var training_reason_label: Label
 var chapter_panel: HospitalChapterPanel
+var research_panel: HospitalResearchPanel
 
 func _ready() -> void:
  no_save = "--no-save" in OS.get_cmdline_user_args() or "--qa" in OS.get_cmdline_user_args()
@@ -252,7 +253,7 @@ func build_ui() -> void:
  hud.add_child(scene_caption)
  patient_button = icon_button("people","오늘의 환자 목록",toggle_roster)
  next_button = icon_button("attention","지시가 필요한 환자 찾기",select_next_action)
- expansion_button = icon_button("build","치료별관 증축 · 600만",open_expansion)
+ expansion_button = icon_button("build","시설 투자",open_facility)
  outside_button = icon_button("outside","병원 안 / 밖",toggle_outside)
  overview_button = icon_button("overview","병원 전체 보기",func(): world.show_overview())
  tool_buttons = [overview_button,patient_button,next_button,expansion_button]
@@ -452,6 +453,9 @@ func build_ui() -> void:
  journal.build(self)
  journal.next_requested.connect(start_day)
  journal.closed.connect(refresh)
+ research_panel = HospitalResearchPanel.new()
+ add_child(research_panel)
+ research_panel.build(self)
  resized.connect(layout_hud)
  get_window().size_changed.connect(func(): layout_hud.call_deferred())
  layout_hud.call_deferred()
@@ -526,6 +530,7 @@ func build_story_ui() -> void:
 func advance_story() -> void:
  if sim.chapters.active != "" and sim.day >= 2: sim.chapters.finish_scene()
  elif sim.operations.active != "": sim.operations.next_line()
+ elif sim.research.active != "": sim.research.next_line()
  else: story.next_line(sim)
  refresh()
  persist()
@@ -533,6 +538,7 @@ func advance_story() -> void:
 func skip_story() -> void:
  if sim.chapters.active != "" and sim.day >= 2: sim.chapters.finish_scene()
  elif sim.operations.active != "": sim.operations.finish_scene()
+ elif sim.research.active != "": sim.research.finish_scene()
  else: story.finish_dialogue()
  refresh()
  persist()
@@ -552,6 +558,7 @@ func toggle_guidance() -> void:
  else: story.enable_current(sim,selected_id)
  sim.chapters.guidance_changed(story.enabled,sim)
  sim.operations.guidance_changed(story.enabled,sim)
+ sim.research.guidance_changed(story.enabled)
  refresh()
  persist()
 
@@ -595,8 +602,8 @@ func toggle_chapter_panel() -> void:
 
 func refresh_chapters() -> void:
  chapter_panel.refresh(sim)
- if journal.visible or confirmation.visible or training_dialog.visible or outside: chapter_panel.hide()
- var free_to_speak: bool = not outside and pause_holds.is_empty() and not guide_panel.visible and not chapter_panel.visible and not roster.visible and not confirmation.visible and not training_dialog.visible and not journal.visible and not admission_offer_open and not (sim.day >= 2 and not sim.admission.offer_seen)
+ if journal.visible or confirmation.visible or training_dialog.visible or research_panel.visible or outside: chapter_panel.hide()
+ var free_to_speak: bool = not outside and pause_holds.is_empty() and not guide_panel.visible and not chapter_panel.visible and not roster.visible and not confirmation.visible and not training_dialog.visible and not journal.visible and not research_panel.visible and not admission_offer_open and not (sim.day >= 2 and not sim.admission.offer_seen)
  sim.chapters.sync_story(sim,story.enabled,free_to_speak)
  sim.operations.sync_story(sim,story.enabled,free_to_speak and sim.chapters.active == "")
  if sim.day >= 2 and sim.chapters.active != "" and free_to_speak and story.enabled:
@@ -614,6 +621,15 @@ func refresh_chapters() -> void:
   story_text.text = speech[1]
   story_portrait.texture = load("res://assets/ui/portrait-planner.png" if speech[0] == "박 선생" else "res://assets/ui/portrait-minji.png")
   story_next.text = "다음"
+ var research_free: bool = pause_holds.keys().all(func(key): return key == "outside") and not guide_panel.visible and not chapter_panel.visible and not roster.visible and not confirmation.visible and not training_dialog.visible and not research_panel.visible and not journal.visible and not admission_offer_open
+ sim.research.sync_story(story.enabled,research_free and sim.chapters.active == "" and sim.operations.active == "")
+ if sim.research.active != "" and sim.chapters.active == "" and sim.operations.active == "" and research_free and story.enabled:
+  var speech: Array = sim.research.speech()
+  story_panel.show(); toast.hide(); goal_ribbon.hide()
+  story_heading.text = speech[0]+" · 기록과 개선"
+  story_text.text = speech[1]
+  story_portrait.texture = load("res://assets/ui/portrait-researcher.png" if speech[0] == "윤서진" else "res://assets/ui/portrait-minji.png")
+  story_next.text = "다음"
  if chapter_panel.visible:
   story_panel.hide(); story_highlight.hide(); goal_ribbon.hide()
   next_day_button.hide(); toast.hide(); guide_settings.hide()
@@ -626,6 +642,7 @@ func open_journal() -> void:
  if story.active == "day_end": story.finish_dialogue()
  sim.chapters.finish_scene()
  sim.operations.finish_scene()
+ sim.research.finish_scene()
  guide_panel.hide()
  chapter_panel.hide()
  journal.present(sim,story.enabled)
@@ -636,7 +653,7 @@ func refresh_story() -> void:
  story.sync(sim,selected_id,not outside and pause_holds.is_empty() and not confirmation.visible and not guide_panel.visible)
  if sim.all_done() and not outside and not confirmation.visible and not training_dialog.visible and journal_seen_day != sim.day:
   # Never interrupt an earlier line the player is still reading. No timed wait.
-  if (story.active in ["","day_end"] and sim.chapters.active == "" and sim.operations.active == "") or not story.enabled:
+  if (story.active in ["","day_end"] and sim.chapters.active == "" and sim.operations.active == "" and sim.research.active == "") or not story.enabled:
    journal_seen_day = sim.day
    if story.active == "day_end": story.finish_dialogue()
    guide_panel.hide()
@@ -667,7 +684,7 @@ func layout_story() -> void:
  var body_font := maxi(18,ceili(16/scale_to_pixels))
  var name_font := maxi(19,ceili(17/scale_to_pixels))
  var w := 348.0 if scale_to_pixels < 1.0 else 324.0
- var body_height := body_font*(4.7 if sim.day >= 2 and (sim.chapters.active != "" or sim.operations.active != "") else 4.15)
+ var body_height := body_font*(4.7 if sim.day >= 2 and (sim.chapters.active != "" or sim.operations.active != "" or sim.research.active != "") else 4.15)
  var footer := 66+body_height
  place(story_panel,Rect2(18,71,w,footer+touch+14))
  story_heading.add_theme_font_size_override("font_size",name_font)
@@ -787,6 +804,7 @@ func layout_hud() -> void:
  layout_story()
  if is_instance_valid(chapter_panel): chapter_panel.layout(self)
  if is_instance_valid(journal): journal.layout(self)
+ if is_instance_valid(research_panel): research_panel.layout()
  if is_instance_valid(world):
   var right := w-18
   if selection_panel.visible: right = selection_panel.position.x-12
@@ -803,7 +821,7 @@ func layout_hud() -> void:
 
 func update_facility_callout() -> void:
  facility_callout.hide()
- if journal.visible: return
+ if journal.visible or research_panel.visible: return
  var at := Vector3(7,.6,1)
  if outside:
   if sim.expanded and world.celebration_elapsed < 0: return
@@ -875,7 +893,7 @@ func clear_selection() -> void:
  refresh()
 
 func scene_input(event: InputEvent) -> void:
- if confirmation.visible or training_dialog.visible or journal.visible: return
+ if confirmation.visible or training_dialog.visible or journal.visible or research_panel.visible: return
  var pixel_scale := Vector2(viewport.size)/scene_container.size
  if event is InputEventMouseButton:
   if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed: world.zoom_by(0.88)
@@ -888,6 +906,8 @@ func scene_input(event: InputEvent) -> void:
     if not dragging and not outside:
      var id := world.pick(event.position*pixel_scale)
      if id > 0: select_patient(id)
+    elif not dragging and outside and world.pick_lab_site(event.position*pixel_scale):
+     open_research()
     elif not dragging and outside and world.pick_expansion_site(event.position*pixel_scale):
      open_expansion()
     dragging = false
@@ -991,7 +1011,9 @@ func refresh() -> void:
  outside_label.text = "병원 안" if outside else "병원 밖"
  scene_caption.text = recording_caption if not recording_caption.is_empty() else ("일시정지" if sim.paused else "")
  expansion_button.tooltip_text = "치료별관 운영 중" if sim.expanded else "치료별관 · 600만"
- expansion_button.disabled = sim.expanded
+ expansion_button.disabled = sim.expanded and sim.operations.chapter_three_day == 0
+ tool_labels[3].text = "연구" if sim.operations.chapter_three_day > 0 else "증축"
+ if sim.operations.chapter_three_day > 0: expansion_button.tooltip_text = "연구소 · 외부 예정지와 연구 확인"
  for i in range(4):
   var id := i+1
   var p: Dictionary = sim.get_patient(id)
@@ -1016,7 +1038,7 @@ func refresh() -> void:
   if sim.paused:
    reason_label.text = "일시정지 중이에요.\n재생하면 이어서 진행해요."
    if sim.needs_action(p): action_button.text = "재생 후 지시 가능"
-  if Sim.DURATIONS.has(p.state): progress.value = p.elapsed/Sim.DURATIONS[p.state]*100
+  if Sim.DURATIONS.has(p.state): progress.value = p.elapsed/sim.service_duration(p)*100
  selection_panel.visible = not p.is_empty() and not outside and not sim.all_done()
  next_day_button.visible = sim.all_done()
  next_day_button.disabled = outside
@@ -1030,6 +1052,10 @@ func refresh() -> void:
  for node in tool_buttons+tool_labels: node.visible = utilities
  if not utilities:
   guide_settings.hide(); toast.hide(); next_day_button.hide()
+ if research_panel.visible:
+  research_panel.refresh()
+  story_panel.hide(); admission_offer.hide(); goal_ribbon.hide(); facility_callout.hide(); toast.hide()
+  guide_settings.hide(); next_day_button.hide()
  if training_dialog.visible:
   story_panel.hide(); admission_offer.hide(); goal_ribbon.hide()
  layout_hud()
@@ -1080,6 +1106,7 @@ func publish_web_layout() -> void:
  var controls := {"patients":patient_button,"first_patient":rows[0],"action":action_button,"pause":pause_button,"zoom_in":zoom_in_button,"zoom_out":zoom_out_button,"settings":guide_settings,"guide_close":guide_close,"story_next":story_next,"story_skip":story_skip,"admission_accept":admission_accept,"admission_decline":admission_decline,"admission_skip":admission_skip,"admission_toggle":admission_toggle}
  var result := {}
  controls.merge({"training":training_button,"training_buy":training_dialog.ok_button,"training_cancel":training_dialog.cancel_button,"planning_toggle":planning_toggle,"chapter_history":chapter_panel.history_button})
+ controls.merge({"research":expansion_button,"lab_build":research_panel.build_button,"research_confirm":research_panel.confirmation.ok_button,"research_cancel":research_panel.confirmation.cancel_button,"research_close":research_panel.close_button,"research_return":research_panel.return_button,"research_scroll":research_panel.scroll,"research_ct":research_panel.project_buttons.ct,"research_plan":research_panel.project_buttons.plan})
  controls.merge({"chapter_goal":goal_ribbon,"chapter_close":chapter_panel.close_button,"journal_close":journal.close_button,"journal_next":journal.next_button,"journal_open":next_day_button})
  var pixels := ui_display_size/size
  for key in controls:
@@ -1132,3 +1159,14 @@ func open_training() -> void:
 func toggle_planning() -> void:
  sim.set_plan_delegated(not sim.operations.enabled)
  refresh(); persist()
+
+func open_facility() -> void:
+ if sim.operations.chapter_three_day > 0: open_research()
+ else: open_expansion()
+
+func open_research() -> void:
+ if not outside: toggle_outside()
+ guide_panel.hide(); chapter_panel.hide(); roster.hide()
+ world.preview_lab(sim.research.built_day == 0)
+ research_panel.open()
+ refresh()

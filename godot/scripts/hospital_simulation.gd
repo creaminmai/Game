@@ -34,6 +34,7 @@ var ledger := HospitalDailyLedger.new()
 var admission := HospitalAdmissionDuty.new()
 var chapters := HospitalChapterProgress.new()
 var operations := HospitalOperationsTraining.new()
+var research := HospitalResearchLab.new()
 
 func _init() -> void:
  spawn()
@@ -54,7 +55,7 @@ func spawn() -> void:
  var id := patients.size() + 1
  var p := {"id": id, "name": NAMES[(id + day - 2) % NAMES.size()], "state": "entering",
   "position": Vector3(0,0,6.6), "route": [], "next_state": "", "elapsed": 0.0,
-  "room": -1, "paid": false, "queue_order": 0, "history": ["entering"],"admission_source":"none","plan_source":"none"}
+  "service_duration":0.0, "room": -1, "paid": false, "queue_order": 0, "history": ["entering"],"admission_source":"none","plan_source":"none"}
  patients.append(p)
  travel(p, "entering", [Vector3(0,0,3), Vector3(-1.5,0,3), wait_position(id)], "waiting")
  changed.emit()
@@ -62,6 +63,7 @@ func spawn() -> void:
 func set_state(p: Dictionary, state: String) -> void:
  p.state = state
  p.elapsed = 0.0
+ p.service_duration = duration_for(state)
  p.history.append(state)
  if state == "complete":
   chapters.record_departure(day,p.id)
@@ -211,7 +213,7 @@ func _step(delta: float) -> void:
    if p.route.is_empty(): set_state(p, p.next_state)
   elif DURATIONS.has(p.state):
    p.elapsed += delta
-   if p.elapsed >= DURATIONS[p.state]:
+   if p.elapsed+.000001 >= service_duration(p):
     match p.state:
      "ct_scan":
       ct_owner = -1
@@ -235,6 +237,31 @@ func _step(delta: float) -> void:
  dispatch()
  max_treating = maxi(max_treating, count_state("treatment"))
  chapters.observe(self)
+ research.close_operating_day(self)
+
+func duration_for(state: String) -> float:
+ if state == "ct_scan" and research.applied("ct"): return 4.0
+ if state == "planning" and research.applied("plan"): return 4.0
+ return DURATIONS.get(state,0.0)
+
+static func service_duration(p: Dictionary) -> float:
+ return float(p.get("service_duration",DURATIONS.get(p.state,0.0)))
+
+func purchase_lab() -> bool:
+ if research.build_reason(self) != "": return false
+ money -= research.BUILD_COST
+ ledger.lab_expense = research.BUILD_COST
+ research.record_build(self)
+ changed.emit()
+ return true
+
+func start_research(id: String) -> bool:
+ if research.start_reason(self,id) != "": return false
+ money -= research.COST
+ ledger.research_expense += research.COST
+ research.record_start(day,id)
+ changed.emit()
+ return true
 
 func training_reason() -> String:
  if operations.trained: return "운영 교육 완료"
@@ -279,10 +306,12 @@ func purchase_expansion() -> bool:
 func start_next_day() -> bool:
  if not all_done(): return false
  chapters.observe(self)
+ research.close_operating_day(self)
  chapters.close_day(day)
  operations.close_day(day)
  day += 1
  ledger.start_day(money)
+ research.apply_before_arrivals(day)
  patients.clear()
  time = 0.0
  next_arrival = 6.0
@@ -304,7 +333,7 @@ func snapshot() -> Dictionary:
   for point in p.route: copy.route.append([point.x,point.y,point.z])
   saved.append(copy)
  return {"version": 2,"implementation": "sunshine-rebuild-2026-11", "day": day,"lifetime_completed": lifetime_completed,"time": time,"next_arrival": next_arrival,
-  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot(),"operations_training":operations.snapshot()}
+  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot(),"operations_training":operations.snapshot(),"research_lab":research.snapshot()}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= low and value <= high
@@ -376,6 +405,12 @@ func restore(data: Variant) -> bool:
   if not p.admission_source in ["none","manual","minji","legacy"] or not p.plan_source in ["none","manual","staff","legacy"]: return false
   if (p.admission_source != "none") != admitted_before or (p.plan_source != "none") != planned_before: return false
   if p.admission_source == "minji" and data.day < 2: return false
+  p.service_duration = raw.get("service_duration",DURATIONS.get(p.state,0.0))
+  if not finite_number(p.service_duration,0,30): return false
+  if DURATIONS.has(p.state):
+   if not float(p.service_duration) in ([4.0,5.0] if p.state != "treatment" else [30.0]): return false
+   if p.elapsed >= p.service_duration+.00001: return false
+  elif p.service_duration != 0: return false
   p.id = int(p.id); p.room = int(p.room); p.queue_order = int(p.queue_order)
   p.position = Vector3(raw.position[0],raw.position[1],raw.position[2])
   p.route = []
@@ -395,6 +430,11 @@ func restore(data: Variant) -> bool:
  if candidate_chapters == null: return false
  var candidate_operations := HospitalOperationsTraining.from_save(data.get("operations_training"),int(data.day),candidate,candidate_chapters.chapter_two_day,candidate_ledger.training_expense)
  if candidate_operations == null: return false
+ var candidate_research := HospitalResearchLab.from_save(data.get("research_lab"),int(data.day),candidate.size() == 4 and paid_count == 4 and candidate.all(func(p): return p.state == "complete"),candidate_operations.chapter_three_day,candidate_ledger)
+ if candidate_research == null: return false
+ for p in candidate:
+  if p.service_duration == 4 and not candidate_research.applied("ct" if p.state == "ct_scan" else "plan"): return false
+ research = candidate_research
  operations = candidate_operations
  chapters = candidate_chapters
  admission = candidate_admission

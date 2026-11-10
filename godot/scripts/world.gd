@@ -37,6 +37,12 @@ var inside_marker: Node3D
 var celebration_elapsed := -1.0
 var inside_elapsed := -1.0
 var celebration_count := 0
+var lab_model: Node3D
+var lab_site: Node3D
+var lab_border: Node3D
+var researcher: HospitalActor
+var lab_name: Label3D
+const LAB_POSITION := Vector3(-8.2,0,-.8)
 
 func _ready() -> void:
  var env := WorldEnvironment.new()
@@ -72,6 +78,7 @@ func _ready() -> void:
  build_interior()
  build_exterior()
  build_expansion_feedback()
+ build_lab_site()
  exterior.visible = false
  get_viewport().size_changed.connect(frame_camera)
  frame_camera()
@@ -84,7 +91,7 @@ func set_play_area(rect: Rect2, operating_rect: Rect2) -> void:
  if resized and auto_frame and overview_mode: frame_camera()
 
 func operating_bounds() -> AABB:
- if outside: return AABB(Vector3(-9,0,-5.5),Vector3(21,5.8,13.5))
+ if outside: return AABB(Vector3(-12,0,-5.5),Vector3(24,5.8,13.5))
  return AABB(Vector3(-7.1,0,-5.85),Vector3(20.3 if wing_built else 14.2,3.2,11.9))
 
 func fitted_view(bounds: AABB, area: Rect2) -> Dictionary:
@@ -260,7 +267,7 @@ func tree(at: Vector3, flowering: bool = false, parent: Node3D = null) -> void:
   G.oval(parent,at+Vector3(cos(angle)*0.5,2.25+(i%2)*0.45,sin(angle)*0.45),Vector3(1.45,1.5,1.35),color.lightened((i%3)*0.06))
 
 func build_exterior() -> void:
- G.rounded_box(exterior,Vector3(1,-0.3,0),Vector3(22,0.4,17),Color("a7b68a"),0.35)
+ G.rounded_box(exterior,Vector3(0,-0.3,0),Vector3(24,0.4,17),Color("a7b68a"),0.35)
  G.box(exterior,Vector3(1,-0.06,5.3),Vector3(22,0.12,3.1),Color("c9bea6"))
  G.box(exterior,Vector3(1,0,7.2),Vector3(22,0.08,1.4),Color("919a8f"))
  for x in range(-9,12,2): G.box(exterior,Vector3(x,0.05,7.2),Vector3(0.8,0.012,0.07),Color("eee3c9"))
@@ -290,7 +297,7 @@ func build_exterior() -> void:
   G.cylinder(exterior,Vector3(x,1.1,5.7),0.055,2.2,Color("706c53"))
   G.rounded_box(exterior,Vector3(x,2.25,5.7),Vector3(0.3,0.42,0.3),Color("edd2a0"),0.05)
   G.box(exterior,Vector3(x,2.5,5.7),Vector3(0.4,0.08,0.4),Color("706c53"))
- for at in [Vector3(-7,0,-4),Vector3(-8,0,1),Vector3(10,0,-5),Vector3(11,0,2)]: tree(at,at.x<0)
+ for at in [Vector3(-11.3,0,-4),Vector3(-11.3,0,2.2),Vector3(10,0,-5),Vector3(11,0,2)]: tree(at,at.x<0)
  for x in [-6,-3,3,6,9]: G.flowers(exterior,Vector3(x,0,4.5))
  expansion_sign = G.label(exterior,"치료별관 예정지 · 눌러보기",Vector3(7,.6,1),30)
  exterior_annex = Node3D.new()
@@ -406,6 +413,12 @@ func reception_response(target: Vector3) -> void:
 
 func sync(sim: HospitalSimulation, selected: int, delta: float) -> void:
  if sim.expanded: add_wing()
+ var has_lab := sim.research.built_day > 0
+ lab_model.visible = has_lab
+ lab_site.visible = not has_lab
+ researcher.visible = has_lab
+ lab_name.text = "연구소 1단계 · 윤서진" if has_lab else ("연구소 예정지 · 눌러보기" if sim.operations.chapter_three_day > 0 else "연구소 예정지 · 3장 완료 후")
+ if has_lab: researcher.animate_staff(delta,false)
  focus_patient_data = sim.get_patient(selected)
  for p in sim.patients:
   var departure_key := str(sim.day)+":"+str(p.id)
@@ -449,3 +462,34 @@ func pick(point: Vector2) -> int:
 
 func plan_response(target: Vector3) -> void:
  if staff_models.size() > 1: staff_models[1].react("admission",target)
+
+func build_lab_site() -> void:
+ lab_site = Node3D.new(); exterior.add_child(lab_site)
+ G.rounded_box(lab_site,LAB_POSITION+Vector3(0,.03,0),Vector3(5.3,.08,4.7),Color("d8d9bd"),.12)
+ for x in [-2.5,2.5]:
+  for z in [-2.15,2.15]: G.cylinder(lab_site,LAB_POSITION+Vector3(x,.32,z),.045,.6,Color("bf9b74"))
+ lab_border = feedback_border(exterior,LAB_POSITION+Vector3(0,.2,0),Vector2(5.6,4.9))
+ lab_border.hide()
+ lab_model = load("res://assets/models/research-lab.glb").instantiate()
+ exterior.add_child(lab_model); lab_model.position = LAB_POSITION; lab_model.hide()
+ researcher = Actor.new(); exterior.add_child(researcher)
+ researcher.build(5,true,true,"res://assets/models/researcher.glb")
+ researcher.apply_palette(researcher.body,Color("eee6da"),Color("604c43"),{})
+ researcher.position = LAB_POSITION+Vector3(.75,.45,1.0)
+ researcher.rotation.y = .18; researcher.hide()
+ lab_name = G.label(exterior,"연구소 예정지 · 3장 완료 후",LAB_POSITION+Vector3(0,3.85,.6),27)
+
+func preview_lab(value: bool) -> void:
+ lab_border.visible = value
+
+func pick_lab_site(pixel: Vector2) -> bool:
+ if not outside: return false
+ # Roof/window taps intersect the actual building volume rather than the
+ # ground behind it. A flat footprint alone misses elevated roof clicks.
+ var bounds := AABB(LAB_POSITION+Vector3(-2.8,0,-2.5),Vector3(5.6,4.2 if lab_model.visible else .3,5.0))
+ return bounds.intersects_ray(camera.project_ray_origin(pixel),camera.project_ray_normal(pixel)) != null
+
+func focus_lab() -> void:
+ # Explicit player request only; keep the established camera direction.
+ overview_mode = false; auto_frame = false
+ move_camera(LAB_POSITION+Vector3(0,1.2,0),9.4)

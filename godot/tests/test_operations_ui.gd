@@ -74,6 +74,8 @@ func run() -> void:
   check(game.journal.visible and game.journal.chapter_stamp.text.contains("3장"),"four real delegated departures present chapter stamp")
   operations_layout(prefix+" journal"); await shot(prefix+"-journal")
   await click(game.journal.close_button); await click(game.goal_ribbon)
+  check(game.chapter_panel.second.text.contains("4장"),"completed chapter three exposes new current goal")
+  await click(game.chapter_panel.history_button)
   check(game.chapter_panel.conditions[1].text.contains("4/4"),"growth record shows actual delegated total")
   operations_layout(prefix+" growth"); await shot(prefix+"-growth")
   await click(game.chapter_panel.history_button)

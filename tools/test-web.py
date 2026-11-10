@@ -11,16 +11,18 @@ parser.add_argument('--mobile-preflight',action='store_true',help='Resize/inset,
 parser.add_argument('--url',help='Actual accessible export URL; defaults to isolated localhost test server')
 parser.add_argument('--touch',action='store_true')
 parser.add_argument('--staff',action='store_true',help='Load a normally operated day-two fixture into this private profile, then test actual delegation input/reload')
+parser.add_argument('--research',action='store_true',help='Lab transaction, operating-day application and reload from normal checkpoints')
 parser.add_argument('--operations',action='store_true',help='Training purchase, explicit duties, real delegated command and saved provenance')
 parser.add_argument('--chapter',action='store_true',help='Actual 11-to-12 departure, chapter journal and browser reload from a normal simulation checkpoint')
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
 parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock allowance per saved-state wait; software WebGL may render far below real time')
 args=parser.parse_args()
-if sum([args.staff,args.chapter,args.operations]) > 1: parser.error('Choose one progression scenario')
+if sum([args.staff,args.chapter,args.operations,args.research]) > 1: parser.error('Choose one progression scenario')
 if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
 repo = Path(__file__).resolve().parents[1]
 output = repo / ('artifacts/browser-staff-touch' if args.staff and args.touch else ('artifacts/browser-touch' if args.touch else 'artifacts/browser'))
 if args.chapter: output=repo/('artifacts/browser-chapter-touch' if args.touch else 'artifacts/browser-chapter')
+if args.research: output=repo/('artifacts/browser-research-touch' if args.touch else 'artifacts/browser-research')
 if args.operations: output=repo/('artifacts/browser-operations-touch' if args.touch else 'artifacts/browser-operations')
 output.mkdir(parents=True, exist_ok=True)
 (output/'results.json').unlink(missing_ok=True)
@@ -31,7 +33,7 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader'])
-        width,height=(844,350) if (args.staff or args.chapter or args.operations) and args.touch else ((844,390) if args.touch else (1280,720))
+        width,height=(844,350) if (args.staff or args.chapter or args.operations or args.research) and args.touch else ((844,390) if args.touch else (1280,720))
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch,device_scale_factor=args.dpr)
         page.set_default_timeout(120000)
         messages=[]
@@ -152,12 +154,14 @@ try:
         staff={}
         chapter={}
         operations={}
-        if args.staff or args.chapter or args.operations:
+        research={}
+        if args.staff or args.chapter or args.operations or args.research:
             # This is a fresh test-only browser profile, never player storage.
             # Leave the running engine before replacing the fixture so it cannot
             # race the write. Operational state comes from normal day-one commands.
             fixture_path='artifacts/chapter-rehearsal-completion/checkpoint.json' if args.chapter else 'artifacts/staff-video-offer/checkpoint.json'
             if args.operations: fixture_path='artifacts/operations-web-checkpoints/education.json'
+            if args.research: fixture_path='artifacts/research-web-checkpoints/construction.json'
             fixture=json.loads((repo/fixture_path).read_text())
             if args.staff:
                 fixture['staff_admission']['offer_seen']=False
@@ -184,7 +188,55 @@ try:
                 page.goto(base+('&' if '?' in base else '?')+'playtest=1')
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
             load_checkpoint(fixture)
-            if args.operations:
+            if args.research:
+                assert page.evaluate('window.sunshineControls._state.day')==5
+                press('research');press('lab_build')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-lab-offer.png'))
+                press('research_cancel')
+                cancelled=wait_saved(lambda s:s['day']==5)
+                assert cancelled['money']==3000 and cancelled['research_lab']['built_day']==0
+                press('lab_build');press('research_confirm')
+                built=wait_saved(lambda s:s['research_lab']['built_day']==5)
+                assert built['money']==1200 and built['research_lab']['points']==6
+                # Real native-browser touch gesture on the Godot scroll area.
+                scroll=page.evaluate('window.sunshineControls.research_scroll')
+                session=page.context.new_cdp_session(page)
+                x=scroll['x'];y=scroll['y']+scroll['height']*.3
+                session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
+                for n in range(1,9):
+                    session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.6*n/8}]})
+                    page.wait_for_timeout(50)
+                session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
+                page.evaluate('async()=>{for(let i=0;i<12;i++)await new Promise(requestAnimationFrame)}')
+                press('research_ct')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-research-start.png'))
+                press('research_confirm')
+                started_project=wait_saved(lambda s:'ct' in s['research_lab']['projects'])
+                assert started_project['money']==700 and started_project['research_lab']['points']==0
+                assert started_project['daily_ledger']['lab_expense']==1800 and started_project['daily_ledger']['research_expense']==500
+                press('research_return')
+                assert page.evaluate('window.sunshineControls._state.paused'), 'Exterior return must retain restore pause'
+                load_checkpoint(json.loads((repo/'artifacts/research-web-checkpoints/pending.json').read_text()))
+                pending=wait_saved(lambda s:s['day']==6)
+                assert pending['research_lab']['projects']['ct']['completed_day']==6 and pending['research_lab']['chapter_four_day']==0
+                press('journal_next')
+                applied=wait_saved(lambda s:s['day']==7)
+                assert applied['research_lab']['projects']['ct']['applied_day']==7 and applied['research_lab']['chapter_four_day']==7
+                assert applied['money']==2300 and applied['research_lab']['points']==8
+                load_checkpoint(json.loads((repo/'artifacts/research-web-checkpoints/active.json').read_text()))
+                press('patients');press('first_patient')
+                active=wait_saved(lambda s:s['day']==7 and s['patients'][0]['state']=='ct_scan')
+                assert active['patients'][0]['service_duration']==4
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-applied-ct.png'))
+                page.reload();page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                restored=wait_saved(lambda s:s['day']==7 and s['patients'][0]['state']=='ct_scan')
+                for key in ['patients','research_lab','operations_training','chapter_progress','daily_ledger','staff_admission','money']:
+                    assert restored[key]==active[key],key
+                assert page.evaluate('window.sunshineControls._state.paused')
+                press('research')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored-research.png'))
+                research={'passed':True,'normal_checkpoint_count':3,'normal_simulation_checkpoints':True,'touch_scroll_and_canvas_buttons':True,'construction_cancelled':True,'actual_construction_once':True,'six_point_initial_grant_once':True,'actual_project_cost_once':True,'actual_next_day_application':True,'active_ct_duration_four':True,'actual_page_reload':True,'no_duplicate_receipts':True,'continuous_web_playthrough':False,'physical_phone':False}
+            elif args.operations:
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
                 assert page.evaluate('window.sunshineControls._state.day')==4
                 assert page.evaluate('window.sunshineControls._state.paused')
@@ -284,6 +336,7 @@ try:
         report['staff']=staff
         report['chapter']=chapter
         report['operations']=operations
+        report['research']=research
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()

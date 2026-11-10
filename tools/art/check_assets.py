@@ -5,7 +5,7 @@ import struct
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-for name in ['hospital-interior', 'treatment-annex', 'patient', 'nurse']:
+for name in ['hospital-interior', 'treatment-annex', 'patient', 'nurse', 'research-lab', 'researcher']:
     data = (root / 'godot/assets/models' / (name + '.glb')).read_bytes()
     magic, version, total = struct.unpack_from('<III', data)
     assert (magic, version, total) == (0x46546C67, 2, len(data)), name + ': invalid GLB'
@@ -25,12 +25,12 @@ for name in ['hospital-interior', 'treatment-annex', 'patient', 'nurse']:
             if name in ['hospital-interior', 'treatment-annex']:
                 ao = material['occlusionTexture']
                 assert ao.get('texCoord', 0) == 1 and 'TEXCOORD_1' in attributes, name + ': AO must use UV1'
-            else:
+            elif name != 'research-lab':
                 assert 'COLOR_0' in attributes, name + ': missing character contact shading'
     assert triangles <= (300000 if name == 'hospital-interior' else 65000), name + ': triangle budget exceeded'
     if name in ['hospital-interior','treatment-annex']:
         assert any(node.get('name')=='TreatmentHead' for node in doc['nodes']), name+': missing movable overhead assembly'
-    if name in ['patient', 'nurse']:
+    if name in ['patient', 'nurse', 'researcher']:
         names = {node.get('name') for node in doc['nodes']}
         assert {'Head', 'Torso', 'Arm_L', 'Arm_R', 'Leg_L', 'Leg_R', 'SeatedLegs', 'Book', 'Glasses'} <= names
         assert len(doc['meshes']) <= 9, name + ': unbatched character details'

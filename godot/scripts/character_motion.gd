@@ -76,7 +76,7 @@ static func equipment_lift(p: Dictionary) -> float:
  return 0.0
 
 static func transfer(p: Dictionary) -> Dictionary:
- var duration: float = HospitalSimulation.DURATIONS[p.state]
+ var duration: float = HospitalSimulation.service_duration(p)
  var t: float = clampf(minf(p.elapsed,duration-p.elapsed),0.0,TRANSFER_SECONDS)
  var recline := smooth_fraction((t-.15)/.6)
  var first := smooth_fraction((t-.75)/.3)

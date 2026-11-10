@@ -1,4 +1,5 @@
-"""Encode a continuous 1x review clip, excluding paused engine setup frames."""
+"""Encode 1x review frames, excluding paused setup. Research reports explicitly
+declare any operational checkpoint changes within the recorded stream."""
 import json
 from pathlib import Path
 import subprocess

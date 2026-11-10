@@ -80,11 +80,11 @@ func apply_palette(node: Node, shirt: Color, hair: Color, copies: Dictionary) ->
      node.set_surface_override_material(surface,copies[key])
  for child in node.get_children(): apply_palette(child,shirt,hair,copies)
 
-func build(id: int, staff: bool = false, receptionist: bool = true) -> void:
+func build(id: int, staff: bool = false, receptionist: bool = true, model_path: String = "") -> void:
  phase_seed = id*1.731 + (2.1 if staff else 0.0)
  body = Node3D.new()
  add_child(body)
- var model: Node3D = load("res://assets/models/nurse.glb" if staff and receptionist else "res://assets/models/patient.glb").instantiate()
+ var model: Node3D = load(model_path if model_path != "" else ("res://assets/models/nurse.glb" if staff and receptionist else "res://assets/models/patient.glb")).instantiate()
  body.add_child(model)
  left_leg = model.find_child("Leg_L",true,false)
  right_leg = model.find_child("Leg_R",true,false)

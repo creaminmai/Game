@@ -23,7 +23,7 @@ func reached() -> bool:
   "ct": return p.get("state") == "ct_scan" and p.elapsed > 1.0
   "therapy": return p.get("state") == "treatment" and p.elapsed > 1.0
   "purchase": return game.sim.expansion_reason().is_empty()
-  "journal","day-two","staff-on","staff-off","chapter-before","chapter-after","chapter-day-four","training-purchase","training-preparing","training-assigned","training-departure","training-journal","training-next": return game.sim.all_done()
+  "journal","day-two","staff-on","staff-off","chapter-before","chapter-after","chapter-day-four","training-purchase","training-preparing","training-assigned","training-departure","training-journal","training-next","research-build","research-progress","research-before-close","research-before-apply","research-applied","research-active-ct","research-next": return game.sim.all_done()
   "dual": return game.sim.count_state("treatment") == 2
  return false
 func run() -> void:
@@ -76,6 +76,27 @@ func run() -> void:
      if scenario in ["training-journal","training-next"] and game.sim.all_done(): break
    game.story.disable(); game.refresh()
    if scenario == "training-next": game.start_day()
+  if scenario.begins_with("research-"):
+   var fixture = load("res://tests/research_fixture.gd")
+   check(game.sim.restore(fixture.prepare().snapshot()),"research from four actual operating days")
+   game.sim.paused = false
+   check(game.sim.purchase_lab(),"actual lab transaction")
+   if scenario != "research-build":
+    check(game.sim.start_research("ct"),"actual research transaction")
+    if scenario != "research-progress":
+     fixture.finish(game.sim); game.sim.start_next_day()
+     if scenario == "research-before-close":
+      for n in range(10000):
+       fixture.step(game.sim)
+       if game.sim.count_state("complete") == 3 and game.sim.count_state("leaving") == 1: break
+     else:
+      fixture.finish(game.sim)
+      if scenario != "research-before-apply": game.sim.start_next_day()
+      if scenario == "research-active-ct":
+       for n in range(10000):
+        fixture.step(game.sim)
+        if game.sim.get_patient(1).state == "ct_scan" and game.sim.get_patient(1).elapsed > 1: break
+      if scenario == "research-next": fixture.finish(game.sim); game.sim.start_next_day()
   game.story.disable(); game.refresh()
   if scenario == "user-paused": game.toggle_pause()
   var expected: Dictionary = game.sim.snapshot()
@@ -85,6 +106,7 @@ func run() -> void:
   game.sim.tick(120)
   var frozen: Dictionary = game.sim.snapshot()
   check(frozen.patients == expected.patients and frozen.money == expected.money and frozen.time == expected.time,"background never advances treatment or receipts")
+  check(frozen.research_lab == expected.research_lab,"background freezes research receipts and operating-day progress")
   check(frozen.operations_training == expected.operations_training and frozen.staff_admission == expected.staff_admission,"background freezes both duty preparation clocks")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_FOCUS_IN)
   check(game.sim.paused,"background hold survives focus-in ordering")
@@ -101,7 +123,7 @@ func run() -> void:
   var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(checkpoint_path))
   var restored: Dictionary = JSON.parse_string(JSON.stringify(game.sim.snapshot()))
   check(not game.store.blocked and game.store.message.contains("불러왔어요"),"main ready loads actual saved file")
-  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission","chapter_progress","operations_training"]:
+  for key in ["day","money","expanded","patients","daily_ledger","lifetime_completed","staff_admission","chapter_progress","operations_training","research_lab"]:
    check(restored[key] == expected[key],"separate process restores "+key)
   check(game.sim.paused,"relaunch safely waits for user play")
   game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
@@ -138,6 +160,16 @@ func run() -> void:
     check(game.sim.operations.total() == 4 and game.sim.operations.chapter_three_day == 4 and game.sim.money == 3000,"continued actual departures exactly four; no duplicate receipts")
     check(game.journal.visible and game.journal.training_value.text == "500만","education expense and completion journal after relaunch")
    else: check(game.sim.day == 5 and game.sim.ledger.training_expense == 0 and game.sim.money == 3000,"next-day assets and reset receipts after process restart")
+  if scenario.begins_with("research-"):
+   check(game.sim.research.built_day == 5 and not game.sim.purchase_lab(),"built lab retained, no repeat grant")
+   check(game.world.lab_model.visible and game.world.researcher.visible,"real building and staff restored")
+   if scenario != "research-build": check(not game.sim.start_research("ct"),"research cannot charge again after restart")
+   if scenario == "research-before-apply": check(game.sim.research.projects.ct.completed_day == 6 and not game.sim.research.applied("ct"),"pending remains pending until next day")
+   if scenario in ["research-applied","research-active-ct","research-next"]: check(game.sim.duration_for("ct_scan") == 4 and game.sim.research.chapter_four_day == 7,"effect and chapter survive real process restart")
+   if scenario == "research-active-ct": check(game.sim.get_patient(1).elapsed > 1 and game.sim.service_duration(game.sim.get_patient(1)) == 4,"active CT clock and total retained")
+   if scenario == "research-before-close":
+    game.toggle_pause(); load("res://tests/research_fixture.gd").finish(game.sim)
+    check(game.sim.research.points == 8 and game.sim.research.projects.ct.completed_day == 6,"resumed real final departure completes once")
   game.persist()
  var report := {"passed":failures.is_empty(),"checks":checks,"failures":failures,"case":scenario,"phase":mode,"platform":"Linux headless; injected lifecycle notifications + real process restart"}
  FileAccess.open(output.path_join(scenario+"-"+mode+".json"),FileAccess.WRITE).store_string(JSON.stringify(report,"  "))

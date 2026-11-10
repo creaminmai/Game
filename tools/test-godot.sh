@@ -60,3 +60,19 @@ import json
 with open('artifacts/operations-unit/results.json') as f:
     assert json.load(f)['passed']
 PYTEST
+
+godot --headless --path godot --script tests/test_research.gd 2>&1 | tee .runtime/research-unit.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/research-unit.log; then exit 1; fi
+python3 - <<'PYTEST'
+import json
+with open('artifacts/research-unit/results.json') as f:
+    assert json.load(f)['passed']
+PYTEST
+
+godot --headless --path godot --script tests/test_research_motion.gd -- --qa 2>&1 | tee .runtime/research-motion.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/research-motion.log; then exit 1; fi
+python3 - <<'PYTEST'
+import json
+with open('artifacts/research-motion/results.json') as f:
+    assert json.load(f)['passed']
+PYTEST
