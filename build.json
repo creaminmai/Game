@@ -1,18 +1,22 @@
 {
-  "version": "0.5.0-dev",
-  "version_code": 500,
+  "version": "0.6.0-dev",
+  "version_code": 600,
   "features": [
     "first-day-story",
     "daily-ledger",
     "treatment-annex",
     "admission-delegation",
-    "chapters-1-3",
+    "chapters-1-4",
     "operations-training",
-    "planning-delegation"
+    "planning-delegation",
+    "research-lab-level-1",
+    "research-points",
+    "operating-day-research",
+    "ct-and-plan-time-improvements"
   ],
   "godot": "4.6.3.stable.official.7d41c59c4",
   "application_id": "org.creaminmai.sunshinehospital.playtest",
-  "source_commit": "e08a2b3668b6f3f800d62c4da7c0618bb28f158a",
+  "source_commit": "76a84f278974cf821f89c5ff65db423354f07b4b",
   "source_dirty": false,
   "target": "Web",
   "build_kind": "release export",
@@ -23,7 +27,7 @@
     },
     "index.html": {
       "bytes": 6410,
-      "sha256": "08879aefbd5ff3bf7ca5492a02eb5d7a9b3c7fcc06f16b15e8f54b0bb3aee6db"
+      "sha256": "2a9ca5afeb4f6af3848b975111f9195db3163a6e76a3110796352a9991160085"
     },
     "index.icon.png": {
       "bytes": 31995,
@@ -50,8 +54,8 @@
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
     "index.pck": {
-      "bytes": 10949560,
-      "sha256": "1fd052626ec6b665800f6968eac6edebee15d0438c6f1a239fc7c3f31f40a7db"
+      "bytes": 12275692,
+      "sha256": "34c9d4729023093571a38f68aa753a9b59a90c15ee2218fcd3885aa7ca5c9542"
     },
     "index.js": {
       "bytes": 315759,
