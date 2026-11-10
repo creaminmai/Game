@@ -105,7 +105,7 @@ func refresh() -> void:
  var lab := sim.research
  balance.text = "연구점수 %d / 200 · 보유 자금 %d만" % [lab.points,sim.money]
  var today := lab.daily(sim.day)
- summary.text = "윤서진 · 진료 기록을 살펴보는 연구 담당\n연구 슬롯 1개 · 실제 진료한 날 마감에 4점\n오늘 최초 +%d / 생산 +%d / 사용 −%d" % [today.initial,today.produced,today.used]
+ summary.text = "윤서진 · 진료 기록을 살펴보는 연구 담당\n연구 슬롯 1개 · 실제 진료한 날 마감에 4점\n오늘 최초 +%d / 생산 +%d / 사용 -%d" % [today.initial,today.produced,today.used]
  if lab.built_day == 0: summary.text = "병원 옆 예정지에 연구소를 마련해요.\n설립비 1,800만 · 최초 연구점수 6점\n슬롯 1개 · 운영일 마감 생산 4점 · 상한 200점\n"+lab.build_reason(sim)
  build_button.visible = lab.built_day == 0
  build_button.disabled = lab.build_reason(sim) != ""

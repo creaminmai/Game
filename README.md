@@ -30,7 +30,7 @@ CLI가 준비된 Linux 환경에서는 다음을 실행합니다.
 
 ## 영상과 직접 체험
 
-[최신 연구소 구현·검증·전달](docs/research-lab.md) · [이전 운영 교육 영상](docs/operations-training.html)
+[최신 연구소 영상·캡처](docs/research-lab.html) · [구현·검증·전달](docs/research-lab.md) · [이전 운영 교육 영상](docs/operations-training.html)
 
 [이전 챕터 1·2 영상](docs/chapter-progression.html) · [챕터 구현·검증·Android/Web 전달](docs/chapter-progression.md) · [접수 위임 영상](docs/staff-admission.html) · [위임 구현·검증](docs/staff-admission.md) · [첫날 플레이·별관·일지 영상](docs/first-day-polish.html) · [이전 캐릭터 동작 영상](docs/character-motion.html) · [이전 카메라 전후 비교](docs/stable-camera.html) · [남은 작업과 다음 순서](docs/roadmap.md)
 

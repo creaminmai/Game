@@ -1,0 +1,3843 @@
+{
+  "passed": true,
+  "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+  "version": "0.6.0-dev",
+  "date_kst": "2026-11-10",
+  "native": {
+    "passed": true,
+    "checks": 5588,
+    "reports": {
+      "simulation": {
+        "checks": 51,
+        "passed": true,
+        "evidence": ".runtime/simulation.log"
+      },
+      "motion-unit": {
+        "checks": 48,
+        "completed": 4,
+        "failures": [],
+        "geometry_contacts": {},
+        "geometry_sample_rate": 60,
+        "max_head_step_60fps": 0.116186797618866,
+        "max_turn_radians_per_frame": 0.436921715736389,
+        "money": 1100,
+        "passed": true,
+        "phases": [
+          {
+            "pose": "walk",
+            "state": "walk_ct",
+            "time": 6.01666666666666
+          },
+          {
+            "pose": "prepare",
+            "state": "ct_scan",
+            "time": 12.8500000000002
+          },
+          {
+            "pose": "lie_down",
+            "state": "ct_scan",
+            "time": 13.0000000000002
+          },
+          {
+            "pose": "service",
+            "state": "ct_scan",
+            "time": 14.2000000000003
+          },
+          {
+            "pose": "rise",
+            "state": "ct_scan",
+            "time": 16.516666666667
+          },
+          {
+            "pose": "walk",
+            "state": "walk_plan",
+            "time": 17.8500000000003
+          },
+          {
+            "pose": "idle",
+            "state": "plan_ready",
+            "time": 21.9
+          },
+          {
+            "pose": "walk",
+            "state": "walk_treatment",
+            "time": 26.8999999999998
+          },
+          {
+            "pose": "prepare",
+            "state": "treatment",
+            "time": 31.9999999999995
+          },
+          {
+            "pose": "lie_down",
+            "state": "treatment",
+            "time": 32.1499999999995
+          },
+          {
+            "pose": "service",
+            "state": "treatment",
+            "time": 33.3499999999994
+          },
+          {
+            "pose": "rise",
+            "state": "treatment",
+            "time": 60.6666666666645
+          },
+          {
+            "pose": "walk",
+            "state": "leaving",
+            "time": 61.9999999999978
+          },
+          {
+            "pose": "idle",
+            "state": "complete",
+            "time": 65.8166666666642
+          }
+        ],
+        "save_format_changed": false,
+        "simultaneous_treatment": true
+      },
+      "story-unit": {
+        "checks": 84,
+        "failures": [],
+        "mac_or_mobile_hardware_test": false,
+        "passed": true,
+        "saved_scenes": [
+          "welcome",
+          "arrival",
+          "",
+          "ct",
+          "plan",
+          "treatment",
+          "complete",
+          "expansion",
+          "day_end",
+          ""
+        ]
+      },
+      "first-day-polish-unit": {
+        "checks": 70,
+        "failures": [],
+        "mobile_hardware_test": false,
+        "passed": true
+      },
+      "staff-unit": {
+        "checks": 61,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false
+      },
+      "chapter-unit": {
+        "checks": 524,
+        "failures": [],
+        "passed": true,
+        "physical_device": false,
+        "real_file_roundtrips": 18
+      },
+      "operations-unit": {
+        "checks": 251,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot headless; separate test save"
+      },
+      "research-unit": {
+        "checks": 201,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot headless"
+      },
+      "research-motion": {
+        "checks": 17,
+        "ct_seconds": 4.00000000000001,
+        "failures": [],
+        "geometry_contacts": {},
+        "max_head_step_60fps": 0.116186797618866,
+        "passed": true,
+        "phases": [
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "entering",
+            "time": 0.0166666666666667
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "waiting",
+            "time": 3.89999999999999
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "walk_ct",
+            "time": 6.88333333333331
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "prepare",
+            "state": "ct_scan",
+            "time": 13.7333333333336
+          },
+          {
+            "elapsed": 0.15,
+            "pose": "lie_down",
+            "state": "ct_scan",
+            "time": 13.8833333333336
+          },
+          {
+            "elapsed": 1.35,
+            "pose": "service",
+            "state": "ct_scan",
+            "time": 15.0833333333337
+          },
+          {
+            "elapsed": 2.66666666666666,
+            "pose": "rise",
+            "state": "ct_scan",
+            "time": 16.4000000000004
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "walk_plan",
+            "time": 17.7333333333336
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "plan_ready",
+            "time": 21.7833333333334
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "planning",
+            "time": 24.7666666666665
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "walk_treatment",
+            "time": 29.7666666666663
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "prepare",
+            "state": "treatment",
+            "time": 34.866666666666
+          },
+          {
+            "elapsed": 0.15,
+            "pose": "lie_down",
+            "state": "treatment",
+            "time": 35.016666666666
+          },
+          {
+            "elapsed": 1.35,
+            "pose": "service",
+            "state": "treatment",
+            "time": 36.2166666666659
+          },
+          {
+            "elapsed": 28.6666666666663,
+            "pose": "rise",
+            "state": "treatment",
+            "time": 63.533333333331
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "leaving",
+            "time": 64.8666666666643
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "complete",
+            "time": 68.6833333333307
+          }
+        ],
+        "physical_mobile": false
+      },
+      "research-ui": {
+        "checks": 856,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "pixel_metrics": {
+          "1280x720 chapter four": {
+            "action_px": "(117.3333, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "844x350 chapter four": {
+            "action_px": "(71.30568, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x390 chapter four": {
+            "action_px": "(79.4863, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "915x412 chapter four": {
+            "action_px": "(83.94495, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          }
+        },
+        "platform": "Linux Godot actual renderer; automated input and synthetic safe insets"
+      },
+      "research-regression-chapters": {
+        "checks": 1076,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "pixel_metrics": {
+          "1280x720 built not used": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 completed history": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 dual goals": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 final journal": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 first journal": {
+            "action_px": "(117.3333, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 growth dialogue": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 initial goals": {
+            "action_px": "(117.3333, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 previous history": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 selected card and goals": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "844x350 built not used": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 completed history": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 dual goals": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 final journal": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 first journal": {
+            "action_px": "(71.30568, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 growth dialogue": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 initial goals": {
+            "action_px": "(71.30568, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 previous history": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 selected card and goals": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x390 built not used": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 completed history": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 dual goals": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 final journal": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 first journal": {
+            "action_px": "(79.4863, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 growth dialogue": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 initial goals": {
+            "action_px": "(79.4863, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 previous history": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 selected card and goals": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "915x412 built not used": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 completed history": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 dual goals": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 final journal": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 first journal": {
+            "action_px": "(83.94495, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 growth dialogue": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 initial goals": {
+            "action_px": "(83.94495, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 previous history": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 selected card and goals": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          }
+        },
+        "platform": "Linux Godot; automated input + simulated safe insets"
+      },
+      "research-regression-operations": {
+        "checks": 1440,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "pixel_metrics": {
+          "1280x720 enabled": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 growth": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 history": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 introduction": {
+            "action_px": "(117.3333, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 journal": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 locked": {
+            "action_px": "(117.3333, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 planner": {
+            "action_px": "(117.3333, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 preparing": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 purchase": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "1280x720 settings and card": {
+            "action_px": "(280.0, 58.66667)",
+            "safe_ui": "[P: (0.0, 0.0), S: (960.0, 540.0)]",
+            "story_body_px": 24.0000007152557,
+            "window": "(1280, 720)"
+          },
+          "844x350 enabled": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 growth": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 history": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 introduction": {
+            "action_px": "(71.30568, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 journal": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 locked": {
+            "action_px": "(71.30568, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 planner": {
+            "action_px": "(71.30568, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 preparing": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 purchase": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x350 settings and card": {
+            "action_px": "(163.3548, 44.07407)",
+            "safe_ui": "[P: (72.50474, 0.0), S: (1156.99, 507.6)]",
+            "story_body_px": 16.2037029862404,
+            "window": "(844, 350)"
+          },
+          "844x390 enabled": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 growth": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 history": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 introduction": {
+            "action_px": "(79.4863, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 journal": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 locked": {
+            "action_px": "(79.4863, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 planner": {
+            "action_px": "(79.4863, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 preparing": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 purchase": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "844x390 settings and card": {
+            "action_px": "(182.0959, 44.05555)",
+            "safe_ui": "[P: (65.04266, 0.0), S: (1037.915, 510.9231)]",
+            "story_body_px": 16.6111108064651,
+            "window": "(844, 390)"
+          },
+          "915x412 enabled": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 growth": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 history": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 introduction": {
+            "action_px": "(83.94495, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 journal": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 locked": {
+            "action_px": "(83.94495, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 planner": {
+            "action_px": "(83.94495, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 preparing": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 purchase": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          },
+          "915x412 settings and card": {
+            "action_px": "(192.3103, 44.25185)",
+            "safe_ui": "[P: (61.58798, 0.0), S: (1075.824, 512.4757)]",
+            "story_body_px": 16.0222216844559,
+            "window": "(915, 412)"
+          }
+        },
+        "platform": "Linux Godot OpenGL llvmpipe; automatic mouse input and synthetic safe insets"
+      },
+      "research-regression-scene": {
+        "android_ios_tested": false,
+        "camera_views": {
+          "default_view": {
+            "center": [
+              -0.0888754799962044,
+              2.07876372337341,
+              -0.222173750400543
+            ],
+            "size": 14.3314647674561
+          },
+          "expanded_view": {
+            "center": [
+              2.95385456085205,
+              2.11792469024658,
+              -0.248526304960251
+            ],
+            "size": 15.5037231445312
+          },
+          "patient_card": {
+            "center": [
+              -0.0888754799962044,
+              2.07876372337341,
+              -0.222173750400543
+            ],
+            "size": 14.3314647674561
+          }
+        },
+        "checks": 172,
+        "completed": 4,
+        "dual_treatment_captured": true,
+        "failures": [],
+        "money_after_day_one": 1100,
+        "note": "Desktop Godot automatic input QA, not manual playtest or mobile performance measurement.",
+        "passed": true,
+        "selected_by_real_input": 6
+      },
+      "mobile-lifecycle": {
+        "passed": true,
+        "checks": 737,
+        "process_launches": 52,
+        "isolated_save_directory": "/workspace/Game/.runtime/mobile-lifecycle-w4vcxoqp",
+        "cases": [
+          {
+            "case": "moving",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "moving",
+            "checks": 14,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "ct",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "ct",
+            "checks": 14,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "therapy",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "therapy",
+            "checks": 14,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "user-paused",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "user-paused",
+            "checks": 14,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "purchase",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "purchase",
+            "checks": 16,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "journal",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "journal",
+            "checks": 17,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "day-two",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "day-two",
+            "checks": 17,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "dual",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "dual",
+            "checks": 17,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "staff-on",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "staff-on",
+            "checks": 17,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "staff-off",
+            "checks": 9,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "staff-off",
+            "checks": 17,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "chapter-before",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "chapter-before",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "chapter-after",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "chapter-after",
+            "checks": 19,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "chapter-day-four",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "chapter-day-four",
+            "checks": 19,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-purchase",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-purchase",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-preparing",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-preparing",
+            "checks": 21,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-assigned",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-assigned",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-departure",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-departure",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-journal",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-journal",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-next",
+            "checks": 10,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "training-next",
+            "checks": 19,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-build",
+            "checks": 11,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-build",
+            "checks": 18,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-progress",
+            "checks": 12,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-progress",
+            "checks": 19,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-before-close",
+            "checks": 12,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-before-close",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-before-apply",
+            "checks": 12,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-before-apply",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-applied",
+            "checks": 12,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-applied",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-active-ct",
+            "checks": 12,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-active-ct",
+            "checks": 21,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-next",
+            "checks": 12,
+            "failures": [],
+            "passed": true,
+            "phase": "prepare",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          },
+          {
+            "case": "research-next",
+            "checks": 20,
+            "failures": [],
+            "passed": true,
+            "phase": "restore",
+            "platform": "Linux headless; injected lifecycle notifications + real process restart"
+          }
+        ],
+        "physical_mobile_tested": false
+      }
+    }
+  },
+  "web": {
+    "desktop": {
+      "passed": true,
+      "browser": "Chromium desktop / SwiftShader",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": true,
+      "patient_state": "walk_ct",
+      "indexeddb_save": true,
+      "first_day_story_saved": true,
+      "daily_ledger_saved": true,
+      "story_stage": "ct",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.880461301014293,
+      "first_arrived_and_persisted_wall_seconds": 150.49362050701166,
+      "viewport": [
+        1280,
+        720
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {},
+      "operations": {},
+      "research": {},
+      "source_commit": "76a84f278974cf821f89c5ff65db423354f07b4b"
+    },
+    "research_touch": {
+      "passed": true,
+      "browser": "Chromium touch emulation",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": false,
+      "patient_state": "entering",
+      "indexeddb_save": true,
+      "first_day_story_saved": false,
+      "daily_ledger_saved": false,
+      "story_stage": "select",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.4197845550079364,
+      "viewport": [
+        844,
+        350
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {},
+      "operations": {},
+      "research": {
+        "passed": true,
+        "normal_checkpoint_count": 3,
+        "normal_simulation_checkpoints": true,
+        "touch_scroll_and_canvas_buttons": true,
+        "actual_research_and_journal_drag": true,
+        "construction_cancelled": true,
+        "actual_construction_once": true,
+        "six_point_initial_grant_once": true,
+        "actual_project_cost_once": true,
+        "actual_next_day_application": true,
+        "active_ct_duration_four": true,
+        "actual_page_reload": true,
+        "no_duplicate_receipts": true,
+        "continuous_web_playthrough": false,
+        "physical_phone": false
+      },
+      "first_admission_skipped": true,
+      "initial_save_wall_seconds": 16.50942091899924,
+      "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57"
+    }
+  },
+  "movies": {
+    "building": {
+      "path": "docs/media/research-building-1x.mp4",
+      "sha256": "318aeb3153382cb6eee8f10d3c4220fe693b39b76fb67d955833df1377670d4f",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 844,
+            "height": 390,
+            "r_frame_rate": "24/1",
+            "duration": "27.000000",
+            "nb_frames": "648"
+          }
+        ]
+      },
+      "result": {
+        "automatic_input": true,
+        "chapter_four_journal_stamp": false,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "checkpoint_switches": [],
+        "continuous_single_day": true,
+        "ct_latched_duration": 0.0,
+        "ct_observed_seconds": 0.0,
+        "fps": 24,
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+        "real_canvas_clicks": 6,
+        "real_file_restored": false,
+        "recorded_frames": 648,
+        "segment": "building",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "day": 5,
+            "journal": false,
+            "money": 3000,
+            "research": {
+              "active": "",
+              "built_day": 0,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [],
+              "initial_granted": false,
+              "line": 0,
+              "points": 0,
+              "presented": false,
+              "projects": {},
+              "seen": [],
+              "version": 1
+            },
+            "seconds": 0.0,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          },
+          {
+            "day": 5,
+            "journal": false,
+            "money": 1200,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 6,
+              "presented": false,
+              "projects": {},
+              "seen": [],
+              "version": 1
+            },
+            "seconds": 11.2083333333333,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          },
+          {
+            "day": 5,
+            "journal": false,
+            "money": 1200,
+            "research": {
+              "active": "introduction",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 6,
+              "presented": false,
+              "projects": {},
+              "seen": [],
+              "version": 1
+            },
+            "seconds": 15.2083333333333,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          },
+          {
+            "day": 5,
+            "journal": false,
+            "money": 1200,
+            "research": {
+              "active": "introduction",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                }
+              ],
+              "initial_granted": true,
+              "line": 1,
+              "points": 6,
+              "presented": false,
+              "projects": {},
+              "seen": [],
+              "version": 1
+            },
+            "seconds": 20.2083333333333,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          },
+          {
+            "day": 5,
+            "journal": false,
+            "money": 1200,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 6,
+              "presented": false,
+              "projects": {},
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 24.2083333333333,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          }
+        ],
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 649,
+          "delivered_frames": 648,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "launch": {
+        "argv": [
+          "godot",
+          "--path",
+          "/workspace/Game/.runtime/mobile-movie-dnd5j_wl",
+          "--audio-driver",
+          "Dummy",
+          "--script",
+          "tests/record_research.gd",
+          "--resolution",
+          "844x390",
+          "--write-movie",
+          "/workspace/Game/artifacts/research-video-building/playthrough.avi",
+          "--fixed-fps",
+          "24",
+          "--",
+          "--qa",
+          "--output-dir=/workspace/Game/artifacts/research-video-building",
+          "--tutorial",
+          "--segment=building",
+          "--mobile-preview"
+        ],
+        "platform": "Linux llvmpipe",
+        "physical_mobile": false,
+        "source_commit": "76a84f278974cf821f89c5ff65db423354f07b4b",
+        "source_dirty": false,
+        "software_render_threads": "2"
+      }
+    },
+    "progress": {
+      "path": "docs/media/research-progress-1x.mp4",
+      "sha256": "1f9b480eb3314936cadac1d3c18986c151105a7926892330caa586e045a74e39",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 844,
+            "height": 390,
+            "r_frame_rate": "24/1",
+            "duration": "34.000000",
+            "nb_frames": "816"
+          }
+        ]
+      },
+      "result": {
+        "automatic_input": true,
+        "chapter_four_journal_stamp": false,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "checkpoint_switches": [
+          {
+            "checkpoint": "day_six_close",
+            "day": 6,
+            "normal_commands_only": true,
+            "time": 128.499999999995,
+            "video_second": 16.0
+          }
+        ],
+        "continuous_single_day": false,
+        "ct_latched_duration": 0.0,
+        "ct_observed_seconds": 0.0,
+        "fps": 24,
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+        "real_canvas_clicks": 3,
+        "real_file_restored": false,
+        "recorded_frames": 816,
+        "segment": "progress",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "day": 5,
+            "journal": false,
+            "money": 1200,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 6,
+              "presented": false,
+              "projects": {},
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 0.0,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          },
+          {
+            "day": 5,
+            "journal": false,
+            "money": 700,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 4,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 0,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 0,
+                  "completed_day": 0,
+                  "progress_days": 0,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 9.20833333333333,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0
+          },
+          {
+            "day": 6,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 5,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 4,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 0,
+                  "completed_day": 0,
+                  "progress_days": 0,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 16.0416666666667,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "leaving",
+                0.0
+              ]
+            ],
+            "time": 128.541666666662
+          },
+          {
+            "day": 6,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 0,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 17.875,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "complete",
+                0.0
+              ]
+            ],
+            "time": 130.374999999995
+          },
+          {
+            "day": 6,
+            "journal": true,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 0,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 18.0,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "complete",
+                0.0
+              ]
+            ],
+            "time": 130.499999999995
+          }
+        ],
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 817,
+          "delivered_frames": 816,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "launch": {
+        "argv": [
+          "godot",
+          "--path",
+          "/workspace/Game/.runtime/mobile-movie-4u55g19h",
+          "--audio-driver",
+          "Dummy",
+          "--script",
+          "tests/record_research.gd",
+          "--resolution",
+          "844x390",
+          "--write-movie",
+          "/workspace/Game/artifacts/research-video-progress/playthrough.avi",
+          "--fixed-fps",
+          "24",
+          "--",
+          "--qa",
+          "--output-dir=/workspace/Game/artifacts/research-video-progress",
+          "--tutorial",
+          "--segment=progress",
+          "--mobile-preview"
+        ],
+        "platform": "Linux llvmpipe",
+        "physical_mobile": false,
+        "source_commit": "76a84f278974cf821f89c5ff65db423354f07b4b",
+        "source_dirty": false,
+        "software_render_threads": "2"
+      }
+    },
+    "application": {
+      "path": "docs/media/research-application-1x.mp4",
+      "sha256": "6b2f278550dfb9c09c255166d35824624b6f03aa4f3c13644ce864e9b851ba27",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 844,
+            "height": 390,
+            "r_frame_rate": "24/1",
+            "duration": "55.000000",
+            "nb_frames": "1320"
+          }
+        ]
+      },
+      "result": {
+        "automatic_input": true,
+        "chapter_four_journal_stamp": true,
+        "checkpoint_prepared_by_normal_simulation": true,
+        "checkpoint_switches": [
+          {
+            "checkpoint": "day_seven_close",
+            "day": 7,
+            "normal_commands_only": true,
+            "time": 126.499999999995,
+            "video_second": 40.0
+          }
+        ],
+        "continuous_single_day": false,
+        "ct_latched_duration": 4.0,
+        "ct_observed_seconds": 4.00000000000002,
+        "fps": 24,
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 OpenGL llvmpipe",
+        "real_canvas_clicks": 7,
+        "real_file_restored": true,
+        "recorded_frames": 1320,
+        "segment": "application",
+        "simulation_speed": 1,
+        "trace": [
+          {
+            "day": 6,
+            "journal": true,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 0,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 0,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 0.0,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "complete",
+                0.0
+              ]
+            ],
+            "time": 130.399999999995
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "applied",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction"
+              ],
+              "version": 1
+            },
+            "seconds": 4.20833333333333,
+            "states": [
+              [
+                1,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 0.0833333333333333
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 8.20833333333333,
+            "states": [
+              [
+                1,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 4.08333333333333
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 10.375,
+            "states": [
+              [
+                1,
+                "waiting",
+                0.0
+              ],
+              [
+                2,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 6.25000000000001
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 11.0,
+            "states": [
+              [
+                1,
+                "walk_ct",
+                0.0
+              ],
+              [
+                2,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 6.87500000000001
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 13.4166666666667,
+            "states": [
+              [
+                1,
+                "walk_ct",
+                0.0
+              ],
+              [
+                2,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 9.29166666666667
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 16.125,
+            "states": [
+              [
+                1,
+                "walk_ct",
+                0.0
+              ],
+              [
+                2,
+                "waiting",
+                0.0
+              ],
+              [
+                3,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 12.0
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 16.375,
+            "states": [
+              [
+                1,
+                "walk_ct",
+                0.0
+              ],
+              [
+                2,
+                "ct_queue",
+                0.0
+              ],
+              [
+                3,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 12.25
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 17.875,
+            "states": [
+              [
+                1,
+                "ct_scan",
+                4.0
+              ],
+              [
+                2,
+                "ct_queue",
+                0.0
+              ],
+              [
+                3,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 13.7499999999999
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 20.0,
+            "states": [
+              [
+                1,
+                "ct_scan",
+                4.0
+              ],
+              [
+                2,
+                "ct_queue",
+                0.0
+              ],
+              [
+                3,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 15.8749999999999
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 21.875,
+            "states": [
+              [
+                1,
+                "walk_plan",
+                0.0
+              ],
+              [
+                2,
+                "walk_ct",
+                0.0
+              ],
+              [
+                3,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 17.75
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 22.125,
+            "states": [
+              [
+                1,
+                "walk_plan",
+                0.0
+              ],
+              [
+                2,
+                "walk_ct",
+                0.0
+              ],
+              [
+                3,
+                "waiting",
+                0.0
+              ],
+              [
+                4,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 18.0
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 22.9583333333333,
+            "states": [
+              [
+                1,
+                "walk_plan",
+                0.0
+              ],
+              [
+                2,
+                "walk_ct",
+                0.0
+              ],
+              [
+                3,
+                "ct_queue",
+                0.0
+              ],
+              [
+                4,
+                "entering",
+                0.0
+              ]
+            ],
+            "time": 18.8333333333333
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 25.4166666666667,
+            "states": [
+              [
+                1,
+                "walk_plan",
+                0.0
+              ],
+              [
+                2,
+                "walk_ct",
+                0.0
+              ],
+              [
+                3,
+                "ct_queue",
+                0.0
+              ],
+              [
+                4,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 21.2916666666667
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 25.9583333333333,
+            "states": [
+              [
+                1,
+                "plan_ready",
+                0.0
+              ],
+              [
+                2,
+                "walk_ct",
+                0.0
+              ],
+              [
+                3,
+                "ct_queue",
+                0.0
+              ],
+              [
+                4,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 21.8333333333334
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 2300,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 28.2083333333333,
+            "states": [
+              [
+                1,
+                "plan_ready",
+                0.0
+              ],
+              [
+                2,
+                "walk_ct",
+                0.0
+              ],
+              [
+                3,
+                "ct_queue",
+                0.0
+              ],
+              [
+                4,
+                "waiting",
+                0.0
+              ]
+            ],
+            "time": 24.0000000000001
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 3100,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 6,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 8,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 40.0416666666667,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "leaving",
+                0.0
+              ]
+            ],
+            "time": 126.541666666662
+          },
+          {
+            "day": 7,
+            "journal": false,
+            "money": 3100,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 7,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 12,
+              "presented": false,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 41.875,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "complete",
+                0.0
+              ]
+            ],
+            "time": 128.374999999995
+          },
+          {
+            "day": 7,
+            "journal": true,
+            "money": 3100,
+            "research": {
+              "active": "",
+              "built_day": 5,
+              "chapter_four_day": 7,
+              "closed_through": 7,
+              "events": [
+                {
+                  "after_close": false,
+                  "day": 5,
+                  "kind": "build",
+                  "money": 1800,
+                  "points": 6
+                },
+                {
+                  "day": 5,
+                  "id": "ct",
+                  "kind": "start",
+                  "money": 500,
+                  "points": -6
+                },
+                {
+                  "day": 5,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                },
+                {
+                  "day": 6,
+                  "id": "ct",
+                  "kind": "complete",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "id": "ct",
+                  "kind": "apply",
+                  "money": 0,
+                  "points": 0
+                },
+                {
+                  "day": 7,
+                  "kind": "produce",
+                  "money": 0,
+                  "points": 4
+                }
+              ],
+              "initial_granted": true,
+              "line": 0,
+              "points": 12,
+              "presented": true,
+              "projects": {
+                "ct": {
+                  "applied_day": 7,
+                  "completed_day": 6,
+                  "progress_days": 1,
+                  "start_day": 5
+                }
+              },
+              "seen": [
+                "introduction",
+                "applied"
+              ],
+              "version": 1
+            },
+            "seconds": 42.0,
+            "states": [
+              [
+                1,
+                "complete",
+                0.0
+              ],
+              [
+                2,
+                "complete",
+                0.0
+              ],
+              [
+                3,
+                "complete",
+                0.0
+              ],
+              [
+                4,
+                "complete",
+                0.0
+              ]
+            ],
+            "time": 128.499999999995
+          }
+        ],
+        "encoding": {
+          "paused_setup_frames_removed": 1,
+          "source_frames": 1321,
+          "delivered_frames": 1320,
+          "gameplay_frames_removed": 0,
+          "speed_changed": false
+        }
+      },
+      "launch": {
+        "argv": [
+          "godot",
+          "--path",
+          "/workspace/Game/.runtime/mobile-movie-jr6vwucj",
+          "--audio-driver",
+          "Dummy",
+          "--script",
+          "tests/record_research.gd",
+          "--resolution",
+          "844x390",
+          "--write-movie",
+          "/workspace/Game/artifacts/research-video-application/playthrough.avi",
+          "--fixed-fps",
+          "24",
+          "--",
+          "--qa",
+          "--output-dir=/workspace/Game/artifacts/research-video-application",
+          "--tutorial",
+          "--segment=application",
+          "--mobile-preview"
+        ],
+        "platform": "Linux llvmpipe",
+        "physical_mobile": false,
+        "source_commit": "76a84f278974cf821f89c5ff65db423354f07b4b",
+        "source_dirty": true,
+        "software_render_threads": "2"
+      }
+    }
+  },
+  "delivery": {
+    "version": "0.6.0-dev",
+    "version_code": 600,
+    "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-4",
+      "operations-training",
+      "planning-delegation",
+      "research-lab-level-1",
+      "research-points",
+      "operating-day-research",
+      "ct-and-plan-time-improvements"
+    ],
+    "godot": "4.6.3.stable.official.7d41c59c4",
+    "application_id": "org.creaminmai.sunshinehospital.playtest",
+    "passed": true,
+    "source_dirty": false,
+    "development_certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "android_hardware_tested": false,
+    "iphone_hardware_tested": false,
+    "files": {
+      "artifacts/android/SunshineHospital-0.6.0-dev.apk": {
+        "bytes": 68310099,
+        "sha256": "4b9f021b3beac9e37ee029ea4d81350ea6e3ed78f0654e77126f35d4d9263377"
+      },
+      "artifacts/mobile/SunshineHospital-Web-0.6.0-dev-fb0c2aa.zip": {
+        "bytes": 23961012,
+        "sha256": "8a6959851d0e879929c3d69f32df4f26cc70cae46ef2d9a4ce3f35bc1c854fe0"
+      }
+    }
+  },
+  "web_backup": {
+    "web_branch_commit": "70503364d28d00f7d098729e656cc43c576f17d2",
+    "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+    "pages_publication_verified": false,
+    "remote_verified": true
+  },
+  "android_verification": {
+    "passed": true,
+    "apk": "SunshineHospital-0.6.0-dev.apk",
+    "bytes": 68310099,
+    "sha256": "4b9f021b3beac9e37ee029ea4d81350ea6e3ed78f0654e77126f35d4d9263377",
+    "certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "debug": true,
+    "landscape": true,
+    "min_sdk": 24,
+    "target_sdk": 36,
+    "architectures": [
+      "arm64-v8a",
+      "x86_64"
+    ],
+    "alignment_16kb": true,
+    "device_list": "* daemon not running; starting now at tcp:5037\n* daemon started successfully\nList of devices attached\n\n",
+    "installation_tested": false,
+    "android_runtime_tested": false,
+    "store_release": false,
+    "version": "0.6.0-dev",
+    "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-4",
+      "operations-training",
+      "planning-delegation",
+      "research-lab-level-1",
+      "research-points",
+      "operating-day-research",
+      "ct-and-plan-time-improvements"
+    ],
+    "same_development_signer_as_previous": true
+  },
+  "limits": {
+    "android_hardware_verified": false,
+    "iphone_safari_verified": false,
+    "ios_xcode_build_signed": false,
+    "pages_publication_verified": false,
+    "movie_24fps_is_performance_measurement": false,
+    "movies_before_touch_fix": true,
+    "post_movie_fix": "Two content mouse filters pass dragging to scroll parents; read-only Web QA scroll positions added. No model, camera, simulation, transaction or research timing changes. Final Android/Web build shares the later source; final UI and Web tests use the fix."
+  }
+}

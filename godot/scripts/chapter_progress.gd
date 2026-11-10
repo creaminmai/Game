@@ -45,18 +45,18 @@ func observe(sim: HospitalSimulation) -> void:
   chapter_two_day = sim.day
 
 func goal(sim: HospitalSimulation) -> String:
- if chapter_one_day == 0: return "1장 · 오늘 방문 일정 %d/4  ›" % sim.count_state("complete")
+ if chapter_one_day == 0: return "1장 · 오늘 방문 일정 %d/4  >" % sim.count_state("complete")
  if chapter_two_day > 0:
   if sim.operations.chapter_three_day > 0:
-   if sim.research.chapter_four_day > 0: return "1~4장 완료 ✓ · 성장 기록  ›"
-   if sim.research.built_day == 0: return "4장 · 기록을 살필 연구소 마련하기  ›"
-   if sim.research.slot() != "": return "4장 · 연구 완료와 다음 날 적용 기다리기  ›"
-   return "4장 · 첫 연구 선택하기  ›"
-  if not sim.operations.trained: return "3장 · 함께 일하는 운영 교육  ›"
-  return "3장 · 위임 방문 일정 %d/4 완료  ›" % mini(sim.operations.total(),4)
- if not sim.expanded: return "2장 · 치료별관 마련하기  ›"
- if not dual_experienced: return "2장 · 두 치료실 함께 운영하기  ›"
- return "2장 · 방문 일정 %d/12 완료  ›" % mini(total(),TARGET)
+   if sim.research.chapter_four_day > 0: return "1~4장 완료 ✓ · 성장 기록  >"
+   if sim.research.built_day == 0: return "4장 · 기록을 살필 연구소 마련하기  >"
+   if sim.research.slot() != "": return "4장 · 연구 완료와 다음 날 적용 기다리기  >"
+   return "4장 · 첫 연구 선택하기  >"
+  if not sim.operations.trained: return "3장 · 함께 일하는 운영 교육  >"
+  return "3장 · 위임 방문 일정 %d/4 완료  >" % mini(sim.operations.total(),4)
+ if not sim.expanded: return "2장 · 치료별관 마련하기  >"
+ if not dual_experienced: return "2장 · 두 치료실 함께 운영하기  >"
+ return "2장 · 방문 일정 %d/12 완료  >" % mini(total(),TARGET)
 
 func finish_scene() -> void:
  if active != "" and not active in seen: seen.append(active)

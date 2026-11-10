@@ -126,7 +126,7 @@ func present(sim: HospitalSimulation, guidance_enabled: bool = true) -> void:
  lab_value.text = "%d만" % sim.ledger.lab_expense
  research_value.text = "%d만" % sim.ledger.research_expense
  var research_day := sim.research.daily(sim.day)
- research_detail.text = "연구점수 잔액 %d / 200\n최초 지급 +%d · 마감 생산 +%d · 사용 −%d\n" % [sim.research.points,research_day.initial,research_day.produced,research_day.used]
+ research_detail.text = "연구점수 잔액 %d / 200\n최초 지급 +%d · 마감 생산 +%d · 사용 -%d\n" % [sim.research.points,research_day.initial,research_day.produced,research_day.used]
  for id in ["ct","plan"]:
   if sim.research.projects.has(id): research_detail.text += "\n"+sim.research.PROJECTS[id]+"\n"+sim.research.status(id)+"\n"
  financial_scroll.scroll_vertical = 0

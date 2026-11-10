@@ -12,6 +12,7 @@ parser.add_argument('--url',help='Actual accessible export URL; defaults to isol
 parser.add_argument('--touch',action='store_true')
 parser.add_argument('--staff',action='store_true',help='Load a normally operated day-two fixture into this private profile, then test actual delegation input/reload')
 parser.add_argument('--research',action='store_true',help='Lab transaction, operating-day application and reload from normal checkpoints')
+parser.add_argument('--research-only',action='store_true',help='With --research, test the isolated research checkpoints without repeating the separate first-admission regression')
 parser.add_argument('--operations',action='store_true',help='Training purchase, explicit duties, real delegated command and saved provenance')
 parser.add_argument('--chapter',action='store_true',help='Actual 11-to-12 departure, chapter journal and browser reload from a normal simulation checkpoint')
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
@@ -19,6 +20,7 @@ parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock all
 args=parser.parse_args()
 if sum([args.staff,args.chapter,args.operations,args.research]) > 1: parser.error('Choose one progression scenario')
 if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
+if args.research_only and not args.research: parser.error('--research-only requires --research')
 repo = Path(__file__).resolve().parents[1]
 output = repo / ('artifacts/browser-staff-touch' if args.staff and args.touch else ('artifacts/browser-touch' if args.touch else 'artifacts/browser'))
 if args.chapter: output=repo/('artifacts/browser-chapter-touch' if args.touch else 'artifacts/browser-chapter')
@@ -75,9 +77,9 @@ try:
         loader_done_seconds=time.monotonic()-started
         # Software WebGL startup varies; require an arrived patient in this
         # fresh browser's persisted simulation before attempting admission.
-        wait_saved(lambda state: state.get('patients') and state['patients'][0]['state']=='waiting')
+        state=wait_saved(lambda state: state.get('patients') and (args.research_only or state['patients'][0]['state']=='waiting'))
         initial_seconds=time.monotonic()-started
-        print('WEB: first patient arrived and saved',flush=True)
+        print('WEB: isolated save initialized' if args.research_only else 'WEB: first patient arrived and saved',flush=True)
         if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'before-admission.png'))
         canvas=page.evaluate('''() => {
             const canvas=document.querySelector('#canvas');
@@ -99,19 +101,22 @@ try:
             with (output/'inputs.jsonl').open('a') as log: log.write(json.dumps({'name':name,'control':control})+'\n')
             click(control['x'],control['y'])
             print('WEB input: '+name,flush=True)
-        press('patients')
-        if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'patient-roster.png'))
-        press('first_patient')
-        if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'patient-selected.png'))
-        press('action')
-        # Inspect this fresh test browser's own IndexedDB filesystem, never the user's profile.
-        # IDBFS synchronizes asynchronously. Wait for evidence of the action in persistent storage.
-        state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])
         story=state.get('first_day_story',{})
         ledger=state.get('daily_ledger',{})
-        assert ledger=={'version':3,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False,'training_expense':0,'lab_expense':0,'research_expense':0}, 'Actual opening/day receipts were not saved correctly'
-        assert story.get('version')==1 and story.get('seen',{}).get('admission'), 'State-driven tutorial was not saved after actual admission'
-        page.screenshot(timeout=120000,scale='css',path=str(output/'after-admission.png'))
+        if not args.research_only:
+            press('patients')
+            if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'patient-roster.png'))
+            press('first_patient')
+            if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'patient-selected.png'))
+            press('action')
+            # Inspect this fresh test browser's own IndexedDB filesystem, never the user's profile.
+            # IDBFS synchronizes asynchronously. Wait for evidence of the action in persistent storage.
+            state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])
+            story=state.get('first_day_story',{})
+            ledger=state.get('daily_ledger',{})
+            assert ledger=={'version':3,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False,'training_expense':0,'lab_expense':0,'research_expense':0}, 'Actual opening/day receipts were not saved correctly'
+            assert story.get('version')==1 and story.get('seen',{}).get('admission'), 'State-driven tutorial was not saved after actual admission'
+            page.screenshot(timeout=120000,scale='css',path=str(output/'after-admission.png'))
         preflight={}
         if args.mobile_preflight:
             # Pause through the real button, then resize this same live game.
@@ -206,7 +211,7 @@ try:
                     session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
                     page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
                     for n in range(1,9):
-                        session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.6*n/8}]})
+                        session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.25*n/8}]})
                         page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
                     session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
                     page.evaluate('async()=>{for(let i=0;i<4;i++)await new Promise(requestAnimationFrame)}')
@@ -341,12 +346,14 @@ try:
                 staff={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'accepted_via_canvas':True,'automatic_admission_once':True,'disabled_via_canvas':True,'real_page_reload':True,'disabled_setting_and_patients_restored':True,'physical_phone':False}
         (output/'console.log').write_text('\n'.join(messages))
         assert not any('SCRIPT ERROR' in m or m.startswith('pageerror:') for m in messages), 'Browser runtime error'
-        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':True,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':True,'daily_ledger_saved':True,'story_stage':story['stage'],'mobile_tested':False,'wasm_engine_start_wall_seconds':loader_done_seconds,'first_arrived_and_persisted_wall_seconds':initial_seconds,'viewport':[width,height],'device_pixel_ratio':args.dpr,'url_kind':'provided URL' if args.url else 'loopback only','godot':'4.6.3','renderer':'Chromium SwiftShader WebGL2'}
+        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':not args.research_only,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':not args.research_only,'daily_ledger_saved':not args.research_only,'story_stage':story['stage'],'mobile_tested':False,'wasm_engine_start_wall_seconds':loader_done_seconds,'first_arrived_and_persisted_wall_seconds':initial_seconds,'viewport':[width,height],'device_pixel_ratio':args.dpr,'url_kind':'provided URL' if args.url else 'loopback only','godot':'4.6.3','renderer':'Chromium SwiftShader WebGL2'}
         report['preflight']=preflight
         report['staff']=staff
         report['chapter']=chapter
         report['operations']=operations
         report['research']=research
+        report['first_admission_skipped']=args.research_only
+        if args.research_only: report['initial_save_wall_seconds']=report.pop('first_arrived_and_persisted_wall_seconds')
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))
         browser.close()
