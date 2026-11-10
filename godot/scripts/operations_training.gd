@@ -91,7 +91,7 @@ func speech() -> Array:
 func snapshot() -> Dictionary:
  return {"version":1,"trained":trained,"purchased_day":purchased_day,"enabled":enabled,"candidate_id":candidate_id,"elapsed":elapsed,"archived_visits":archived_visits,"through_day":through_day,"visits":visits.duplicate(),"chapter_three_day":chapter_three_day,"presented":presented,"seen":seen.duplicate(),"active":active,"line":line}
 
-static func from_save(data: Variant, day: int, patients: Array[Dictionary], chapter_two_day: int, training_expense: int) -> HospitalOperationsTraining:
+static func from_save(data: Variant, day: int, patients: Array[Dictionary], chapter_two_day: int, training_expense: int, schedule: HospitalDailySchedule = null) -> HospitalOperationsTraining:
  var result := HospitalOperationsTraining.new()
  result.through_day = day-1
  if data == null:
@@ -118,8 +118,9 @@ static func from_save(data: Variant, day: int, patients: Array[Dictionary], chap
   if p.state == "complete" and p.admission_source == "minji" and p.plan_source == "staff": complete_keys.append("%d:%d" % [day,p.id])
  if not candidate_valid: return null
  if not HospitalSimulation.whole(data.get("through_day"),day-1,day-1): return null
- if not HospitalSimulation.whole(data.get("archived_visits"),0,maxi(0,day-int(data.purchased_day))*4): return null
- if not data.get("visits") is Array or data.visits.size() > 4: return null
+ var maximum: int = schedule.past_visits(day)-schedule.past_visits(maxi(1,int(data.purchased_day))) if schedule != null else maxi(0,day-int(data.purchased_day))*4
+ if not HospitalSimulation.whole(data.get("archived_visits"),0,maximum): return null
+ if not data.get("visits") is Array or data.visits.size() > (schedule.today_count if schedule != null else 4): return null
  var keys: Array[String] = []
  for key in data.visits:
   if not key is String or key in keys: return null

@@ -113,7 +113,9 @@ func run() -> void:
     game.journal.financial_scroll.scroll_vertical = 390; done.scroll = true
   else:
    if seconds >= 4 and not done.has("next"):
-    await click(game.journal.next_button); done.next = true
+    await click(game.journal.next_button)
+    if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
+    done.next = true
    elif seconds >= 8 and not done.has("read"):
     await click(game.story_next); done.read = true
    elif seconds >= 10 and not done.has("patient"):

@@ -43,6 +43,8 @@ var dismiss_button: Button
 var selection_panel: PanelContainer
 var roster: PanelContainer
 var roster_close: Button
+var roster_scroll: ScrollContainer
+var capacity_dialog: HospitalCapacityDialog
 var orientation_hint: Label
 var tool_buttons: Array[Button] = []
 var tool_labels: Array[Label] = []
@@ -387,7 +389,16 @@ func build_ui() -> void:
  list_heading.add_child(list_title)
  roster_close = button("닫기",toggle_roster)
  list_heading.add_child(roster_close)
- for id in range(1,5):
+ roster_scroll = ScrollContainer.new()
+ roster_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+ roster_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+ list.add_child(roster_scroll)
+ var roster_content := VBoxContainer.new()
+ roster_content.mouse_filter = Control.MOUSE_FILTER_PASS
+ roster_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ roster_content.add_theme_constant_override("separation",10)
+ roster_scroll.add_child(roster_content)
+ for id in range(1,HospitalPatientProfiles.DATA.size()+1):
   var row := button("",select_patient.bind(id))
   row.name = "Patient%d" % id
   row.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -396,7 +407,8 @@ func build_ui() -> void:
   row.custom_minimum_size.y = 56
   row.add_theme_font_size_override("font_size",18)
   rows.append(row)
-  list.add_child(row)
+  row.mouse_filter = Control.MOUSE_FILTER_PASS
+  roster_content.add_child(row)
  roster.hide()
  orientation_hint = label_text("가로로 돌려 플레이해 주세요",32)
  orientation_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -418,8 +430,8 @@ func build_ui() -> void:
  var heading := label_text("치료별관",32)
  heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
  dialog_content.add_child(heading)
- var message := label_text("치료실 1개 추가
-최대 두 환자를 동시에 치료할 수 있어요",21)
+ var message := label_text("치료실 1개 추가 · 최대 두 환자 동시 치료
+다음 날 예약 4명 / 6명 선택",21)
  message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
  dialog_content.add_child(message)
  var cost := label_text("증축 비용   600만",28,TEAL)
@@ -451,7 +463,11 @@ func build_ui() -> void:
  journal = HospitalDayJournal.new()
  add_child(journal)
  journal.build(self)
- journal.next_requested.connect(start_day)
+ journal.next_requested.connect(prepare_next_day)
+ capacity_dialog = HospitalCapacityDialog.new()
+ add_child(capacity_dialog)
+ capacity_dialog.build(self)
+ capacity_dialog.confirmed.connect(start_day)
  journal.closed.connect(refresh)
  research_panel = HospitalResearchPanel.new()
  add_child(research_panel)
@@ -781,7 +797,9 @@ func layout_hud() -> void:
  place(outside_label,Rect2(6,h-27,90,22))
  for b in [zoom_in_button,zoom_out_button,dismiss_button,roster_close,patient_view_button,patient_list_link]:
   b.custom_minimum_size = Vector2(touch,touch)
- for row in rows: row.custom_minimum_size.y = maxf(56,touch)
+ for row in rows:
+  row.custom_minimum_size.y = maxf(72,touch)
+  row.add_theme_font_size_override("font_size",maxi(18,ceili(14*size.y/ui_display_size.y)))
  place(zoom_in_button,Rect2(18,h-101-touch,touch,touch))
  place(zoom_out_button,Rect2(26+touch,h-101-touch,touch,touch))
  var compact := ui_display_size.y/size.y < 1.0
@@ -804,6 +822,7 @@ func layout_hud() -> void:
  layout_story()
  if is_instance_valid(chapter_panel): chapter_panel.layout(self)
  if is_instance_valid(journal): journal.layout(self)
+ if is_instance_valid(capacity_dialog): capacity_dialog.layout()
  if is_instance_valid(research_panel): research_panel.layout()
  if is_instance_valid(world):
   var right := w-18
@@ -991,9 +1010,14 @@ func confirm_expansion() -> void:
  else: show_notice(sim.expansion_reason())
  refresh()
 
-func start_day() -> void:
+func prepare_next_day() -> void:
  if outside or not sim.all_done(): return
- if sim.start_next_day():
+ if sim.expanded: capacity_dialog.present()
+ else: start_day(4)
+
+func start_day(count: int = -1) -> void:
+ if outside or not sim.all_done(): return
+ if sim.start_next_day(count):
   journal.hide()
   selected_id = -1
   world.show_overview()
@@ -1003,7 +1027,7 @@ func start_day() -> void:
 
 func refresh() -> void:
  stats.text = "%s만" % sim.money
- day_label.text = "%d일차 · 완료 %d/4" % [sim.day,sim.completed()]
+ day_label.text = "%d일차 · 완료 %d/%d" % [sim.day,sim.count_state("complete"),sim.schedule.today_count]
  goal.text = sim.chapters.goal(sim)
  pause_button.symbol = "play" if sim.paused else "pause"
  pause_button.queue_redraw()
@@ -1014,13 +1038,15 @@ func refresh() -> void:
  expansion_button.disabled = sim.expanded and sim.operations.chapter_three_day == 0
  tool_labels[3].text = "연구" if sim.operations.chapter_three_day > 0 else "증축"
  if sim.operations.chapter_three_day > 0: expansion_button.tooltip_text = "연구소 · 외부 예정지와 연구 확인"
- for i in range(4):
+ for i in range(rows.size()):
   var id := i+1
+  rows[i].visible = id <= sim.schedule.today_count
   var p: Dictionary = sim.get_patient(id)
   var active := id == selected_id and not p.is_empty()
   var need: bool = not p.is_empty() and sim.needs_player_action(p)
-  var patient_name: String = p.name if not p.is_empty() else Sim.NAMES[(i+sim.day-1)%4]
-  rows[i].text = "%s  %s     %s" % ["●" if active else "%02d" % id,patient_name,sim.status_text(id)]
+  var patient_name: String = p.name if not p.is_empty() else HospitalPatientProfiles.patient_name(id,sim.day)
+  rows[i].text = "%s  %s
+%s" % ["●" if active else "%02d" % id,patient_name,sim.status_text(id)]
   rows[i].disabled = p.is_empty()
   rows[i].add_theme_stylebox_override("normal",style(Color("e1eee3") if active else (Color("fff0de") if need else Color("fffdf5")),TEAL if active else Color.TRANSPARENT))
   rows[i].tooltip_text = "도착 후 선택할 수 있어요" if p.is_empty() else "환자 선택 · " + sim.status_text(id)
@@ -1108,13 +1134,14 @@ func publish_web_layout() -> void:
  controls.merge({"training":training_button,"training_buy":training_dialog.ok_button,"training_cancel":training_dialog.cancel_button,"planning_toggle":planning_toggle,"chapter_history":chapter_panel.history_button})
  controls.merge({"research":expansion_button,"lab_build":research_panel.build_button,"research_confirm":research_panel.confirmation.ok_button,"research_cancel":research_panel.confirmation.cancel_button,"research_close":research_panel.close_button,"research_return":research_panel.return_button,"research_scroll":research_panel.scroll,"research_ct":research_panel.project_buttons.ct,"research_plan":research_panel.project_buttons.plan})
  controls.merge({"chapter_goal":goal_ribbon,"chapter_close":chapter_panel.close_button,"journal_close":journal.close_button,"journal_next":journal.next_button,"journal_open":next_day_button,"journal_scroll":journal.financial_scroll})
+ controls.merge({"capacity_four":capacity_dialog.four,"capacity_six":capacity_dialog.six,"capacity_confirm":capacity_dialog.start_button,"capacity_cancel":capacity_dialog.cancel_button,"roster_scroll":roster_scroll,"patient_five":rows[4],"patient_six":rows[5]})
  var pixels := ui_display_size/size
  for key in controls:
   var c: Control = controls[key]
   var r := c.get_global_rect()
   result[key] = {"x":r.get_center().x*pixels.x,"y":r.get_center().y*pixels.y,"width":r.size.x*pixels.x,"height":r.size.y*pixels.y,"visible":c.is_visible_in_tree()}
   if c is ScrollContainer: result[key]["scroll_y"] = c.scroll_vertical
- result["_state"] = {"paused":sim.paused,"time":sim.time,"money":sim.money,"day":sim.day,"visits":sim.chapters.total(),"chapter_two_day":sim.chapters.chapter_two_day}
+ result["_state"] = {"paused":sim.paused,"time":sim.time,"money":sim.money,"day":sim.day,"visits":sim.chapters.total(),"booked":sim.schedule.today_count,"departed":sim.count_state("complete"),"chapter_two_day":sim.chapters.chapter_two_day}
  JavaScriptBridge.eval("window.sunshineControls="+JSON.stringify(result))
 
 func build_training_dialog() -> void:

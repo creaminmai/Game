@@ -11,6 +11,7 @@ parser.add_argument('--mobile-preflight',action='store_true',help='Resize/inset,
 parser.add_argument('--url',help='Actual accessible export URL; defaults to isolated localhost test server')
 parser.add_argument('--touch',action='store_true')
 parser.add_argument('--staff',action='store_true',help='Load a normally operated day-two fixture into this private profile, then test actual delegation input/reload')
+parser.add_argument('--capacity',action='store_true',help='Four/six booking, six-row touch scroll and reload using isolated normal checkpoints')
 parser.add_argument('--research',action='store_true',help='Lab transaction, operating-day application and reload from normal checkpoints')
 parser.add_argument('--research-only',action='store_true',help='With --research, test the isolated research checkpoints without repeating the separate first-admission regression')
 parser.add_argument('--operations',action='store_true',help='Training purchase, explicit duties, real delegated command and saved provenance')
@@ -18,12 +19,13 @@ parser.add_argument('--chapter',action='store_true',help='Actual 11-to-12 depart
 parser.add_argument('--debug-captures',action='store_true',help='Also capture each intermediate UI state')
 parser.add_argument('--save-timeout',type=float,default=300,help='Wall-clock allowance per saved-state wait; software WebGL may render far below real time')
 args=parser.parse_args()
-if sum([args.staff,args.chapter,args.operations,args.research]) > 1: parser.error('Choose one progression scenario')
+if sum([args.staff,args.chapter,args.operations,args.research,args.capacity]) > 1: parser.error('Choose one progression scenario')
 if args.save_timeout <= 0: parser.error('--save-timeout must be positive')
 if args.research_only and not args.research: parser.error('--research-only requires --research')
 repo = Path(__file__).resolve().parents[1]
 output = repo / ('artifacts/browser-staff-touch' if args.staff and args.touch else ('artifacts/browser-touch' if args.touch else 'artifacts/browser'))
 if args.chapter: output=repo/('artifacts/browser-chapter-touch' if args.touch else 'artifacts/browser-chapter')
+if args.capacity: output=repo/('artifacts/browser-capacity-touch' if args.touch else 'artifacts/browser-capacity')
 if args.research: output=repo/('artifacts/browser-research-touch' if args.touch else 'artifacts/browser-research')
 if args.operations: output=repo/('artifacts/browser-operations-touch' if args.touch else 'artifacts/browser-operations')
 output.mkdir(parents=True, exist_ok=True)
@@ -35,7 +37,7 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader'])
-        width,height=(844,350) if (args.staff or args.chapter or args.operations or args.research) and args.touch else ((844,390) if args.touch else (1280,720))
+        width,height=(844,350) if (args.staff or args.chapter or args.operations or args.research or args.capacity) and args.touch else ((844,390) if args.touch else (1280,720))
         page = browser.new_page(viewport={'width':width,'height':height},has_touch=args.touch,is_mobile=args.touch,device_scale_factor=args.dpr)
         page.set_default_timeout(120000)
         messages=[]
@@ -77,7 +79,7 @@ try:
         loader_done_seconds=time.monotonic()-started
         # Software WebGL startup varies; require an arrived patient in this
         # fresh browser's persisted simulation before attempting admission.
-        state=wait_saved(lambda state: state.get('patients') and (args.research_only or state['patients'][0]['state']=='waiting'))
+        state=wait_saved(lambda state: state.get('patients') and (args.research_only or args.capacity or state['patients'][0]['state']=='waiting'))
         initial_seconds=time.monotonic()-started
         print('WEB: isolated save initialized' if args.research_only else 'WEB: first patient arrived and saved',flush=True)
         if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'before-admission.png'))
@@ -103,7 +105,7 @@ try:
             print('WEB input: '+name,flush=True)
         story=state.get('first_day_story',{})
         ledger=state.get('daily_ledger',{})
-        if not args.research_only:
+        if not (args.research_only or args.capacity):
             press('patients')
             if args.debug_captures: page.screenshot(timeout=120000,scale='css',path=str(output/'patient-roster.png'))
             press('first_patient')
@@ -160,13 +162,15 @@ try:
         chapter={}
         operations={}
         research={}
-        if args.staff or args.chapter or args.operations or args.research:
+        capacity={}
+        if args.staff or args.chapter or args.operations or args.research or args.capacity:
             # This is a fresh test-only browser profile, never player storage.
             # Leave the running engine before replacing the fixture so it cannot
             # race the write. Operational state comes from normal day-one commands.
             fixture_path='artifacts/chapter-rehearsal-completion/checkpoint.json' if args.chapter else 'artifacts/staff-video-offer/checkpoint.json'
             if args.operations: fixture_path='artifacts/operations-web-checkpoints/education.json'
             if args.research: fixture_path='artifacts/research-web-checkpoints/construction.json'
+            if args.capacity: fixture_path='artifacts/capacity-web-checkpoints/journal.json'
             fixture=json.loads((repo/fixture_path).read_text())
             if args.staff:
                 fixture['staff_admission']['offer_seen']=False
@@ -192,8 +196,67 @@ try:
                 assert replaced==1, replaced
                 page.goto(base+('&' if '?' in base else '?')+'playtest=1')
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+            def drag_scroll(name):
+                # A real touchscreen gesture through the card/content children.
+                scroll=page.evaluate('(name)=>window.sunshineControls[name]',name)
+                session=page.context.new_cdp_session(page)
+                x=scroll['x'];y=scroll['y']+scroll['height']*.3
+                session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
+                page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
+                for n in range(1,9):
+                    session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.25*n/8}]})
+                    page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
+                session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
+                page.evaluate('async()=>{for(let i=0;i<4;i++)await new Promise(requestAnimationFrame)}')
+                after=page.evaluate('(name)=>window.sunshineControls[name]',name)
+                assert after['scroll_y']>scroll['scroll_y'],('Touch drag did not scroll',name,scroll,after)
+                return after
             load_checkpoint(fixture)
-            if args.research:
+            if args.capacity:
+                initial=wait_saved(lambda s:s['day']==1 and s['patients'][-1]['state']=='complete')
+                press('journal_next');press('capacity_six')
+                assert page.evaluate('window.sunshineControls._state.day')==1
+                press('capacity_cancel')
+                cancelled=wait_saved(lambda s:s['day']==1)
+                assert cancelled['daily_schedule']['preferred_count']==4 and cancelled['money']==1100
+                press('journal_next');press('capacity_six')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'booking.png'))
+                press('capacity_confirm')
+                booked=wait_saved(lambda s:s['day']==2)
+                assert booked['daily_schedule']['today_count']==6 and booked['money']==1100 and len(booked['patients'])==1
+                page.screenshot(timeout=120000,scale='css',path=str(output/'six-start.png'))
+                load_checkpoint(json.loads((repo/'artifacts/capacity-web-checkpoints/waiting.json').read_text()))
+                press('patients')
+                for attempt in range(4):
+                    scroll=page.evaluate('window.sunshineControls.roster_scroll')
+                    six=page.evaluate('window.sunshineControls.patient_six')
+                    if six['y']+six['height']/2 <= scroll['y']+scroll['height']/2: break
+                    drag_scroll('roster_scroll')
+                assert six['y']+six['height']/2 <= scroll['y']+scroll['height']/2+.1
+                page.screenshot(timeout=120000,scale='css',path=str(output/'six-roster.png'))
+                press('patient_six');press('pause');press('action')
+                admitted=wait_saved(lambda s:len(s['patients'])==6 and s['patients'][5]['admission_source']=='manual')
+                assert admitted['patients'][5]['state'] not in ['waiting','entering']
+                press('pause')
+                paused=page.evaluate('window.sunshineControls._state')
+                admitted=wait_saved(lambda s:abs(s['time']-paused['time'])<.001)
+                page.screenshot(timeout=120000,scale='css',path=str(output/'six-card.png'))
+                page.reload();page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                restored=wait_saved(lambda s:abs(s['time']-admitted['time'])<.001)
+                for key in ['patients','daily_schedule','money','chapter_progress','daily_ledger']: assert restored[key]==admitted[key],key
+                assert page.evaluate('window.sunshineControls._state.paused')
+                load_checkpoint(json.loads((repo/'artifacts/capacity-web-checkpoints/closed-six.json').read_text()))
+                ended=wait_saved(lambda s:s['day']==2 and s['patients'][-1]['state']=='complete')
+                assert ended['daily_ledger']['income']==1200 and ended['money']==2300 and ended['daily_schedule']['closed_counts']==[4,6]
+                page.screenshot(timeout=120000,scale='css',path=str(output/'six-journal.png'))
+                press('journal_next');press('capacity_four');press('capacity_confirm')
+                four=wait_saved(lambda s:s['day']==3)
+                assert four['daily_schedule']['today_count']==4 and four['daily_schedule']['preferred_count']==4 and four['money']==2300
+                page.reload();page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
+                final=wait_saved(lambda s:s['day']==3)
+                assert final['daily_schedule']==four['daily_schedule'] and final['money']==four['money']
+                capacity={'passed':True,'normal_checkpoint_count':3,'automatic_canvas_input':True,'booking_cancel_no_mutation':True,'explicit_six_then_four':True,'actual_sixth_admission':True,'actual_touch_roster_drag':True,'actual_page_reloads':2,'no_duplicate_receipts':True,'continuous_web_playthrough':False,'physical_phone':False}
+            elif args.research:
                 assert page.evaluate('window.sunshineControls._state.day')==5
                 press('research');press('lab_build')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-lab-offer.png'))
@@ -203,21 +266,6 @@ try:
                 press('lab_build');press('research_confirm')
                 built=wait_saved(lambda s:s['research_lab']['built_day']==5)
                 assert built['money']==1200 and built['research_lab']['points']==6
-                def drag_scroll(name):
-                    # A real touchscreen gesture through the card/content children.
-                    scroll=page.evaluate('(name)=>window.sunshineControls[name]',name)
-                    session=page.context.new_cdp_session(page)
-                    x=scroll['x'];y=scroll['y']+scroll['height']*.3
-                    session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
-                    page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
-                    for n in range(1,9):
-                        session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.25*n/8}]})
-                        page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
-                    session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
-                    page.evaluate('async()=>{for(let i=0;i<4;i++)await new Promise(requestAnimationFrame)}')
-                    after=page.evaluate('(name)=>window.sunshineControls[name]',name)
-                    assert after['scroll_y']>scroll['scroll_y'],('Touch drag did not scroll',name,scroll,after)
-                    return after
                 scroll=drag_scroll('research_scroll')
                 ct=page.evaluate('window.sunshineControls.research_ct')
                 assert scroll['y']-scroll['height']/2 <= ct['y'] <= scroll['y']+scroll['height']/2, ('Touch drag did not reveal CT button',scroll,ct)
@@ -235,6 +283,7 @@ try:
                 drag_scroll('journal_scroll')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-journal-touch-scroll.png'))
                 press('journal_next')
+                if page.evaluate('window.sunshineControls.capacity_confirm.visible'): press('capacity_confirm')
                 applied=wait_saved(lambda s:s['day']==7)
                 assert applied['research_lab']['projects']['ct']['applied_day']==7 and applied['research_lab']['chapter_four_day']==7
                 assert applied['money']==2300 and applied['research_lab']['points']==8
@@ -308,6 +357,7 @@ try:
                 press('journal_close');press('chapter_goal')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'chapter-completed-goals.png'))
                 press('chapter_close');press('journal_open');press('journal_next')
+                if page.evaluate('window.sunshineControls.capacity_confirm.visible'): press('capacity_confirm')
                 day4=wait_saved(lambda s:s['day']==4)
                 assert day4['money']==2700 and day4['daily_ledger']['income']==0 and day4['daily_ledger']['expansion_expense']==0
                 assert day4['chapter_progress']['archived_visits']==12 and not day4['chapter_progress']['visits']
@@ -346,13 +396,14 @@ try:
                 staff={'passed':True,'normal_simulation_checkpoint':True,'isolated_indexeddb_fixture':True,'accepted_via_canvas':True,'automatic_admission_once':True,'disabled_via_canvas':True,'real_page_reload':True,'disabled_setting_and_patients_restored':True,'physical_phone':False}
         (output/'console.log').write_text('\n'.join(messages))
         assert not any('SCRIPT ERROR' in m or m.startswith('pageerror:') for m in messages), 'Browser runtime error'
-        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':not args.research_only,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':not args.research_only,'daily_ledger_saved':not args.research_only,'story_stage':story['stage'],'mobile_tested':False,'wasm_engine_start_wall_seconds':loader_done_seconds,'first_arrived_and_persisted_wall_seconds':initial_seconds,'viewport':[width,height],'device_pixel_ratio':args.dpr,'url_kind':'provided URL' if args.url else 'loopback only','godot':'4.6.3','renderer':'Chromium SwiftShader WebGL2'}
+        report={'passed':True,'browser':'Chromium touch emulation' if args.touch else 'Chromium desktop / SwiftShader','fullscreen_canvas':True,'actual_canvas_admission':not args.research_only,'patient_state':state['patients'][0]['state'],'indexeddb_save':True,'first_day_story_saved':not (args.research_only or args.capacity),'daily_ledger_saved':not (args.research_only or args.capacity),'story_stage':story['stage'],'mobile_tested':False,'wasm_engine_start_wall_seconds':loader_done_seconds,'first_arrived_and_persisted_wall_seconds':initial_seconds,'viewport':[width,height],'device_pixel_ratio':args.dpr,'url_kind':'provided URL' if args.url else 'loopback only','godot':'4.6.3','renderer':'Chromium SwiftShader WebGL2'}
         report['preflight']=preflight
         report['staff']=staff
         report['chapter']=chapter
         report['operations']=operations
         report['research']=research
-        report['first_admission_skipped']=args.research_only
+        report['capacity']=capacity
+        report['first_admission_skipped']=args.research_only or args.capacity
         if args.research_only: report['initial_save_wall_seconds']=report.pop('first_arrived_and_persisted_wall_seconds')
         (output/'results.json').write_text(json.dumps(report,indent=2))
         print(json.dumps(report))

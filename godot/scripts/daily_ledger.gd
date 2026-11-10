@@ -39,7 +39,7 @@ static func from_save(data: Variant, paid_count: int, balance: int, expanded: bo
  if not whole(training,0,500) or not int(training) in [0,500]: return null
  if data.version == 1 and training != 0: return null
  if not whole(data.get("opening_money"),-1,100000000): return null
- if not whole(data.get("income"),0,800) or data.income != paid_count*200: return null
+ if not whole(data.get("income"),0,paid_count*200) or data.income != paid_count*200: return null
  if not whole(data.get("expansion_expense"),-1,600) or not int(data.expansion_expense) in [-1,0,600] or not data.get("new_annex") is bool: return null
  if data.new_annex != (data.expansion_expense == 600): return null
  if data.new_annex and not expanded: return null

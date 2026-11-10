@@ -76,7 +76,9 @@ func run() -> void:
    elif seconds >= 10 and not done.has("goals"): await click(game.goal_ribbon); done.goals = true
    elif seconds >= 14 and not done.has("journal"):
     await click(game.chapter_panel.close_button); await click(game.next_day_button); done.journal = true
-   elif seconds >= 17 and not done.has("next"): await click(game.journal.next_button); done.next = true
+   elif seconds >= 17 and not done.has("next"): await click(game.journal.next_button)
+   if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
+   done.next = true
    elif seconds >= 20 and not done.has("save"):
     await click(game.pause_button)
     game.store.path = "user://operations-video-isolated.json"

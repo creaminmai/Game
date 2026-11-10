@@ -41,7 +41,7 @@ static func from_save(data: Variant, day: int, patients: Array[Dictionary]) -> H
  if data == null: return result # Existing saves never imply consent.
  if not data is Dictionary or data.get("version") != 1: return null
  if not data.get("enabled") is bool or not data.get("offer_seen") is bool: return null
- if not HospitalSimulation.whole(data.get("candidate_id"),-1,4) or data.candidate_id == 0: return null
+ if not HospitalSimulation.whole(data.get("candidate_id"),-1,patients.size()) or data.candidate_id == 0: return null
  if not HospitalSimulation.finite_number(data.get("elapsed"),0,DELAY): return null
  if data.enabled and (day < 2 or not data.offer_seen): return null
  if (not data.enabled or data.candidate_id == -1) and (data.elapsed != 0 or data.candidate_id != -1): return null

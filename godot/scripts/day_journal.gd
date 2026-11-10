@@ -97,6 +97,7 @@ func build(game: Control) -> void:
 
 func present(sim: HospitalSimulation, guidance_enabled: bool = true) -> void:
  if not sim.all_done(): return
+ next_button.text = "내일 예약 정하기" if sim.expanded else "다음 날 시작"
  date_label.text = "%d일차 · 누적 방문 %d회" % [sim.day,sim.chapters.total()]
  quote.text = "민지 · 오늘 오신 분들 얼굴이 기억나요.\n내일도 편하게 오실 수 있게 가꿔봐요." if sim.day == 1 else "민지 · 오늘의 일정을 모두 마쳤어요.\n내일도 차근차근 함께해요."
  chapter_stamp.text = ""

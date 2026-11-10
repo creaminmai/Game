@@ -49,6 +49,8 @@ func select_patient(id: int, ray: bool = false) -> void:
   selected_by_ray += 1
  else:
   await click(game.patient_button)
+  game.roster_scroll.ensure_control_visible(game.rows[id-1])
+  for n in range(3): await process_frame
   await click(game.rows[id-1])
  if game.selected_id != id:
   printerr("ERROR: normal-speed patient selection failed")

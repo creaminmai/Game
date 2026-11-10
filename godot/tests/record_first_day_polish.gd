@@ -105,7 +105,9 @@ func run() -> void:
     purchase_stable = purchase_stable and game.world.view_center.distance_to(purchase_center) < .001 and absf(game.world.camera.size-purchase_zoom) < .001
   else:
    if elapsed >= 7 and game.journal.visible and not done.has("next"):
-    await click(game.journal.next_button); done.next = true
+    await click(game.journal.next_button)
+    if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
+    done.next = true
   if game.sim.day == 2: second_day_clear = second_day_clear and game.story.active == "" and not game.story_panel.visible and not game.journal.visible
   one_speed = one_speed and game.playback_speed == 1.0
   await process_frame

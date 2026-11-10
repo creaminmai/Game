@@ -77,6 +77,7 @@ func run() -> void:
   mobile_layout(prefix+" journal"); await shot(prefix+"-journal-safe")
   check(game.sim.max_treating == 2 and game.journal.values[3].text == "1100만","actual dual treatment and journal preserved")
   await click(game.journal.next_button)
+  if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
   check(game.sim.day == 2 and game.sim.money == 1100,"next day preserves funds")
   game.queue_free(); await process_frame; await process_frame
  var report := {"passed":failures.is_empty(),"checks":checks,"failures":failures,"pixel_metrics":pixel_metrics,"platform":"Linux Godot OpenGL llvmpipe; synthetic input/insets","physical_device":false}

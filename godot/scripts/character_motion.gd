@@ -16,7 +16,7 @@ static func bed_position(p: Dictionary) -> Vector3:
  return Vector3(-4,0,-2.8) if p.state in ["ct_scan","walk_ct","walk_plan"] else Vector3(4+6*maxi(p.room,0),0,3)
 
 static func wait_anchor(id: int) -> Vector3:
- return Vector3(-4.5+((id-1)%2)*1.3,0,2.3+floori((id-1)/2.0)*1.5)
+ return HospitalPatientProfiles.wait_position(id)
 
 static func seat_offset(id: int) -> float:
  return -.95 if id <= 2 else -.60
@@ -25,7 +25,7 @@ static func stand_offset(id: int) -> float:
  return 0.0 if id <= 2 else .30
 
 static func seat_rise(p: Dictionary) -> float:
- if p.state == "walk_ct" and p.route.size() == 5:
+ if HospitalPatientProfiles.has_seat(p.id) and p.state == "walk_ct" and p.route.size() == 5:
   return clampf(p.position.distance_to(wait_anchor(p.id))/.65,0.0,1.0)
  return 1.0
 
@@ -38,10 +38,10 @@ static func seat_path(id: int, t: float) -> Vector3:
 static func walking_offset(p: Dictionary) -> Vector3:
  var anchor := wait_anchor(p.id)
  var exit_point := Vector3(-1.5,0,3)
- if p.state == "entering" and p.route.size() == 1:
+ if HospitalPatientProfiles.has_seat(p.id) and p.state == "entering" and p.route.size() == 1:
   var t: float = p.position.distance_to(anchor)/anchor.distance_to(exit_point)
   return seat_path(p.id,clampf(t,0.0,1.0))-p.position
- if p.state == "walk_ct" and p.route.size() == 5:
+ if HospitalPatientProfiles.has_seat(p.id) and p.state == "walk_ct" and p.route.size() == 5:
   var distance: float = p.position.distance_to(anchor)
   var t: float = clampf((distance-.65)/(anchor.distance_to(exit_point)-.65),0.0,1.0)
   return seat_path(p.id,t)-p.position

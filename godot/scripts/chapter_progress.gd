@@ -17,14 +17,14 @@ var legacy_partial := false
 func total() -> int:
  return archived_visits+visits.size()
 
-func record_departure(day: int, id: int) -> void:
- if day <= through_day or id < 1 or id > 4: return
+func record_departure(day: int, id: int, today: int = 4) -> void:
+ if day <= through_day or id < 1 or id > today: return
  var key := "%d:%d" % [day,id]
  if not key in visits: visits.append(key)
 
 func close_day(day: int) -> void:
  # Called only by the existing all_done() guarded next-day command. A closed
- # day is a compact receipt for its four distinct day:patient visits.
+ # day is a compact receipt for its distinct day:patient visits.
  if day <= through_day: return
  archived_visits += visits.size()
  visits.clear()
@@ -89,8 +89,10 @@ func speech() -> String:
 func snapshot() -> Dictionary:
  return {"version":1,"archived_visits":archived_visits,"through_day":through_day,"visits":visits.duplicate(),"dual_experienced":dual_experienced,"chapter_one_day":chapter_one_day,"chapter_two_day":chapter_two_day,"presented":presented.duplicate(),"seen":seen.duplicate(),"active":active,"legacy_partial":legacy_partial}
 
-static func from_save(data: Variant, day: int, lifetime_paid: int, patients: Array[Dictionary], expanded: bool) -> HospitalChapterProgress:
+static func from_save(data: Variant, day: int, lifetime_paid: int, patients: Array[Dictionary], expanded: bool, schedule: HospitalDailySchedule = null) -> HospitalChapterProgress:
  var result := HospitalChapterProgress.new()
+ var past: int = schedule.past_visits(day) if schedule != null else (day-1)*4
+ var today: int = schedule.today_count if schedule != null else 4
  var complete_keys: Array[String] = []
  var paid_today := 0
  for p in patients:
@@ -101,8 +103,8 @@ static func from_save(data: Variant, day: int, lifetime_paid: int, patients: Arr
   # Normal legacy code can advance a day only after all four have departed.
   # A contradictory legacy counter is retained, but its past visits are not invented.
   result.through_day = day-1
-  result.legacy_partial = lifetime_paid != (day-1)*4+paid_today
-  result.archived_visits = 0 if result.legacy_partial else (day-1)*4
+  result.legacy_partial = lifetime_paid != past+paid_today
+  result.archived_visits = 0 if result.legacy_partial else past
   result.visits = complete_keys
   if day > 1 or complete_keys.size() == 4: result.chapter_one_day = 1
   result.seen.assign(SCENES) # Existing players never receive old scene backlogs.
@@ -111,11 +113,10 @@ static func from_save(data: Variant, day: int, lifetime_paid: int, patients: Arr
   return result
  if not data is Dictionary or data.get("version") != 1: return null
  if not HospitalSimulation.whole(data.get("through_day"),day-1,day-1): return null
- if not HospitalSimulation.whole(data.get("archived_visits"),0,(day-1)*4): return null
+ if not HospitalSimulation.whole(data.get("archived_visits"),0,past): return null
  if not data.get("legacy_partial") is bool or not data.get("dual_experienced") is bool: return null
- if not data.legacy_partial and data.archived_visits != (day-1)*4: return null
- if int(data.archived_visits) % 4 != 0: return null
- if not data.get("visits") is Array or data.visits.size() > 4: return null
+ if not data.legacy_partial and data.archived_visits != past: return null
+ if not data.get("visits") is Array or data.visits.size() > today: return null
  var keys: Array[String] = []
  for key in data.visits:
   if not key is String or key in keys: return null

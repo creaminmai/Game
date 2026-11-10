@@ -76,3 +76,24 @@ import json
 with open('artifacts/research-motion/results.json') as f:
     assert json.load(f)['passed']
 PYTEST
+
+# Variable-day bookings, actual receipts and isolated 0.6.0 migration.
+godot --headless --path godot --script tests/test_daily_capacity.gd 2>&1 | tee .runtime/capacity-unit.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/capacity-unit.log; then exit 1; fi
+for mode in held streaming auto; do
+ godot --headless --path godot --script tests/test_capacity_motion.gd -- --qa --mode="$mode" 2>&1 | tee ".runtime/capacity-motion-$mode.log"
+ if rg 'SCRIPT ERROR|ERROR:|FAIL:' ".runtime/capacity-motion-$mode.log"; then exit 1; fi
+done
+python3 - <<'PYTEST'
+import json, os, subprocess
+from pathlib import Path
+for path in [Path('artifacts/daily-capacity-unit/results.json'),*Path('artifacts').glob('capacity-motion-*/results.json')]:
+ assert json.loads(path.read_text())['passed'], path
+reports=[]
+for checkpoint in sorted(Path('artifacts/capacity-restart-checkpoints').glob('*.json')):
+ result=subprocess.run(['godot','--headless','--path','godot','--script','tests/test_capacity_restart.gd','--','--checkpoint='+str(checkpoint.resolve())],capture_output=True,text=True)
+ assert result.returncode==0 and 'RESTART PASS' in result.stdout and 'ERROR' not in result.stdout+result.stderr, result.stdout+result.stderr
+ reports.append({'checkpoint':checkpoint.name,'passed':True})
+Path('artifacts/capacity-restart-results.json').write_text(json.dumps({'passed':True,'separate_processes':len(reports),'results':reports},indent=2))
+print('CAPACITY PROCESS RESTART:',len(reports),'isolated saves passed')
+PYTEST

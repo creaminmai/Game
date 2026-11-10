@@ -1,0 +1,224 @@
+{
+  "chapter_progress": {
+    "active": "",
+    "archived_visits": 24,
+    "chapter_one_day": 1,
+    "chapter_two_day": 3,
+    "dual_experienced": true,
+    "legacy_partial": false,
+    "presented": [],
+    "seen": [],
+    "through_day": 6,
+    "version": 1,
+    "visits": []
+  },
+  "daily_ledger": {
+    "expansion_expense": 0,
+    "income": 0,
+    "lab_expense": 0,
+    "new_annex": false,
+    "opening_money": 2300,
+    "research_expense": 0,
+    "training_expense": 0,
+    "version": 3
+  },
+  "day": 7,
+  "expanded": true,
+  "first_day_story": {
+    "active": "",
+    "enabled": false,
+    "line": 0,
+    "seen": {
+      "admission": true,
+      "arrival": true,
+      "complete": true,
+      "ct": true,
+      "day_end": true,
+      "expansion": true,
+      "plan": true,
+      "treatment": true,
+      "welcome": true
+    },
+    "selected_first": true,
+    "stage": "disabled",
+    "version": 1
+  },
+  "implementation": "sunshine-rebuild-2026-11",
+  "lifetime_completed": 24,
+  "max_treating": 2,
+  "money": 2300,
+  "next_arrival": 18.0,
+  "operations_training": {
+    "active": "",
+    "archived_visits": 12,
+    "candidate_id": -1,
+    "chapter_three_day": 4,
+    "elapsed": 0.0,
+    "enabled": true,
+    "line": 0,
+    "presented": false,
+    "purchased_day": 4,
+    "seen": [
+      "introduction"
+    ],
+    "through_day": 6,
+    "trained": true,
+    "version": 1,
+    "visits": []
+  },
+  "patients": [
+    {
+      "admission_source": "minji",
+      "elapsed": 1.1,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue",
+        "walk_ct",
+        "ct_scan"
+      ],
+      "id": 1,
+      "name": "박상철",
+      "next_state": "ct_scan",
+      "paid": false,
+      "plan_source": "none",
+      "position": [
+        -4.0,
+        0.0,
+        -2.79999995231628
+      ],
+      "queue_order": 1,
+      "room": -1,
+      "route": [],
+      "service_duration": 4.0,
+      "state": "ct_scan"
+    },
+    {
+      "admission_source": "minji",
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering",
+        "waiting",
+        "ct_queue"
+      ],
+      "id": 2,
+      "name": "최민석",
+      "next_state": "waiting",
+      "paid": false,
+      "plan_source": "none",
+      "position": [
+        -3.20000004768372,
+        0.0,
+        2.29999995231628
+      ],
+      "queue_order": 2,
+      "room": -1,
+      "route": [],
+      "service_duration": 0.0,
+      "state": "ct_queue"
+    },
+    {
+      "admission_source": "none",
+      "elapsed": 0.0,
+      "history": [
+        "entering",
+        "entering"
+      ],
+      "id": 3,
+      "name": "김영수",
+      "next_state": "waiting",
+      "paid": false,
+      "plan_source": "none",
+      "position": [
+        -2.45657300949097,
+        0.0,
+        3.25508594512939
+      ],
+      "queue_order": 0,
+      "room": -1,
+      "route": [
+        [
+          -4.5,
+          0.0,
+          3.79999995231628
+        ]
+      ],
+      "service_duration": 0.0,
+      "state": "entering"
+    }
+  ],
+  "research_lab": {
+    "active": "",
+    "built_day": 5,
+    "chapter_four_day": 7,
+    "closed_through": 6,
+    "events": [
+      {
+        "after_close": false,
+        "day": 5,
+        "kind": "build",
+        "money": 1800,
+        "points": 6
+      },
+      {
+        "day": 5,
+        "id": "ct",
+        "kind": "start",
+        "money": 500,
+        "points": -6
+      },
+      {
+        "day": 5,
+        "kind": "produce",
+        "money": 0,
+        "points": 4
+      },
+      {
+        "day": 6,
+        "kind": "produce",
+        "money": 0,
+        "points": 4
+      },
+      {
+        "day": 6,
+        "id": "ct",
+        "kind": "complete",
+        "money": 0,
+        "points": 0
+      },
+      {
+        "day": 7,
+        "id": "ct",
+        "kind": "apply",
+        "money": 0,
+        "points": 0
+      }
+    ],
+    "initial_granted": true,
+    "line": 0,
+    "points": 8,
+    "presented": false,
+    "projects": {
+      "ct": {
+        "applied_day": 7,
+        "completed_day": 6,
+        "progress_days": 1,
+        "start_day": 5
+      }
+    },
+    "seen": [],
+    "version": 1
+  },
+  "serial": 2,
+  "staff_admission": {
+    "candidate_id": -1,
+    "elapsed": 0.0,
+    "enabled": true,
+    "offer_seen": true,
+    "version": 1
+  },
+  "time": 14.8,
+  "version": 2
+}

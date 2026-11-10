@@ -75,7 +75,7 @@ func run() -> void:
  check(partial.chapters.total() == 1,"restored departure counts once")
  var legacy_sim := Fixture.prepare(3,1)
  Fixture.step(legacy_sim,1)
- var legacy := legacy_sim.snapshot(); legacy.erase("chapter_progress")
+ var legacy := legacy_sim.snapshot(); legacy.erase("chapter_progress"); legacy.erase("daily_schedule")
  var loaded := HospitalSimulation.new()
  check(loaded.restore(legacy) and loaded.day == 3 and loaded.money == legacy_sim.money,"legacy save is preserved, never reset")
  check(loaded.chapters.total() == 8 and loaded.chapters.chapter_one_day == 1,"closed-day invariant restores exact eight departures")

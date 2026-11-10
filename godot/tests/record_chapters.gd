@@ -101,7 +101,9 @@ func run() -> void:
    elif seconds >= 12 and not done.has("reviewed"):
     await click(game.chapter_panel.close_button); await click(game.next_day_button); done.reviewed = true
    elif seconds >= 14 and not done.has("next"):
-    await click(game.journal.next_button); done.next = true
+    await click(game.journal.next_button)
+    if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
+    done.next = true
    elif seconds >= 17 and not done.has("save"):
     await click(game.pause_button)
     game.store.path = "user://chapter-video-isolated.json"

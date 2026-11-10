@@ -4,12 +4,10 @@ extends RefCounted
 signal changed
 signal admitted(id: int)
 signal plan_assigned(id: int)
-const MAX_PATIENTS := 4
 const VISIT_FEE := 200
 const EXPANSION_COST := 600
 const SPEED := 2.1
 const DURATIONS := {"ct_scan": 5.0, "planning": 5.0, "treatment": 30.0}
-const NAMES := ["김영수", "이정호", "박상철", "최민석"]
 const STATES := ["entering", "waiting", "ct_queue", "walk_ct", "ct_scan", "walk_plan", "plan_ready", "plan_queue", "planning", "treatment_queue", "walk_treatment", "treatment", "leaving", "complete"]
 const CAPTIONS := {
  "entering": "대기실로 이동", "waiting": "접수 필요", "ct_queue": "CT 대기",
@@ -35,6 +33,7 @@ var admission := HospitalAdmissionDuty.new()
 var chapters := HospitalChapterProgress.new()
 var operations := HospitalOperationsTraining.new()
 var research := HospitalResearchLab.new()
+var schedule := HospitalDailySchedule.new()
 
 func _init() -> void:
  spawn()
@@ -45,15 +44,16 @@ func get_patient(id: int) -> Dictionary:
  return {}
 
 func wait_position(id: int) -> Vector3:
- return Vector3(-4.5 + ((id - 1) % 2) * 1.3, 0, 2.3 + floori((id - 1) / 2.0) * 1.5)
+ return HospitalPatientProfiles.wait_position(id)
 
 func plan_position(id: int) -> Vector3:
+ if id >= 5: return Vector3(4.8,0,-1.8+(id-5)*.8)
  return Vector3(2.4 + ((id - 1) % 2) * 1.2, 0, -1.8 + floori((id - 1) / 2.0) * 0.8)
 
 func spawn() -> void:
- if patients.size() >= MAX_PATIENTS: return
+ if patients.size() >= schedule.today_count: return
  var id := patients.size() + 1
- var p := {"id": id, "name": NAMES[(id + day - 2) % NAMES.size()], "state": "entering",
+ var p := {"id": id, "name": HospitalPatientProfiles.patient_name(id,day), "state": "entering",
   "position": Vector3(0,0,6.6), "route": [], "next_state": "", "elapsed": 0.0,
   "service_duration":0.0, "room": -1, "paid": false, "queue_order": 0, "history": ["entering"],"admission_source":"none","plan_source":"none"}
  patients.append(p)
@@ -66,12 +66,26 @@ func set_state(p: Dictionary, state: String) -> void:
  p.service_duration = duration_for(state)
  p.history.append(state)
  if state == "complete":
-  chapters.record_departure(day,p.id)
+  chapters.record_departure(day,p.id,schedule.today_count)
   operations.record_departure(day,p)
  changed.emit()
 
 func travel(p: Dictionary, state: String, points: Array, destination: String) -> void:
  p.route = points.duplicate()
+ if schedule.today_count == 6:
+  for i in range(p.route.size()):
+   var at: Vector3 = p.route[i]
+   if is_zero_approx(at.x):
+    at.x = -.34 if state in ["entering","walk_ct"] else .34
+    p.route[i] = at
+  if p.id == 6 and state == "entering": p.route.insert(p.route.size()-1,Vector3(-1.5,0,5.8))
+  if p.id == 6 and state == "walk_ct": p.route.push_front(Vector3(-1.5,0,5.8))
+  if state == "walk_plan" and p.id >= 5:
+   p.route = [Vector3(-1.5,0,-2.8),Vector3(.34,0,-2.8),Vector3(.34,0,-1),Vector3(1.5,0,-1),Vector3(1.5,0,-2.6),Vector3(5.45,0,-2.6),Vector3(5.45,0,plan_position(p.id).z),plan_position(p.id)]
+  if state == "walk_treatment" and p.id >= 5:
+   p.route.push_front(Vector3(1.5,0,-.4))
+   p.route.push_front(Vector3(5.45,0,-.4))
+   p.route.push_front(Vector3(5.45,0,p.position.z))
  p.next_state = destination
  set_state(p, state)
 
@@ -87,7 +101,7 @@ func completed() -> int:
  return total
 
 func all_done() -> bool:
- return patients.size() == MAX_PATIENTS and count_state("complete") == MAX_PATIENTS
+ return patients.size() == schedule.today_count and count_state("complete") == schedule.today_count
 
 func count_state(state: String) -> int:
  var total := 0
@@ -108,8 +122,8 @@ func set_admission_delegated(value: bool) -> bool:
 
 func next_action_patient(current: int) -> int:
  # Cycle only on an explicit user action; never steal a selection during refresh.
- for offset in range(1, MAX_PATIENTS + 1):
-  var id := ((maxi(current, 0) + offset - 1) % MAX_PATIENTS) + 1
+ for offset in range(1, schedule.today_count + 1):
+  var id := ((maxi(current, 0) + offset - 1) % schedule.today_count) + 1
   var p := get_patient(id)
   if not p.is_empty() and needs_player_action(p): return id
  return -1
@@ -194,11 +208,19 @@ func tick(delta: float) -> void:
 
 func _step(delta: float) -> void:
  time += delta
- while patients.size() < MAX_PATIENTS and time + 0.000001 >= next_arrival:
+ while patients.size() < schedule.today_count and time + 0.000001 >= next_arrival:
   spawn()
   next_arrival += 6.0
  for p in patients:
   if not p.route.is_empty():
+   # Let the departing patient clear the shared couch approach. The next room
+   # is still reserved normally; no clinical time, queue or payment is skipped.
+   var passage_busy := false
+   if schedule.today_count == 6 and p.state == "walk_treatment":
+    for other in patients:
+     if other.id != p.id and other.state == "leaving" and other.room == p.room and other.route.size() > 1: passage_busy = true
+     if p.room == 1 and other.room == 0 and other.state == "treatment" and (other.elapsed < 1.7 or service_duration(other)-other.elapsed < 1.7): passage_busy = true
+   if passage_busy: continue
    var distance := SPEED * delta
    while distance > 0 and not p.route.is_empty():
     var target: Vector3 = p.route[0]
@@ -237,6 +259,7 @@ func _step(delta: float) -> void:
  dispatch()
  max_treating = maxi(max_treating, count_state("treatment"))
  chapters.observe(self)
+ if all_done(): schedule.record_close(day,count_state("complete"))
  research.close_operating_day(self)
 
 func duration_for(state: String) -> float:
@@ -303,13 +326,16 @@ func purchase_expansion() -> bool:
  changed.emit()
  return true
 
-func start_next_day() -> bool:
- if not all_done(): return false
+func start_next_day(count: int = -1) -> bool:
+ if count == -1: count = schedule.preferred_count if expanded else 4
+ if not count in [4,6] or (count == 6 and not expanded) or not all_done(): return false
+ schedule.record_close(day,count_state("complete"))
  chapters.observe(self)
  research.close_operating_day(self)
  chapters.close_day(day)
  operations.close_day(day)
  day += 1
+ schedule.next_day(count)
  ledger.start_day(money)
  research.apply_before_arrivals(day)
  patients.clear()
@@ -333,7 +359,7 @@ func snapshot() -> Dictionary:
   for point in p.route: copy.route.append([point.x,point.y,point.z])
   saved.append(copy)
  return {"version": 2,"implementation": "sunshine-rebuild-2026-11", "day": day,"lifetime_completed": lifetime_completed,"time": time,"next_arrival": next_arrival,
-  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot(),"operations_training":operations.snapshot(),"research_lab":research.snapshot()}
+  "money": money,"expanded": expanded,"serial": serial,"max_treating": max_treating,"patients": saved,"daily_ledger":ledger.snapshot(),"staff_admission":admission.snapshot(),"chapter_progress":chapters.snapshot(),"operations_training":operations.snapshot(),"research_lab":research.snapshot(),"daily_schedule":schedule.snapshot()}
 
 static func whole(value: Variant, low: int, high: int) -> bool:
  return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= low and value <= high
@@ -352,8 +378,13 @@ func restore(data: Variant) -> bool:
  for field in ["day","lifetime_completed","money","serial","max_treating"]:
   if not whole(data.get(field), 1 if field == "day" else 0, 100000000): return false
  if not data.get("expanded") is bool: return false
- if not finite_number(data.get("time"),0,100000000) or not finite_number(data.get("next_arrival"),6,24): return false
- if not data.get("patients") is Array or data.patients.size() < 1 or data.patients.size() > MAX_PATIENTS: return false
+ var booking: Variant = data.get("daily_schedule")
+ if booking != null and not booking is Dictionary: return false
+ if booking != null and not whole(booking.get("today_count"),4,6): return false
+ var today: int = int(booking.get("today_count",0)) if booking != null else 4
+ if not today in [4,6] or (today == 6 and (not data.expanded or data.day == 1)): return false
+ if not finite_number(data.get("time"),0,100000000) or not finite_number(data.get("next_arrival"),6,today*6): return false
+ if not data.get("patients") is Array or data.patients.size() < 1 or data.patients.size() > today: return false
  var candidate: Array[Dictionary] = []
  var ct := -1
  var planner := -1
@@ -364,7 +395,7 @@ func restore(data: Variant) -> bool:
  var paid_count := 0
  for raw in data.patients:
   if not raw is Dictionary: return false
-  if not whole(raw.get("id"),1,MAX_PATIENTS) or int(raw.id) in ids: return false
+  if not whole(raw.get("id"),1,today) or int(raw.id) in ids: return false
   if not raw.get("name") is String or raw.name.length() > 40: return false
   if not raw.get("state") in STATES or not raw.get("paid") is bool: return false
   if not whole(raw.get("room"),-1,rooms.size()-1): return false
@@ -421,19 +452,23 @@ func restore(data: Variant) -> bool:
   candidate.append(p)
  for id in range(1,candidate.size()+1):
   if not id in ids: return false
- if data.lifetime_completed < paid_count or data.next_arrival != minf(24.0, candidate.size()*6.0): return false
+ if data.lifetime_completed < paid_count or data.next_arrival != minf(today*6.0, candidate.size()*6.0): return false
+ var done: bool = candidate.size() == today and candidate.all(func(p): return p.state == "complete")
+ var candidate_schedule := HospitalDailySchedule.from_save(booking,int(data.day),data.expanded,done,int(data.lifetime_completed),paid_count)
+ if candidate_schedule == null: return false
  var candidate_ledger := HospitalDailyLedger.from_save(data.get("daily_ledger"),paid_count,int(data.money),data.expanded)
  if candidate_ledger == null: return false
  var candidate_admission := HospitalAdmissionDuty.from_save(data.get("staff_admission"),int(data.day),candidate)
  if candidate_admission == null: return false
- var candidate_chapters := HospitalChapterProgress.from_save(data.get("chapter_progress"),int(data.day),int(data.lifetime_completed),candidate,data.expanded)
+ var candidate_chapters := HospitalChapterProgress.from_save(data.get("chapter_progress"),int(data.day),int(data.lifetime_completed),candidate,data.expanded,candidate_schedule)
  if candidate_chapters == null: return false
- var candidate_operations := HospitalOperationsTraining.from_save(data.get("operations_training"),int(data.day),candidate,candidate_chapters.chapter_two_day,candidate_ledger.training_expense)
+ var candidate_operations := HospitalOperationsTraining.from_save(data.get("operations_training"),int(data.day),candidate,candidate_chapters.chapter_two_day,candidate_ledger.training_expense,candidate_schedule)
  if candidate_operations == null: return false
- var candidate_research := HospitalResearchLab.from_save(data.get("research_lab"),int(data.day),candidate.size() == 4 and paid_count == 4 and candidate.all(func(p): return p.state == "complete"),candidate_operations.chapter_three_day,candidate_ledger)
+ var candidate_research := HospitalResearchLab.from_save(data.get("research_lab"),int(data.day),done,candidate_operations.chapter_three_day,candidate_ledger)
  if candidate_research == null: return false
  for p in candidate:
   if p.service_duration == 4 and not candidate_research.applied("ct" if p.state == "ct_scan" else "plan"): return false
+ schedule = candidate_schedule
  research = candidate_research
  operations = candidate_operations
  chapters = candidate_chapters

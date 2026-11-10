@@ -141,6 +141,7 @@ func run() -> void:
   check(store.save(game.sim,game.story) and store.load_into(game.sim,game.story),"journal-state save and reload")
   check(game.sim.money == 1100 and game.sim.ledger.income == 800,"journal reload cannot pay twice")
   await click(game.journal.next_button)
+  if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
   game.start_day() # An immediate second request must be harmless.
   check(game.sim.day == 2 and not game.journal.visible and game.story.active == "","next-day double request advances once, with no first-day dialogue")
   check(game.sim.ledger.income == 0 and game.sim.ledger.expansion_expense == 0 and game.sim.money == 1100,"new day clears only the daily aggregates")

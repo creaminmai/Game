@@ -87,7 +87,7 @@ func run() -> void:
  poor.lifetime_completed = 1; poor.money = 599
  check(not poor.purchase_expansion() and poor.money == 599,"insufficient funds protected")
  var dual = Sim.new()
- dual.lifetime_completed = 1
+ while dual.completed() == 0: autoplay(dual,0.1)
  dual.purchase_expansion()
  var found := false
  for i in range(2200):

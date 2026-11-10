@@ -96,9 +96,9 @@ func build(id: int, staff: bool = false, receptionist: bool = true, model_path: 
  book.hide()
  book.set_meta("reader",id == 1 and not staff)
  var glasses: Node3D = model.find_child("Glasses",true,false)
- glasses.visible = (not staff and id in [1,2]) or (staff and not receptionist)
- var shirt: Color = Color("55aaa0") if staff else [Color("dca48c"),Color("a2c4d8"),Color("c2a3c8"),Color("b9c69e")][(id-1)%4]
- var hair: Color = Color("79513c") if staff else [Color("aaa09a"),Color("c5c1bd"),Color("795944"),Color("afa6b4")][(id-1)%4]
+ glasses.visible = (not staff and HospitalPatientProfiles.profile(id).glasses) or (staff and not receptionist)
+ var shirt: Color = Color("55aaa0") if staff else Color(HospitalPatientProfiles.profile(id).shirt)
+ var hair: Color = Color("79513c") if staff else Color(HospitalPatientProfiles.profile(id).hair)
  if staff and not receptionist: shirt = Color("f1eee5")
  apply_palette(model,shirt,hair,{})
  install_blink()
@@ -149,7 +149,7 @@ func sync(p: Dictionary, selected: bool, delta: float) -> void:
  position = p.position + Vector3(0,.06,0)
  visible = p.state != "complete"
  idle_face(delta,.15 if service else 1.0)
- seated = p.state in ["waiting","ct_queue"]
+ seated = HospitalPatientProfiles.has_seat(p.id) and p.state in ["waiting","ct_queue"]
  if not initialized: seat_blend = 1.0 if seated else 0.0
  elif seated: seat_blend = move_toward(seat_blend,1.0,delta/.45)
  else: seat_blend = 1.0-Motion.seat_rise(p)

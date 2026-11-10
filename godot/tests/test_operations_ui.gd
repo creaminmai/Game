@@ -82,6 +82,7 @@ func run() -> void:
   check(game.chapter_panel.first.text.contains("완료") and game.chapter_panel.second.text.contains("완료"),"previous completed chapters remain reviewable")
   operations_layout(prefix+" history")
   await click(game.chapter_panel.close_button); await click(game.next_day_button); await click(game.journal.next_button)
+  if game.capacity_dialog.visible: await click(game.capacity_dialog.start_button)
   check(game.sim.day == 5 and game.sim.operations.total() == 4 and game.sim.ledger.training_expense == 0,"next day preserves chapter and resets expense")
   await click(game.guide_settings); await click(game.story_off)
   var store := HospitalSaveStore.new(); store.path = "user://operations-ui.json"

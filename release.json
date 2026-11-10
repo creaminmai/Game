@@ -1,6 +1,6 @@
 {
-  "version": "0.6.0-dev",
-  "version_code": 600,
+  "version": "0.7.0-dev",
+  "version_code": 700,
   "features": [
     "first-day-story",
     "daily-ledger",
@@ -12,7 +12,10 @@
     "research-lab-level-1",
     "research-points",
     "operating-day-research",
-    "ct-and-plan-time-improvements"
+    "ct-and-plan-time-improvements",
+    "annex-daily-capacity-4-or-6",
+    "six-patient-operations",
+    "per-day-booking-history"
   ],
   "godot": "4.6.3",
   "application_id": "org.creaminmai.sunshinehospital.playtest"
