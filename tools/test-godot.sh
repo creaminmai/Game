@@ -97,3 +97,8 @@ for checkpoint in sorted(Path('artifacts/capacity-restart-checkpoints').glob('*.
 Path('artifacts/capacity-restart-results.json').write_text(json.dumps({'passed':True,'separate_processes':len(reports),'results':reports},indent=2))
 print('CAPACITY PROCESS RESTART:',len(reports),'isolated saves passed')
 PYTEST
+
+# Chapter-goal versus actual day-close, and the existing pause holds with six.
+godot --headless --path godot --script tests/test_capacity_edges.gd -- --qa 2>&1 | tee .runtime/capacity-edges.log
+if rg 'SCRIPT ERROR|ERROR:|FAIL:' .runtime/capacity-edges.log; then exit 1; fi
+rg -q 'CAPACITY EDGES: [1-9][0-9]* checks, 0 failures' .runtime/capacity-edges.log

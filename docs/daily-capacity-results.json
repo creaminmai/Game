@@ -1,0 +1,1838 @@
+{
+  "passed": true,
+  "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+  "version": "0.7.0-dev",
+  "date_kst": "2026-11-10",
+  "native": {
+    "passed": true,
+    "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+    "checks": 2789,
+    "reports": {
+      "motion-unit": {
+        "checks": 48,
+        "completed": 4,
+        "failures": [],
+        "geometry_contacts": {},
+        "geometry_sample_rate": 60,
+        "max_head_step_60fps": 0.116186797618866,
+        "max_turn_radians_per_frame": 0.436921715736389,
+        "money": 1100,
+        "passed": true,
+        "phases": [
+          {
+            "pose": "walk",
+            "state": "walk_ct",
+            "time": 6.01666666666666
+          },
+          {
+            "pose": "prepare",
+            "state": "ct_scan",
+            "time": 12.8500000000002
+          },
+          {
+            "pose": "lie_down",
+            "state": "ct_scan",
+            "time": 13.0000000000002
+          },
+          {
+            "pose": "service",
+            "state": "ct_scan",
+            "time": 14.2000000000003
+          },
+          {
+            "pose": "rise",
+            "state": "ct_scan",
+            "time": 16.516666666667
+          },
+          {
+            "pose": "walk",
+            "state": "walk_plan",
+            "time": 17.8500000000003
+          },
+          {
+            "pose": "idle",
+            "state": "plan_ready",
+            "time": 21.9
+          },
+          {
+            "pose": "walk",
+            "state": "walk_treatment",
+            "time": 26.8999999999998
+          },
+          {
+            "pose": "prepare",
+            "state": "treatment",
+            "time": 31.9999999999995
+          },
+          {
+            "pose": "lie_down",
+            "state": "treatment",
+            "time": 32.1499999999995
+          },
+          {
+            "pose": "service",
+            "state": "treatment",
+            "time": 33.3499999999994
+          },
+          {
+            "pose": "rise",
+            "state": "treatment",
+            "time": 60.6666666666645
+          },
+          {
+            "pose": "walk",
+            "state": "leaving",
+            "time": 61.9999999999978
+          },
+          {
+            "pose": "idle",
+            "state": "complete",
+            "time": 65.8166666666642
+          }
+        ],
+        "save_format_changed": false,
+        "simultaneous_treatment": true
+      },
+      "story-unit": {
+        "checks": 84,
+        "failures": [],
+        "mac_or_mobile_hardware_test": false,
+        "passed": true,
+        "saved_scenes": [
+          "welcome",
+          "arrival",
+          "",
+          "ct",
+          "plan",
+          "treatment",
+          "complete",
+          "expansion",
+          "day_end",
+          ""
+        ]
+      },
+      "first-day-polish-unit": {
+        "checks": 70,
+        "failures": [],
+        "mobile_hardware_test": false,
+        "passed": true
+      },
+      "staff-unit": {
+        "checks": 61,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false
+      },
+      "chapter-unit": {
+        "checks": 524,
+        "failures": [],
+        "passed": true,
+        "physical_device": false,
+        "real_file_roundtrips": 18
+      },
+      "operations-unit": {
+        "checks": 251,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot headless; separate test save"
+      },
+      "research-unit": {
+        "checks": 201,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot headless"
+      },
+      "research-motion": {
+        "checks": 17,
+        "ct_seconds": 4.00000000000001,
+        "failures": [],
+        "geometry_contacts": {},
+        "max_head_step_60fps": 0.116186797618866,
+        "passed": true,
+        "phases": [
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "entering",
+            "time": 0.0166666666666667
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "waiting",
+            "time": 3.89999999999999
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "walk_ct",
+            "time": 6.88333333333331
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "prepare",
+            "state": "ct_scan",
+            "time": 13.7333333333336
+          },
+          {
+            "elapsed": 0.15,
+            "pose": "lie_down",
+            "state": "ct_scan",
+            "time": 13.8833333333336
+          },
+          {
+            "elapsed": 1.35,
+            "pose": "service",
+            "state": "ct_scan",
+            "time": 15.0833333333337
+          },
+          {
+            "elapsed": 2.66666666666666,
+            "pose": "rise",
+            "state": "ct_scan",
+            "time": 16.4000000000004
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "walk_plan",
+            "time": 17.7333333333336
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "plan_ready",
+            "time": 21.7833333333334
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "planning",
+            "time": 24.7666666666665
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "walk_treatment",
+            "time": 29.7666666666663
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "prepare",
+            "state": "treatment",
+            "time": 34.866666666666
+          },
+          {
+            "elapsed": 0.15,
+            "pose": "lie_down",
+            "state": "treatment",
+            "time": 35.016666666666
+          },
+          {
+            "elapsed": 1.35,
+            "pose": "service",
+            "state": "treatment",
+            "time": 36.2166666666659
+          },
+          {
+            "elapsed": 28.6666666666663,
+            "pose": "rise",
+            "state": "treatment",
+            "time": 63.533333333331
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "walk",
+            "state": "leaving",
+            "time": 64.8666666666643
+          },
+          {
+            "elapsed": 0.0,
+            "pose": "idle",
+            "state": "complete",
+            "time": 68.6833333333307
+          }
+        ],
+        "physical_mobile": false
+      },
+      "daily-capacity-unit": {
+        "checks": 1253,
+        "failures": [],
+        "full_day_records": [
+          {
+            "booked": 4,
+            "day": 1,
+            "departed": 4,
+            "income": 800,
+            "money": 1100,
+            "visits": 4
+          },
+          {
+            "booked": 6,
+            "day": 2,
+            "departed": 6,
+            "dual_treatment": 2,
+            "income": 1200,
+            "money": 2300,
+            "research_points": 0,
+            "sim_seconds": 178.199999999994,
+            "visits": 10
+          },
+          {
+            "booked": 6,
+            "day": 3,
+            "departed": 6,
+            "dual_treatment": 2,
+            "income": 1200,
+            "money": 3500,
+            "research_points": 0,
+            "sim_seconds": 178.199999999994,
+            "visits": 16
+          },
+          {
+            "booked": 4,
+            "day": 1,
+            "departed": 4,
+            "dual_treatment": 2,
+            "income": 800,
+            "money": 1100,
+            "research_points": 0,
+            "sim_seconds": 135.099999999997,
+            "visits": 4
+          },
+          {
+            "booked": 6,
+            "day": 8,
+            "departed": 6,
+            "dual_treatment": 2,
+            "income": 1200,
+            "money": 4300,
+            "research_points": 16,
+            "sim_seconds": 181.999999999994,
+            "visits": 34
+          },
+          {
+            "booked": 6,
+            "day": 6,
+            "departed": 6,
+            "dual_treatment": 2,
+            "income": 1200,
+            "money": 2700,
+            "research_points": 8,
+            "sim_seconds": 183.999999999994,
+            "visits": 26
+          }
+        ],
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 headless; normal simulation commands, accelerated test loop",
+        "save_phases": [
+          "5:entering",
+          "5:waiting",
+          "5:ct_queue",
+          "6:entering",
+          "6:waiting",
+          "6:ct_queue",
+          "5:walk_ct",
+          "5:ct_scan",
+          "5:walk_plan",
+          "6:walk_ct",
+          "6:ct_scan",
+          "5:plan_ready",
+          "5:planning",
+          "6:walk_plan",
+          "5:treatment_queue",
+          "6:plan_ready",
+          "6:planning",
+          "6:treatment_queue",
+          "5:walk_treatment",
+          "5:treatment",
+          "6:walk_treatment",
+          "5:leaving",
+          "5:complete",
+          "6:treatment",
+          "6:leaving",
+          "6:complete"
+        ]
+      },
+      "capacity-motion-held": {
+        "checks": 18,
+        "failures": [],
+        "geometry_contacts": {},
+        "minimum_head_distance": 0.599297344684601,
+        "passed": true,
+        "patient_contacts": {},
+        "platform": "Linux Godot actual GLB geometry, headless physics; not physical mobile",
+        "sample_rate": 30
+      },
+      "capacity-motion-streaming": {
+        "checks": 5,
+        "failures": [],
+        "geometry_contacts": {},
+        "minimum_head_distance": 0.599311351776123,
+        "passed": true,
+        "patient_contacts": {},
+        "platform": "Linux Godot actual GLB geometry, headless physics; not physical mobile",
+        "sample_rate": 30
+      },
+      "capacity-motion-auto": {
+        "checks": 5,
+        "failures": [],
+        "geometry_contacts": {},
+        "minimum_head_distance": 0.599321067333221,
+        "passed": true,
+        "patient_contacts": {},
+        "platform": "Linux Godot actual GLB geometry, headless physics; not physical mobile",
+        "sample_rate": 30
+      },
+      "capacity-ui": {
+        "checks": 188,
+        "failures": [],
+        "passed": true,
+        "physical_mobile": false,
+        "platform": "Linux Godot 4.6.3 actual renderer; automated mouse/touch emulation and synthetic safe insets"
+      },
+      "simulation": {
+        "passed": true,
+        "checks": 51
+      },
+      "capacity-edges": {
+        "checks": 13,
+        "failures": [],
+        "passed": true,
+        "platform": "Linux actual main scene headless; simulated lifecycle notifications; no phone hardware"
+      }
+    },
+    "process_restart": {
+      "passed": true,
+      "separate_processes": 25,
+      "results": [
+        {
+          "checkpoint": "5-complete.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-ct_queue.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-ct_scan.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-entering.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-leaving.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-plan_ready.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-planning.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-treatment.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-treatment_queue.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-waiting.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-walk_ct.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-walk_plan.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "5-walk_treatment.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-ct_queue.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-ct_scan.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-entering.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-leaving.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-plan_ready.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-planning.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-treatment.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-treatment_queue.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-waiting.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-walk_ct.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-walk_plan.json",
+          "passed": true
+        },
+        {
+          "checkpoint": "6-walk_treatment.json",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "web_desktop": {
+    "passed": true,
+    "browser": "Chromium desktop / SwiftShader",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "walk_ct",
+    "indexeddb_save": true,
+    "first_day_story_saved": true,
+    "daily_ledger_saved": true,
+    "story_stage": "ct",
+    "mobile_tested": false,
+    "wasm_engine_start_wall_seconds": 4.638229156989837,
+    "first_arrived_and_persisted_wall_seconds": 160.52497162300278,
+    "viewport": [
+      1280,
+      720
+    ],
+    "device_pixel_ratio": 1,
+    "url_kind": "loopback only",
+    "godot": "4.6.3",
+    "renderer": "Chromium SwiftShader WebGL2",
+    "preflight": {},
+    "staff": {},
+    "chapter": {},
+    "operations": {},
+    "research": {},
+    "capacity": {},
+    "first_admission_skipped": false
+  },
+  "web_touch": {
+    "passed": true,
+    "browser": "Chromium touch emulation",
+    "fullscreen_canvas": true,
+    "actual_canvas_admission": true,
+    "patient_state": "entering",
+    "indexeddb_save": true,
+    "first_day_story_saved": false,
+    "daily_ledger_saved": false,
+    "story_stage": "select",
+    "mobile_tested": false,
+    "wasm_engine_start_wall_seconds": 4.223678508977173,
+    "first_arrived_and_persisted_wall_seconds": 22.460769161989447,
+    "viewport": [
+      844,
+      350
+    ],
+    "device_pixel_ratio": 1,
+    "url_kind": "loopback only",
+    "godot": "4.6.3",
+    "renderer": "Chromium SwiftShader WebGL2",
+    "preflight": {},
+    "staff": {},
+    "chapter": {},
+    "operations": {},
+    "research": {},
+    "capacity": {
+      "passed": true,
+      "normal_checkpoint_count": 3,
+      "automatic_canvas_input": true,
+      "booking_cancel_no_mutation": true,
+      "explicit_six_then_four": true,
+      "actual_sixth_admission": true,
+      "actual_touch_roster_drag": true,
+      "actual_page_reloads": 2,
+      "no_duplicate_receipts": true,
+      "continuous_web_playthrough": false,
+      "physical_phone": false
+    },
+    "first_admission_skipped": true
+  },
+  "android": {
+    "passed": true,
+    "apk": "SunshineHospital-0.7.0-dev.apk",
+    "bytes": 68368380,
+    "sha256": "b4186c0f3c45a30d161b080aa6b6ffce7584fad45cf782046ea5da691dd73cd4",
+    "certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "debug": true,
+    "landscape": true,
+    "min_sdk": 24,
+    "target_sdk": 36,
+    "architectures": [
+      "arm64-v8a",
+      "x86_64"
+    ],
+    "alignment_16kb": true,
+    "device_list": "* daemon not running; starting now at tcp:5037\n* daemon started successfully\nList of devices attached\n\n",
+    "installation_tested": false,
+    "android_runtime_tested": false,
+    "store_release": false,
+    "version": "0.7.0-dev",
+    "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-4",
+      "operations-training",
+      "planning-delegation",
+      "research-lab-level-1",
+      "research-points",
+      "operating-day-research",
+      "ct-and-plan-time-improvements",
+      "annex-daily-capacity-4-or-6",
+      "six-patient-operations",
+      "per-day-booking-history"
+    ],
+    "same_development_signer_as_previous": true
+  },
+  "delivery": {
+    "version": "0.7.0-dev",
+    "version_code": 700,
+    "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+    "features": [
+      "first-day-story",
+      "daily-ledger",
+      "treatment-annex",
+      "admission-delegation",
+      "chapters-1-4",
+      "operations-training",
+      "planning-delegation",
+      "research-lab-level-1",
+      "research-points",
+      "operating-day-research",
+      "ct-and-plan-time-improvements",
+      "annex-daily-capacity-4-or-6",
+      "six-patient-operations",
+      "per-day-booking-history"
+    ],
+    "godot": "4.6.3.stable.official.7d41c59c4",
+    "application_id": "org.creaminmai.sunshinehospital.playtest",
+    "passed": true,
+    "source_dirty": false,
+    "development_certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
+    "android_hardware_tested": false,
+    "iphone_hardware_tested": false,
+    "files": {
+      "artifacts/android/SunshineHospital-0.7.0-dev.apk": {
+        "bytes": 68368380,
+        "sha256": "b4186c0f3c45a30d161b080aa6b6ffce7584fad45cf782046ea5da691dd73cd4"
+      },
+      "artifacts/mobile/SunshineHospital-Web-0.7.0-dev-fd09e02.zip": {
+        "bytes": 24016566,
+        "sha256": "51e54c3594906c89ae90131158e6a5df2e1e54e5a0ce14469555993c55cba987"
+      }
+    }
+  },
+  "web_remote": {
+    "web_branch_commit": "5d1f33314947d6aa3cbf4c656bbe1560d4c67062",
+    "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+    "pages_publication_verified": false
+  },
+  "videos": {
+    "booking": {
+      "automatic_input": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "checkpoint_switches": [],
+      "continuous_segment": true,
+      "dual_treatment": false,
+      "file_restored": false,
+      "fps": 24,
+      "full_day_validation": "test_daily_capacity.gd",
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 Compatibility llvmpipe",
+      "real_canvas_clicks": 3,
+      "recorded_frames": 528,
+      "segment": "booking",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "booked": 4,
+          "day": 1,
+          "departed": 4,
+          "income": 800,
+          "journal": true,
+          "money": 1100,
+          "seconds": 0.0,
+          "states": [
+            [
+              1,
+              "complete"
+            ],
+            [
+              2,
+              "complete"
+            ],
+            [
+              3,
+              "complete"
+            ],
+            [
+              4,
+              "complete"
+            ]
+          ],
+          "time": 135.099999999997
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 12.2083333333333,
+          "states": [
+            [
+              1,
+              "entering"
+            ]
+          ],
+          "time": 0.0833333333333333
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 15.875,
+          "states": [
+            [
+              1,
+              "waiting"
+            ]
+          ],
+          "time": 3.75
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 18.125,
+          "states": [
+            [
+              1,
+              "waiting"
+            ],
+            [
+              2,
+              "entering"
+            ]
+          ],
+          "time": 6.00000000000001
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 21.25,
+          "states": [
+            [
+              1,
+              "waiting"
+            ],
+            [
+              2,
+              "waiting"
+            ]
+          ],
+          "time": 9.12500000000001
+        }
+      ],
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 529,
+        "delivered_frames": 528,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/capacity-booking-1x.mp4",
+      "sha256": "5c70b01dcdb001d50b671725b69b6a436a7bd8aef1f9b62c28177ab4322a33f8",
+      "bytes": 245470,
+      "launch": {
+        "argv": [
+          "godot",
+          "--path",
+          "/workspace/Game/.runtime/mobile-movie-rl1muoyt",
+          "--audio-driver",
+          "Dummy",
+          "--script",
+          "tests/record_capacity.gd",
+          "--resolution",
+          "844x390",
+          "--write-movie",
+          "/workspace/Game/artifacts/capacity-video-booking/playthrough.avi",
+          "--fixed-fps",
+          "24",
+          "--",
+          "--qa",
+          "--output-dir=/workspace/Game/artifacts/capacity-video-booking",
+          "--tutorial",
+          "--segment=booking",
+          "--mobile-preview"
+        ],
+        "platform": "Linux llvmpipe",
+        "physical_mobile": false,
+        "source_commit": "e5c060b8077a655ad617ee9049e919b2de2f8398",
+        "source_dirty": true,
+        "software_render_threads": "2"
+      },
+      "production_files_match_final_build_source": true
+    },
+    "flow": {
+      "automatic_input": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "checkpoint_switches": [
+        {
+          "checkpoint": "dual",
+          "day": 2,
+          "simulation_time": 81.6499999999976,
+          "video_second": 36.0
+        }
+      ],
+      "continuous_segment": false,
+      "dual_treatment": true,
+      "file_restored": false,
+      "fps": 24,
+      "full_day_validation": "test_daily_capacity.gd",
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 Compatibility llvmpipe",
+      "real_canvas_clicks": 9,
+      "recorded_frames": 1296,
+      "segment": "flow",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 0.0,
+          "states": [
+            [
+              1,
+              "waiting"
+            ],
+            [
+              2,
+              "waiting"
+            ],
+            [
+              3,
+              "waiting"
+            ],
+            [
+              4,
+              "waiting"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 40.0
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 7.41666666666667,
+          "states": [
+            [
+              1,
+              "walk_ct"
+            ],
+            [
+              2,
+              "waiting"
+            ],
+            [
+              3,
+              "waiting"
+            ],
+            [
+              4,
+              "waiting"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 47.4083333333329
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 13.875,
+          "states": [
+            [
+              1,
+              "ct_scan"
+            ],
+            [
+              2,
+              "waiting"
+            ],
+            [
+              3,
+              "waiting"
+            ],
+            [
+              4,
+              "waiting"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 53.8666666666659
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 15.125,
+          "states": [
+            [
+              1,
+              "ct_scan"
+            ],
+            [
+              2,
+              "ct_queue"
+            ],
+            [
+              3,
+              "waiting"
+            ],
+            [
+              4,
+              "waiting"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 55.1166666666658
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 18.125,
+          "states": [
+            [
+              1,
+              "ct_scan"
+            ],
+            [
+              2,
+              "ct_queue"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "waiting"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 58.1166666666656
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 18.875,
+          "states": [
+            [
+              1,
+              "walk_plan"
+            ],
+            [
+              2,
+              "walk_ct"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "waiting"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 58.8666666666656
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 21.125,
+          "states": [
+            [
+              1,
+              "walk_plan"
+            ],
+            [
+              2,
+              "walk_ct"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 61.1166666666655
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 22.9583333333333,
+          "states": [
+            [
+              1,
+              "plan_ready"
+            ],
+            [
+              2,
+              "walk_ct"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "waiting"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 62.9499999999987
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 24.125,
+          "states": [
+            [
+              1,
+              "plan_ready"
+            ],
+            [
+              2,
+              "walk_ct"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 64.1166666666653
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 24.8333333333333,
+          "states": [
+            [
+              1,
+              "plan_ready"
+            ],
+            [
+              2,
+              "ct_scan"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "waiting"
+            ]
+          ],
+          "time": 64.8249999999987
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 27.125,
+          "states": [
+            [
+              1,
+              "plan_ready"
+            ],
+            [
+              2,
+              "ct_scan"
+            ],
+            [
+              3,
+              "ct_queue"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 67.1166666666657
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 29.8333333333333,
+          "states": [
+            [
+              1,
+              "plan_ready"
+            ],
+            [
+              2,
+              "walk_plan"
+            ],
+            [
+              3,
+              "walk_ct"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 69.8249999999993
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 34.4166666666667,
+          "states": [
+            [
+              1,
+              "plan_ready"
+            ],
+            [
+              2,
+              "plan_ready"
+            ],
+            [
+              3,
+              "walk_ct"
+            ],
+            [
+              4,
+              "ct_queue"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 74.4083333333331
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 36.0416666666667,
+          "states": [
+            [
+              1,
+              "treatment"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "planning"
+            ],
+            [
+              4,
+              "ct_scan"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 81.6916666666643
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 37.375,
+          "states": [
+            [
+              1,
+              "treatment"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "treatment_queue"
+            ],
+            [
+              4,
+              "ct_scan"
+            ],
+            [
+              5,
+              "ct_queue"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 83.0249999999978
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 39.4166666666667,
+          "states": [
+            [
+              1,
+              "treatment"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "treatment_queue"
+            ],
+            [
+              4,
+              "walk_plan"
+            ],
+            [
+              5,
+              "walk_ct"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 85.0666666666647
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 43.9166666666667,
+          "states": [
+            [
+              1,
+              "treatment"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "treatment_queue"
+            ],
+            [
+              4,
+              "plan_ready"
+            ],
+            [
+              5,
+              "walk_ct"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 89.5666666666652
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 1100,
+          "seconds": 45.375,
+          "states": [
+            [
+              1,
+              "treatment"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "treatment_queue"
+            ],
+            [
+              4,
+              "plan_ready"
+            ],
+            [
+              5,
+              "ct_scan"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 91.0249999999987
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 200,
+          "journal": false,
+          "money": 1300,
+          "seconds": 49.75,
+          "states": [
+            [
+              1,
+              "leaving"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "walk_treatment"
+            ],
+            [
+              4,
+              "plan_ready"
+            ],
+            [
+              5,
+              "ct_scan"
+            ],
+            [
+              6,
+              "ct_queue"
+            ]
+          ],
+          "time": 95.3999999999992
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 0,
+          "income": 200,
+          "journal": false,
+          "money": 1300,
+          "seconds": 50.375,
+          "states": [
+            [
+              1,
+              "leaving"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "walk_treatment"
+            ],
+            [
+              4,
+              "plan_ready"
+            ],
+            [
+              5,
+              "walk_plan"
+            ],
+            [
+              6,
+              "walk_ct"
+            ]
+          ],
+          "time": 96.0249999999993
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 1,
+          "income": 200,
+          "journal": false,
+          "money": 1300,
+          "seconds": 53.4166666666667,
+          "states": [
+            [
+              1,
+              "complete"
+            ],
+            [
+              2,
+              "treatment"
+            ],
+            [
+              3,
+              "walk_treatment"
+            ],
+            [
+              4,
+              "plan_ready"
+            ],
+            [
+              5,
+              "walk_plan"
+            ],
+            [
+              6,
+              "walk_ct"
+            ]
+          ],
+          "time": 99.0666666666663
+        }
+      ],
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 1297,
+        "delivered_frames": 1296,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/capacity-flow-1x.mp4",
+      "sha256": "d94842fb51fe70c261724045bb4bdfb0eb4b609b95549d48f2868a7d3bfac19d",
+      "bytes": 1198566,
+      "launch": {
+        "argv": [
+          "godot",
+          "--path",
+          "/workspace/Game/.runtime/mobile-movie-abg3vlx7",
+          "--audio-driver",
+          "Dummy",
+          "--script",
+          "tests/record_capacity.gd",
+          "--resolution",
+          "844x390",
+          "--write-movie",
+          "/workspace/Game/artifacts/capacity-video-flow/playthrough.avi",
+          "--fixed-fps",
+          "24",
+          "--",
+          "--qa",
+          "--output-dir=/workspace/Game/artifacts/capacity-video-flow",
+          "--tutorial",
+          "--segment=flow",
+          "--mobile-preview"
+        ],
+        "platform": "Linux llvmpipe",
+        "physical_mobile": false,
+        "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+        "source_dirty": true,
+        "software_render_threads": "2"
+      },
+      "production_files_match_final_build_source": true
+    },
+    "journal": {
+      "automatic_input": true,
+      "checkpoint_prepared_by_normal_simulation": true,
+      "checkpoint_switches": [],
+      "continuous_segment": true,
+      "dual_treatment": false,
+      "file_restored": true,
+      "fps": 24,
+      "full_day_validation": "test_daily_capacity.gd",
+      "passed": true,
+      "physical_mobile": false,
+      "platform": "Linux Godot 4.6.3 Compatibility llvmpipe",
+      "real_canvas_clicks": 4,
+      "recorded_frames": 600,
+      "segment": "journal",
+      "simulation_speed": 1,
+      "trace": [
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 5,
+          "income": 1200,
+          "journal": false,
+          "money": 2300,
+          "seconds": 0.0,
+          "states": [
+            [
+              1,
+              "complete"
+            ],
+            [
+              2,
+              "complete"
+            ],
+            [
+              3,
+              "complete"
+            ],
+            [
+              4,
+              "complete"
+            ],
+            [
+              5,
+              "complete"
+            ],
+            [
+              6,
+              "leaving"
+            ]
+          ],
+          "time": 212.250000000014
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 6,
+          "income": 1200,
+          "journal": false,
+          "money": 2300,
+          "seconds": 1.91666666666667,
+          "states": [
+            [
+              1,
+              "complete"
+            ],
+            [
+              2,
+              "complete"
+            ],
+            [
+              3,
+              "complete"
+            ],
+            [
+              4,
+              "complete"
+            ],
+            [
+              5,
+              "complete"
+            ],
+            [
+              6,
+              "complete"
+            ]
+          ],
+          "time": 214.158333333347
+        },
+        {
+          "booked": 6,
+          "day": 2,
+          "departed": 6,
+          "income": 1200,
+          "journal": true,
+          "money": 2300,
+          "seconds": 2.0,
+          "states": [
+            [
+              1,
+              "complete"
+            ],
+            [
+              2,
+              "complete"
+            ],
+            [
+              3,
+              "complete"
+            ],
+            [
+              4,
+              "complete"
+            ],
+            [
+              5,
+              "complete"
+            ],
+            [
+              6,
+              "complete"
+            ]
+          ],
+          "time": 214.24166666668
+        },
+        {
+          "booked": 4,
+          "day": 3,
+          "departed": 0,
+          "income": 0,
+          "journal": false,
+          "money": 2300,
+          "seconds": 15.2083333333333,
+          "states": [
+            [
+              1,
+              "entering"
+            ]
+          ],
+          "time": 0.0833333333333333
+        }
+      ],
+      "encoding": {
+        "paused_setup_frames_removed": 1,
+        "source_frames": 601,
+        "delivered_frames": 600,
+        "gameplay_frames_removed": 0,
+        "speed_changed": false
+      },
+      "path": "docs/media/capacity-journal-1x.mp4",
+      "sha256": "d966da1d8efb61417ce1953a23e2c8f93fc548095e64fd6c813a2d9a99ebd9ff",
+      "bytes": 256482,
+      "launch": {
+        "argv": [
+          "godot",
+          "--path",
+          "/workspace/Game/.runtime/mobile-movie-zjijfiio",
+          "--audio-driver",
+          "Dummy",
+          "--script",
+          "tests/record_capacity.gd",
+          "--resolution",
+          "844x390",
+          "--write-movie",
+          "/workspace/Game/artifacts/capacity-video-journal/playthrough.avi",
+          "--fixed-fps",
+          "24",
+          "--",
+          "--qa",
+          "--output-dir=/workspace/Game/artifacts/capacity-video-journal",
+          "--tutorial",
+          "--segment=journal",
+          "--mobile-preview"
+        ],
+        "platform": "Linux llvmpipe",
+        "physical_mobile": false,
+        "source_commit": "fd09e024f017d8dd458298e31f0b32b271a9e2f6",
+        "source_dirty": true,
+        "software_render_threads": "2"
+      },
+      "production_files_match_final_build_source": true
+    }
+  },
+  "limits": {
+    "android_hardware": false,
+    "iphone_hardware": false,
+    "mac_lan": false,
+    "safari": false,
+    "public_pages_access": false,
+    "mobile_fps_measured": false
+  }
+}
