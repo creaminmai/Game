@@ -1107,12 +1107,13 @@ func publish_web_layout() -> void:
  var result := {}
  controls.merge({"training":training_button,"training_buy":training_dialog.ok_button,"training_cancel":training_dialog.cancel_button,"planning_toggle":planning_toggle,"chapter_history":chapter_panel.history_button})
  controls.merge({"research":expansion_button,"lab_build":research_panel.build_button,"research_confirm":research_panel.confirmation.ok_button,"research_cancel":research_panel.confirmation.cancel_button,"research_close":research_panel.close_button,"research_return":research_panel.return_button,"research_scroll":research_panel.scroll,"research_ct":research_panel.project_buttons.ct,"research_plan":research_panel.project_buttons.plan})
- controls.merge({"chapter_goal":goal_ribbon,"chapter_close":chapter_panel.close_button,"journal_close":journal.close_button,"journal_next":journal.next_button,"journal_open":next_day_button})
+ controls.merge({"chapter_goal":goal_ribbon,"chapter_close":chapter_panel.close_button,"journal_close":journal.close_button,"journal_next":journal.next_button,"journal_open":next_day_button,"journal_scroll":journal.financial_scroll})
  var pixels := ui_display_size/size
  for key in controls:
   var c: Control = controls[key]
   var r := c.get_global_rect()
   result[key] = {"x":r.get_center().x*pixels.x,"y":r.get_center().y*pixels.y,"width":r.size.x*pixels.x,"height":r.size.y*pixels.y,"visible":c.is_visible_in_tree()}
+  if c is ScrollContainer: result[key]["scroll_y"] = c.scroll_vertical
  result["_state"] = {"paused":sim.paused,"time":sim.time,"money":sim.money,"day":sim.day,"visits":sim.chapters.total(),"chapter_two_day":sim.chapters.chapter_two_day}
  JavaScriptBridge.eval("window.sunshineControls="+JSON.stringify(result))
 

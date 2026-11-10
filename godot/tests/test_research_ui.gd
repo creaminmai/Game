@@ -24,6 +24,33 @@ func research_layout(caption: String) -> void:
 func reveal(b: Control) -> void:
  game.research_panel.scroll.ensure_control_visible(b)
  await settle()
+func touch_scroll(container: ScrollContainer, caption: String) -> void:
+ # Exercise real GUI propagation through card/content children, not an assigned
+ # scroll offset. Desktop Xorg emulates a touchscreen only for this gesture.
+ var original := Input.is_emulating_touch_from_mouse()
+ Input.emulate_touch_from_mouse = true
+ var rect := container.get_global_rect()
+ var pixels := Vector2(root.size)/root.get_visible_rect().size
+ var start := (rect.get_center()+Vector2(0,rect.size.y*.3))*pixels
+ var initial := container.scroll_vertical
+ var before: Dictionary = game.sim.snapshot()
+ var move := InputEventMouseMotion.new()
+ move.position = start; Input.parse_input_event(move)
+ var press := InputEventMouseButton.new()
+ press.position = start; press.button_index = MOUSE_BUTTON_LEFT; press.pressed = true
+ Input.parse_input_event(press); await settle()
+ var previous := start
+ for n in range(1,9):
+  var motion := InputEventMouseMotion.new()
+  motion.position = start-Vector2(0,rect.size.y*pixels.y*.6*n/8)
+  motion.relative = motion.position-previous; motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+  Input.parse_input_event(motion); previous = motion.position; await settle()
+ press = InputEventMouseButton.new()
+ press.position = previous; press.button_index = MOUSE_BUTTON_LEFT; press.pressed = false
+ Input.parse_input_event(press); await settle()
+ Input.emulate_touch_from_mouse = original
+ check(container.scroll_vertical > initial,caption+" actual touch drag scrolls content")
+ check(game.sim.snapshot() == before,caption+" drag does not execute an operation")
 func run() -> void:
  for arg in OS.get_cmdline_user_args():
   if arg.begins_with("--output-dir="): output = arg.trim_prefix("--output-dir=")
@@ -63,6 +90,7 @@ func run() -> void:
   check(game.world.lab_model.visible and game.world.researcher.visible and not game.world.lab_site.visible,"real GLB and researcher replace site immediately")
   check(game.world.pick_lab_site(game.world.camera.unproject_position(game.world.LAB_POSITION+Vector3(0,3.35,-1))),"roof click selects building above ground footprint")
   research_layout(prefix+" built")
+  await touch_scroll(game.research_panel.scroll,prefix+" research")
   await click(game.research_panel.close_button)
   check(game.story_panel.visible and game.story_heading.text.contains("윤서진"),"researcher uses one shared dialogue channel")
   await shot(prefix+"-researcher")
@@ -85,6 +113,7 @@ func run() -> void:
   ResearchFixture.finish(game.sim); game.refresh(); await settle()
   check(game.journal.visible and game.journal.values[3].text == "1500만","real day-five journal money")
   research_layout(prefix+" journal"); await shot(prefix+"-journal")
+  await touch_scroll(game.journal.financial_scroll,prefix+" journal")
   game.journal.financial_scroll.scroll_vertical = 250; await settle()
   check(game.journal.lab_value.text == "1800만" and game.journal.research_value.text == "500만","separate lab and project expenses")
   await shot(prefix+"-journal-research")

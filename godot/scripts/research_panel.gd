@@ -35,7 +35,8 @@ func build(owner_game: Control) -> void:
  summary = add_text("",22)
  build_button = game.button("연구소 설립 · 1,800만",offer.bind("build"),true); contents.add_child(build_button)
  for id in ["ct","plan"]:
-  var box := PanelContainer.new(); box.add_theme_stylebox_override("panel",HospitalUiSkin.frame()); contents.add_child(box)
+  var box := PanelContainer.new(); box.mouse_filter = Control.MOUSE_FILTER_PASS
+  box.add_theme_stylebox_override("panel",HospitalUiSkin.frame()); contents.add_child(box)
   var column := VBoxContainer.new(); column.add_theme_constant_override("separation",8); box.add_child(column)
   var title: Label = game.label_text(HospitalResearchLab.PROJECTS[id],24,game.TEAL); column.add_child(title); texts.append(title)
   var description: Label = game.label_text("비용 500만 + 연구점수 6점\n"+("CT 단계만 5초 → 4초" if id == "ct" else "계획 검토만 5초 → 4초 · 자동 준비 3초 유지"),22)

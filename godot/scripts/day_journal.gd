@@ -68,6 +68,7 @@ func build(game: Control) -> void:
  financial_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
  card.add_child(financial_scroll); game.place(financial_scroll,Rect2(0,162,570,232))
  financial_content = Control.new(); financial_content.custom_minimum_size = Vector2(548,230)
+ financial_content.mouse_filter = Control.MOUSE_FILTER_PASS
  financial_scroll.add_child(financial_content)
  for node in financial_nodes:
   var old_position := node.position

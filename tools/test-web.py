@@ -92,7 +92,7 @@ try:
             else: page.mouse.click(x,y,delay=100)
             # Wait for real browser frames, not a fixed delay that can expire
             # before the software renderer has processed the previous click.
-            page.evaluate('async () => { for (let i=0;i<12;i++) await new Promise(requestAnimationFrame); }')
+            page.evaluate('async () => { for (let i=0;i<4;i++) await new Promise(requestAnimationFrame); }')
         def press(name):
             control=page.evaluate('(name) => window.sunshineControls?.[name]',name)
             assert control and control['visible'], f'Missing visible control {name}'
@@ -109,7 +109,7 @@ try:
         state=wait_saved(lambda state: state.get('patients') and state['patients'][0]['state'] not in ['waiting','entering'])
         story=state.get('first_day_story',{})
         ledger=state.get('daily_ledger',{})
-        assert ledger=={'version':2,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False,'training_expense':0}, 'Actual opening/day receipts were not saved correctly'
+        assert ledger=={'version':3,'opening_money':900,'income':0,'expansion_expense':0,'new_annex':False,'training_expense':0,'lab_expense':0,'research_expense':0}, 'Actual opening/day receipts were not saved correctly'
         assert story.get('version')==1 and story.get('seen',{}).get('admission'), 'State-driven tutorial was not saved after actual admission'
         page.screenshot(timeout=120000,scale='css',path=str(output/'after-admission.png'))
         preflight={}
@@ -198,16 +198,24 @@ try:
                 press('lab_build');press('research_confirm')
                 built=wait_saved(lambda s:s['research_lab']['built_day']==5)
                 assert built['money']==1200 and built['research_lab']['points']==6
-                # Real native-browser touch gesture on the Godot scroll area.
-                scroll=page.evaluate('window.sunshineControls.research_scroll')
-                session=page.context.new_cdp_session(page)
-                x=scroll['x'];y=scroll['y']+scroll['height']*.3
-                session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
-                for n in range(1,9):
-                    session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.6*n/8}]})
-                    page.wait_for_timeout(50)
-                session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
-                page.evaluate('async()=>{for(let i=0;i<12;i++)await new Promise(requestAnimationFrame)}')
+                def drag_scroll(name):
+                    # A real touchscreen gesture through the card/content children.
+                    scroll=page.evaluate('(name)=>window.sunshineControls[name]',name)
+                    session=page.context.new_cdp_session(page)
+                    x=scroll['x'];y=scroll['y']+scroll['height']*.3
+                    session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
+                    page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
+                    for n in range(1,9):
+                        session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-scroll['height']*.6*n/8}]})
+                        page.evaluate('async()=>{for(let i=0;i<2;i++)await new Promise(requestAnimationFrame)}')
+                    session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
+                    page.evaluate('async()=>{for(let i=0;i<4;i++)await new Promise(requestAnimationFrame)}')
+                    after=page.evaluate('(name)=>window.sunshineControls[name]',name)
+                    assert after['scroll_y']>scroll['scroll_y'],('Touch drag did not scroll',name,scroll,after)
+                    return after
+                scroll=drag_scroll('research_scroll')
+                ct=page.evaluate('window.sunshineControls.research_ct')
+                assert scroll['y']-scroll['height']/2 <= ct['y'] <= scroll['y']+scroll['height']/2, ('Touch drag did not reveal CT button',scroll,ct)
                 press('research_ct')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-research-start.png'))
                 press('research_confirm')
@@ -219,6 +227,8 @@ try:
                 load_checkpoint(json.loads((repo/'artifacts/research-web-checkpoints/pending.json').read_text()))
                 pending=wait_saved(lambda s:s['day']==6)
                 assert pending['research_lab']['projects']['ct']['completed_day']==6 and pending['research_lab']['chapter_four_day']==0
+                drag_scroll('journal_scroll')
+                page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-journal-touch-scroll.png'))
                 press('journal_next')
                 applied=wait_saved(lambda s:s['day']==7)
                 assert applied['research_lab']['projects']['ct']['applied_day']==7 and applied['research_lab']['chapter_four_day']==7
@@ -235,7 +245,7 @@ try:
                 assert page.evaluate('window.sunshineControls._state.paused')
                 press('research')
                 page.screenshot(timeout=120000,scale='css',path=str(output/'844x350-restored-research.png'))
-                research={'passed':True,'normal_checkpoint_count':3,'normal_simulation_checkpoints':True,'touch_scroll_and_canvas_buttons':True,'construction_cancelled':True,'actual_construction_once':True,'six_point_initial_grant_once':True,'actual_project_cost_once':True,'actual_next_day_application':True,'active_ct_duration_four':True,'actual_page_reload':True,'no_duplicate_receipts':True,'continuous_web_playthrough':False,'physical_phone':False}
+                research={'passed':True,'normal_checkpoint_count':3,'normal_simulation_checkpoints':True,'touch_scroll_and_canvas_buttons':True,'actual_research_and_journal_drag':True,'construction_cancelled':True,'actual_construction_once':True,'six_point_initial_grant_once':True,'actual_project_cost_once':True,'actual_next_day_application':True,'active_ct_duration_four':True,'actual_page_reload':True,'no_duplicate_receipts':True,'continuous_web_playthrough':False,'physical_phone':False}
             elif args.operations:
                 page.wait_for_function('window.sunshineControls?.pause',timeout=int(args.save_timeout*1000))
                 assert page.evaluate('window.sunshineControls._state.day')==4
