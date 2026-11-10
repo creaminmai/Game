@@ -16,7 +16,7 @@
   ],
   "godot": "4.6.3.stable.official.7d41c59c4",
   "application_id": "org.creaminmai.sunshinehospital.playtest",
-  "source_commit": "76a84f278974cf821f89c5ff65db423354f07b4b",
+  "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
   "source_dirty": false,
   "target": "Web",
   "build_kind": "release export",
@@ -27,7 +27,7 @@
     },
     "index.html": {
       "bytes": 6410,
-      "sha256": "2a9ca5afeb4f6af3848b975111f9195db3163a6e76a3110796352a9991160085"
+      "sha256": "78a88a5108acc7595d545444948f3b12c2c7df009fa476ca4d853de89cf2eba3"
     },
     "index.icon.png": {
       "bytes": 31995,
@@ -54,8 +54,8 @@
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
     "index.pck": {
-      "bytes": 12275692,
-      "sha256": "34c9d4729023093571a38f68aa753a9b59a90c15ee2218fcd3885aa7ca5c9542"
+      "bytes": 12275836,
+      "sha256": "209798ce42f48a8daca026027ce93f3116dc0ce0973273d82aa40929ec3247fb"
     },
     "index.js": {
       "bytes": 315759,
