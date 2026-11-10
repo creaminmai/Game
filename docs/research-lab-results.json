@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+  "source_commit": "0c23ad3ce5c08688b18d1ca9075c7a1f0ba27d43",
   "version": "0.6.0-dev",
   "date_kst": "2026-11-10",
   "native": {
@@ -1305,6 +1305,40 @@
       "first_admission_skipped": true,
       "initial_save_wall_seconds": 16.50942091899924,
       "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57"
+    },
+    "final_symbol_render": {
+      "passed": true,
+      "browser": "Chromium touch emulation",
+      "fullscreen_canvas": true,
+      "actual_canvas_admission": false,
+      "patient_state": "entering",
+      "indexeddb_save": true,
+      "first_day_story_saved": false,
+      "daily_ledger_saved": false,
+      "story_stage": "select",
+      "mobile_tested": false,
+      "wasm_engine_start_wall_seconds": 3.250035311008105,
+      "viewport": [
+        844,
+        350
+      ],
+      "device_pixel_ratio": 1,
+      "url_kind": "loopback only",
+      "godot": "4.6.3",
+      "renderer": "Chromium SwiftShader WebGL2",
+      "preflight": {},
+      "staff": {},
+      "chapter": {},
+      "operations": {},
+      "research": {
+        "passed": true,
+        "scope": "visual confirmation after portable symbol substitution only",
+        "normal_simulation_checkpoint": true,
+        "physical_phone": false
+      },
+      "first_admission_skipped": true,
+      "initial_save_wall_seconds": 16.070517411018955,
+      "source_commit": "0c23ad3ce5c08688b18d1ca9075c7a1f0ba27d43"
     }
   },
   "movies": {
@@ -3757,7 +3791,7 @@
   "delivery": {
     "version": "0.6.0-dev",
     "version_code": 600,
-    "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+    "source_commit": "0c23ad3ce5c08688b18d1ca9075c7a1f0ba27d43",
     "features": [
       "first-day-story",
       "daily-ledger",
@@ -3781,17 +3815,17 @@
     "files": {
       "artifacts/android/SunshineHospital-0.6.0-dev.apk": {
         "bytes": 68310099,
-        "sha256": "4b9f021b3beac9e37ee029ea4d81350ea6e3ed78f0654e77126f35d4d9263377"
+        "sha256": "38d8bac7ebef319fabda96b3c24d53064bfbfb72efe5db3fc30b693f3eb9b2b9"
       },
-      "artifacts/mobile/SunshineHospital-Web-0.6.0-dev-fb0c2aa.zip": {
-        "bytes": 23961012,
-        "sha256": "8a6959851d0e879929c3d69f32df4f26cc70cae46ef2d9a4ce3f35bc1c854fe0"
+      "artifacts/mobile/SunshineHospital-Web-0.6.0-dev-0c23ad3.zip": {
+        "bytes": 23961001,
+        "sha256": "38f7b75d723f35cb3434c57a115345ef5db97f78bbc9631414ebfe7a7b9f1861"
       }
     }
   },
   "web_backup": {
-    "web_branch_commit": "70503364d28d00f7d098729e656cc43c576f17d2",
-    "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+    "web_branch_commit": "6a5e574aa5d41293abf5542486150fa5148d4e93",
+    "source_commit": "0c23ad3ce5c08688b18d1ca9075c7a1f0ba27d43",
     "pages_publication_verified": false,
     "remote_verified": true
   },
@@ -3799,7 +3833,7 @@
     "passed": true,
     "apk": "SunshineHospital-0.6.0-dev.apk",
     "bytes": 68310099,
-    "sha256": "4b9f021b3beac9e37ee029ea4d81350ea6e3ed78f0654e77126f35d4d9263377",
+    "sha256": "38d8bac7ebef319fabda96b3c24d53064bfbfb72efe5db3fc30b693f3eb9b2b9",
     "certificate_sha256": "58ef52f6279aedc86c8b4d59f6d68773e52dff19bad427ec75927bde24fec8c1",
     "debug": true,
     "landscape": true,
@@ -3815,7 +3849,7 @@
     "android_runtime_tested": false,
     "store_release": false,
     "version": "0.6.0-dev",
-    "source_commit": "fb0c2aa77c86dd410ca1a60e13cd144b00f8fd57",
+    "source_commit": "0c23ad3ce5c08688b18d1ca9075c7a1f0ba27d43",
     "features": [
       "first-day-story",
       "daily-ledger",
@@ -3838,6 +3872,6 @@
     "pages_publication_verified": false,
     "movie_24fps_is_performance_measurement": false,
     "movies_before_touch_fix": true,
-    "post_movie_fix": "Two content mouse filters pass dragging to scroll parents; read-only Web QA scroll positions added. No model, camera, simulation, transaction or research timing changes. Final Android/Web build shares the later source; final UI and Web tests use the fix."
+    "post_movie_fix": "Two content mouse filters pass dragging to scroll parents; read-only Web QA scroll positions added; unsupported UI minus/chevron replaced with supported ASCII glyphs. No model, camera, simulation, transaction or research timing changes. Final Android/Web build shares the later source; final UI and Web tests use the fix."
   }
 }
