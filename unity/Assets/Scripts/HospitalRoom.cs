@@ -36,19 +36,19 @@ namespace SunshineHospital
             if (preferOriginalArt && !UsesOriginalArt)
                 Debug.LogWarning("Hospital GLBs are unavailable. Check the glTFast import in Package Manager.");
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = UsesOriginalArt ? new Color(.78f, .75f, .69f) : new Color(.71f, .69f, .64f);
+            RenderSettings.ambientLight = UsesOriginalArt ? new Color(.60f, .58f, .54f) : new Color(.71f, .69f, .64f);
             Camera = Group(root, "고정 카메라", new Vector3(11, 18, 20)).gameObject.AddComponent<Camera>();
             Camera.transform.LookAt(new Vector3(0, 0, .1f));
             Camera.orthographic = true;
             Camera.orthographicSize = 8.6f;
             Camera.clearFlags = CameraClearFlags.SolidColor;
-            Camera.backgroundColor = new Color(.86f, .91f, .86f);
+            Camera.backgroundColor = new Color(.82f, .88f, .83f);
 
             var light = Group(root, "햇빛", Vector3.zero).gameObject.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(1f, .91f, .78f);
-            light.intensity = UsesOriginalArt ? 1.15f : 1.65f;
-            light.shadowStrength = UsesOriginalArt ? .65f : 1f;
+            light.color = new Color(1f, .95f, .87f);
+            light.intensity = UsesOriginalArt ? 1.02f : 1.65f;
+            light.shadowStrength = UsesOriginalArt ? .74f : 1f;
             light.shadows = LightShadows.Soft;
             light.transform.rotation = Quaternion.Euler(49, -38, 0);
 
@@ -70,7 +70,8 @@ namespace SunshineHospital
                     break;
                 }
 
-                PlacePerson(nurseModel, root, new Vector3(-5.2f, .05f, 4.25f), false, mirrorX);
+                var nurse = PlacePerson(nurseModel, root, new Vector3(-2.85f, .055f, 4.35f), false, mirrorX);
+                nurse.rotation = Quaternion.Euler(0, 29, 0);
                 CtLamp = Lamp(root, new Vector3(-4f, 2.7f, -3.17f));
                 TreatmentLamp = Lamp(root, new Vector3(5.25f, 1.8f, 3.05f));
             }

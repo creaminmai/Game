@@ -6,7 +6,7 @@ using System.IO;
 
 namespace SunshineHospital
 {
-    public sealed class HospitalGame : MonoBehaviour
+    public sealed partial class HospitalGame : MonoBehaviour
     {
         // Routes follow the central corridor. Service starts only after arrival.
         private static readonly Vector3[] Entrance = { Point(0, 3), Point(-1.6f, 3), Point(-3.8f, 2.65f) };
@@ -21,8 +21,8 @@ namespace SunshineHospital
         private static readonly Vector3 Bedside = Point(1.05f, 1.55f);
         private static readonly Vector3 CtApproach = CtBed + Bedside;
         private static readonly Vector3 TreatmentApproach = TreatmentBed + TreatmentYaw * Bedside;
-        private static readonly Vector3[] ArtEntrance = { Point(0, 3), Point(-1.5f, 3), Point(-2.05f, 2.6f), Point(-4.5f, 2.6f) };
-        private static readonly Vector3[] ArtToCt = { Point(-2.05f, 2.6f), Point(-1.5f, 3), Point(0, 3), Point(0, -2.8f), Point(-1.5f, -2.8f), CtApproach };
+        private static readonly Vector3[] ArtEntrance = { Point(0, 3), Point(-1.5f, 3), Point(-2.5f, 3.12f) };
+        private static readonly Vector3[] ArtToCt = { Point(-1.5f, 3), Point(0, 3), Point(0, -2.8f), Point(-1.5f, -2.8f), CtApproach };
         private static readonly Vector3[] ArtToPlanning = { Point(-1.5f, -2.8f), Point(0, -2.8f), Point(0, -1f), Point(1.5f, -1f), Point(2.4f, -1.8f) };
         private static readonly Vector3[] ArtToTreatment = { Point(1.5f, -1f), Point(0, -1f), Point(0, 3), Point(1.5f, 3), Point(1.85f, 4.5f), TreatmentApproach };
         private static readonly Vector3[] ArtExit = { Point(1.85f, 4.5f), Point(1.5f, 3), Point(0, 3), Point(0, 7f) };
@@ -35,9 +35,18 @@ namespace SunshineHospital
 #endif
         private int waypoint;
         private bool selected;
+        private const float Header = 58f;
+        private const float Footer = 88f;
+        private static readonly Color Paper = new(1f, .965f, .898f);
+        private static readonly Color Ink = new(.15f, .22f, .19f);
+        private static readonly Color Mint = new(.10f, .40f, .32f);
+        private static readonly Color Coral = new(.98f, .75f, .67f);
         private GUIStyle heading;
         private GUIStyle label;
-        private GUIStyle button;
+        private GUIStyle primary;
+        private GUIStyle quiet;
+        private GUIStyle patientTag;
+        private readonly System.Collections.Generic.List<Texture2D> hudTextures = new();
         private float Scale => Mathf.Min(Screen.width / 960f, Screen.height / 540f);
         private bool Portrait => Screen.height > Screen.width;
 
@@ -55,9 +64,13 @@ namespace SunshineHospital
 
         private void Update()
         {
+            UpdateCameraViewport(room.Camera);
             if (Portrait) return;
 #if UNITY_EDITOR
             if (capturing) return;
+            if (!qaRunning && visit.Stage <= VisitStage.Reception && room.UsesOriginalArt && Input.GetKeyDown(KeyCode.F9))
+                StartCoroutine(VerifyVisit());
+
             if (visit.Stage == VisitStage.Reception && room.UsesOriginalArt && Input.GetKeyDown(KeyCode.F8))
             {
                 StartCoroutine(CaptureComparison());
@@ -67,7 +80,7 @@ namespace SunshineHospital
             if (Input.GetMouseButtonDown(0))
             {
                 Vector3 mouse = Input.mousePosition;
-                if (mouse.y < Screen.height - 66 * Scale && mouse.y > 120 * Scale &&
+                if (mouse.y < Screen.height - Header * Scale && mouse.y > Footer * Scale &&
                     Physics.Raycast(room.Camera.ScreenPointToRay(mouse), out RaycastHit hit) &&
                     hit.transform == room.Patient)
                     selected = true;
@@ -117,7 +130,7 @@ namespace SunshineHospital
             {
                 room.PatientBody.localPosition = inService
                     ? room.Patient.InverseTransformVector(new Vector3(0, .8f, -.36f))
-                    : Vector3.zero;
+                    : new Vector3(0, room.UsesOriginalArt ? .055f : 0f, 0);
                 room.PatientBody.localRotation = inService
                     ? Quaternion.Inverse(room.Patient.rotation) * Quaternion.Euler(-90, 0, 0)
                     : Quaternion.identity;
@@ -149,15 +162,21 @@ namespace SunshineHospital
             }
             waypoint = 0;
             visit.Arrive();
+            if (room.UsesOriginalArt && visit.Stage == VisitStage.Reception)
+                room.Patient.rotation = Quaternion.Euler(0, 29, 0);
+        }
+
+        private void UpdateCameraViewport(Camera camera)
+        {
+            float bottom = Footer * Scale / Screen.height;
+            float top = Header * Scale / Screen.height;
+            camera.rect = new Rect(0, bottom, 1, 1 - bottom - top);
+            camera.aspect = Screen.width / (Screen.height * camera.rect.height);
         }
 
         private void OnGUI()
         {
             InitializeStyles();
-#if UNITY_EDITOR
-            bool wasGuiEnabled = GUI.enabled;
-            if (capturing) GUI.enabled = false;
-#endif
             float scale = Portrait ? Screen.width / 520f : Scale;
             Matrix4x4 previous = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1));
@@ -165,45 +184,79 @@ namespace SunshineHospital
             float height = Screen.height / scale;
             if (Portrait)
             {
-                Panel(new Rect(0, 0, width, height));
+                Panel(new Rect(0, 0, width, height), Paper);
                 GUI.Label(new Rect(24, height / 2 - 28, width - 48, 56), "가로로 돌려서 병원을 운영하세요", heading);
             }
             else
             {
-                Panel(new Rect(0, 0, width, 62));
-                GUI.Label(new Rect(18, 7, 240, 48), "햇살병원", heading);
-                GUI.Label(new Rect(width - 265, 10, 155, 42), $"운영 자금  {visit.Funds:N0}만", label);
-                if (GUI.Button(new Rect(width - 104, 9, 92, 44), visit.Paused ? "재생" : "일시정지", button))
-                    visit.TogglePause();
-
-                Panel(new Rect(0, height - 114, width, 114));
-                GUI.Label(new Rect(18, height - 107, width - 36, 36), Status(), heading);
-                string detail = selected ? "김영수 · 오늘 일정" : "환자를 선택해 오늘 일정을 확인하세요";
-                if (visit.Duration > 0f) detail += $"   {Mathf.CeilToInt(visit.Duration - visit.Elapsed)}초 남음";
-                if (visit.Stage == VisitStage.Leaving || visit.Stage == VisitStage.Complete) detail = "오늘 일정 완료  +200만";
-                GUI.Label(new Rect(18, height - 67, width - 254, 44), detail, label);
-
-                var action = new Rect(width - 218, height - 64, 200, 48);
-                bool wasEnabled = GUI.enabled;
-                GUI.enabled = wasEnabled && !visit.Paused;
-                if (!selected && visit.Stage != VisitStage.Complete)
-                {
-                    if (GUI.Button(action, "김영수 선택", button)) selected = true;
-                }
-                else if (visit.Stage == VisitStage.Reception)
-                {
-                    if (GUI.Button(action, "접수하기", button)) visit.Admit();
-                }
-                else if (visit.Stage == VisitStage.AwaitingPlan)
-                {
-                    if (GUI.Button(action, "계획 지시", button)) visit.AssignPlan();
-                }
-                GUI.enabled = wasEnabled;
+                DrawHud(width, height, scale);
             }
             GUI.matrix = previous;
+        }
+
+        private void DrawHud(float width, float height, float scale)
+        {
+            bool acceptInput = true;
 #if UNITY_EDITOR
-            GUI.enabled = wasGuiEnabled;
+            acceptInput = !capturing && !qaRunning;
 #endif
+            Panel(new Rect(0, 0, width, Header), Paper);
+            Panel(new Rect(0, Header - 1, width, 1), new Color(.84f, .80f, .70f));
+            GUI.Label(new Rect(20, 0, 220, Header), "햇살병원", heading);
+            GUI.Label(new Rect(width - 277, 0, 155, Header), $"운영 자금  {visit.Funds:N0}만", label);
+            if (GUI.Button(new Rect(width - 116, 8, 96, 42), visit.Paused ? "재생" : "일시정지",
+                    visit.Paused ? primary : quiet) && acceptInput)
+                visit.TogglePause();
+
+            float footer = height - Footer;
+            Panel(new Rect(0, footer, width, Footer), Paper);
+            Panel(new Rect(0, footer, width, 1), new Color(.84f, .80f, .70f));
+            Panel(new Rect(20, footer + 15, 4, 23), visit.Paused ? Coral : Mint);
+            GUI.Label(new Rect(34, footer + 7, width - 255, 36), Status(), heading);
+            GUI.Label(new Rect(34, footer + 42, width - 255, 34), Guidance(), label);
+
+            string action = visit.Stage switch
+            {
+                VisitStage.Complete or VisitStage.Leaving => null,
+                _ when !selected => "김영수 선택",
+                VisitStage.Reception => "접수하기",
+                VisitStage.AwaitingPlan => "계획 지시",
+                _ => null
+            };
+            if (action != null)
+            {
+                bool enabled = GUI.enabled;
+                GUI.enabled = enabled && !visit.Paused;
+                if (GUI.Button(new Rect(width - 195, footer + 19, 175, 50), action, primary) && acceptInput)
+                {
+                    if (!selected) selected = true;
+                    else if (visit.Stage == VisitStage.Reception) visit.Admit();
+                    else if (visit.Stage == VisitStage.AwaitingPlan) visit.AssignPlan();
+                }
+                GUI.enabled = enabled;
+            }
+
+            if (visit.Stage == VisitStage.Reception || visit.Stage == VisitStage.AwaitingPlan)
+            {
+                var marker = room.Camera.WorldToScreenPoint(room.Patient.position + Vector3.up * 2.13f);
+                var rect = new Rect(marker.x / scale - 43, (Screen.height - marker.y) / scale - 30, 86, 28);
+                if (GUI.Button(rect, "김영수", selected ? primary : patientTag) && acceptInput)
+                    selected = true;
+            }
+        }
+
+        private string Guidance()
+        {
+            if (visit.Paused) return "일시정지 중 · 재생을 누르면 이어집니다";
+            if (visit.Duration > 0f) return $"김영수 · {Mathf.CeilToInt(visit.Duration - visit.Elapsed)}초 남음";
+            return visit.Stage switch
+            {
+                VisitStage.Entering => "입장이 끝나면 접수할 수 있어요",
+                VisitStage.Reception => selected ? "김영수 · 접수하면 CT실로 이동합니다" : "환자 또는 선택 버튼을 눌러주세요",
+                VisitStage.AwaitingPlan => "김영수 · 치료 전에 계획 지시가 필요해요",
+                VisitStage.Leaving or VisitStage.Complete => "오늘 일정 완료 · 수입 +200만",
+                _ => "김영수 · 도착하면 자동으로 이어집니다"
+            };
         }
 
 #if UNITY_EDITOR
@@ -222,6 +275,7 @@ namespace SunshineHospital
                 roomRoot.gameObject.SetActive(false);
                 prototype = new GameObject("비교용 임시 병원");
                 var before = new HospitalRoom(prototype.transform, preferOriginalArt: false);
+                UpdateCameraViewport(before.Camera);
                 before.Patient.SetPositionAndRotation(room.Patient.position, room.Patient.rotation);
                 before.Selection.gameObject.SetActive(selected);
                 yield return new WaitForEndOfFrame();
@@ -260,16 +314,63 @@ namespace SunshineHospital
         {
             if (heading != null) return;
             Font font = Resources.Load<Font>("SunshineHangul");
-            heading = new GUIStyle(GUI.skin.label) { font = font, fontSize = 24, alignment = TextAnchor.MiddleLeft };
-            label = new GUIStyle(heading) { fontSize = 17 };
-            button = new GUIStyle(GUI.skin.button) { font = font, fontSize = 18 };
-            heading.normal.textColor = label.normal.textColor = new Color(.22f, .19f, .15f);
+            heading = new GUIStyle(GUI.skin.label)
+            {
+                font = font, fontSize = 24, alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Bold
+            };
+            label = new GUIStyle(heading) { fontSize = 18, fontStyle = FontStyle.Normal };
+            heading.normal.textColor = label.normal.textColor = Ink;
+            primary = ButtonStyle(font, Mint, new Color(.15f, .48f, .38f), Color.white);
+            quiet = ButtonStyle(font, Coral, new Color(1f, .82f, .74f), Ink);
+            patientTag = ButtonStyle(font, Paper, new Color(.88f, .95f, .89f), Ink);
+            patientTag.fontSize = 15;
         }
 
-        private static void Panel(Rect position)
+        private GUIStyle ButtonStyle(Font font, Color surface, Color hover, Color text)
+        {
+            var style = new GUIStyle
+            {
+                font = font,
+                fontSize = 18,
+                alignment = TextAnchor.MiddleCenter,
+                border = new RectOffset(12, 12, 12, 12)
+            };
+            SetButtonState(style.normal, surface, text);
+            SetButtonState(style.hover, hover, text);
+            SetButtonState(style.active, Color.Lerp(surface, Ink, .23f), text);
+            SetButtonState(style.focused, surface, text);
+            return style;
+        }
+
+        private void SetButtonState(GUIStyleState state, Color surface, Color text)
+        {
+            const int size = 32;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float dx = x - Mathf.Clamp(x, 10, size - 11);
+                float dy = y - Mathf.Clamp(y, 10, size - 11);
+                Color pixel = surface;
+                pixel.a = Mathf.Clamp01(10.5f - Mathf.Sqrt(dx * dx + dy * dy));
+                texture.SetPixel(x, y, pixel);
+            }
+            texture.Apply(false, true);
+            hudTextures.Add(texture);
+            state.background = texture;
+            state.textColor = text;
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var texture in hudTextures) Destroy(texture);
+        }
+
+        private static void Panel(Rect position, Color color)
         {
             Color previous = GUI.color;
-            GUI.color = new Color(1f, .96f, .87f);
+            GUI.color = color;
             GUI.DrawTexture(position, Texture2D.whiteTexture);
             GUI.color = previous;
         }
