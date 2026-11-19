@@ -22,11 +22,21 @@ namespace SunshineHospital
         public Transform Selection { get; }
         public Renderer CtLamp { get; }
         public Renderer TreatmentLamp { get; }
+        public bool UsesOriginalArt { get; }
+        private readonly Transform treatmentHead;
+        private readonly Vector3 treatmentHeadRest;
+        private readonly bool originalArtMirrorsX;
 
-        public HospitalRoom(Transform root)
+        public HospitalRoom(Transform root, bool preferOriginalArt = true)
         {
+            var interior = preferOriginalArt ? LoadArt("hospital-interior") : null;
+            var patientModel = interior != null ? LoadArt("patient") : null;
+            var nurseModel = interior != null ? LoadArt("nurse") : null;
+            UsesOriginalArt = interior != null && patientModel != null && nurseModel != null;
+            if (preferOriginalArt && !UsesOriginalArt)
+                Debug.LogWarning("Hospital GLBs are unavailable. Check the glTFast import in Package Manager.");
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(.71f, .69f, .64f);
+            RenderSettings.ambientLight = UsesOriginalArt ? new Color(.78f, .75f, .69f) : new Color(.71f, .69f, .64f);
             Camera = Group(root, "고정 카메라", new Vector3(11, 18, 20)).gameObject.AddComponent<Camera>();
             Camera.transform.LookAt(new Vector3(0, 0, .1f));
             Camera.orthographic = true;
@@ -37,10 +47,76 @@ namespace SunshineHospital
             var light = Group(root, "햇빛", Vector3.zero).gameObject.AddComponent<Light>();
             light.type = LightType.Directional;
             light.color = new Color(1f, .91f, .78f);
-            light.intensity = 1.65f;
+            light.intensity = UsesOriginalArt ? 1.15f : 1.65f;
+            light.shadowStrength = UsesOriginalArt ? .65f : 1f;
             light.shadows = LightShadows.Soft;
             light.transform.rotation = Quaternion.Euler(49, -38, 0);
 
+            if (UsesOriginalArt)
+            {
+                var model = PlaceArt(interior, root, Vector3.zero, mirrorX: false);
+                bool mirrorX = false;
+                foreach (Transform part in model.GetComponentsInChildren<Transform>(true))
+                {
+                    if (part.name != "TreatmentHead") continue;
+                    treatmentHead = part;
+                    treatmentHeadRest = part.localPosition;
+                    // The original treatment head sits on the +X side. Keep
+                    // that side aligned with the authored walking route.
+                    var renderer = part.GetComponentInChildren<Renderer>();
+                    mirrorX = renderer != null && root.InverseTransformPoint(renderer.bounds.center).x < 0;
+                    if (mirrorX) MirrorX(model);
+                    originalArtMirrorsX = mirrorX;
+                    break;
+                }
+
+                PlacePerson(nurseModel, root, new Vector3(-5.2f, .05f, 4.25f), false, mirrorX);
+                CtLamp = Lamp(root, new Vector3(-4f, 2.7f, -3.17f));
+                TreatmentLamp = Lamp(root, new Vector3(5.25f, 1.8f, 3.05f));
+            }
+            else
+            {
+                BuildPrototype(root);
+                CtLamp = Lamp(root, new Vector3(-4.25f, 2.22f, -3.23f));
+                TreatmentLamp = Lamp(root, new Vector3(5.3f, 1.75f, 3.08f));
+            }
+
+            Patient = Group(root, "김영수", new Vector3(0, 0, 6.6f));
+            Selection = Shape(Patient, "선택 표시", PrimitiveType.Cylinder, new Vector3(0, .065f, 0),
+                new Vector3(1.06f, .02f, 1.06f), Mint).transform;
+            PatientBody = UsesOriginalArt
+                ? PlacePerson(patientModel, Patient, Vector3.zero, true, originalArtMirrorsX)
+                : Person(Patient, "환자 캐릭터", Vector3.zero, Coral);
+        }
+
+        public void SetTreatmentHeadLift(float fraction)
+        {
+            if (treatmentHead != null) treatmentHead.localPosition = treatmentHeadRest + Vector3.up * (.55f * fraction);
+        }
+
+        private static GameObject LoadArt(string name) => Resources.Load<GameObject>("HospitalArt/" + name);
+
+        private static Transform PlaceArt(GameObject asset, Transform parent, Vector3 position, bool mirrorX)
+        {
+            var placement = Group(parent, asset.name, position);
+            Object.Instantiate(asset, placement);
+            if (mirrorX) MirrorX(placement);
+            return placement;
+        }
+
+        private static void MirrorX(Transform placement) => placement.localScale = new Vector3(-1, 1, 1);
+
+        private static Transform PlacePerson(GameObject asset, Transform parent, Vector3 position, bool glasses, bool mirrorX)
+        {
+            var person = PlaceArt(asset, parent, position, mirrorX);
+            foreach (Transform part in person.GetComponentsInChildren<Transform>(true))
+                if (part.name == "SeatedLegs" || part.name == "Book" || (!glasses && part.name == "Glasses"))
+                    part.gameObject.SetActive(false);
+            return person;
+        }
+
+        private void BuildPrototype(Transform root)
+        {
             Box(root, "건물 바닥", new Vector3(0, -.25f, 0), new Vector3(14, .5f, 12), Wood);
             Box(root, "중앙 복도", new Vector3(0, .02f, 0), new Vector3(13.8f, .06f, 11.8f), Cream);
             Floor(root, "접수", -3.8f, 2.9f, new Color(.94f, .77f, .58f));
@@ -72,7 +148,6 @@ namespace SunshineHospital
                 Shape(root, "CT 링", PrimitiveType.Sphere, point, new Vector3(.53f, .53f, .72f), White);
             }
             Couch(root, "CT 침대", -4.25f, -2.5f, Mint);
-            CtLamp = Lamp(root, new Vector3(-4.25f, 2.22f, -3.23f));
 
             Box(root, "치료기 기둥", new Vector3(5.3f, 1.1f, 2.6f), new Vector3(.67f, 2.1f, .87f), White);
             Shape(root, "치료기 곡선 암", PrimitiveType.Capsule, new Vector3(4.74f, 2.14f, 2.6f),
@@ -80,12 +155,7 @@ namespace SunshineHospital
             Shape(root, "치료기 헤드", PrimitiveType.Cylinder, new Vector3(4.08f, 1.96f, 2.6f),
                 new Vector3(.95f, .27f, .95f), Coral);
             Couch(root, "치료 침대", 4.08f, 2.6f, Coral);
-            TreatmentLamp = Lamp(root, new Vector3(5.3f, 1.75f, 3.08f));
 
-            Patient = Group(root, "김영수", new Vector3(0, 0, 6.6f));
-            Selection = Shape(Patient, "선택 표시", PrimitiveType.Cylinder, new Vector3(0, .05f, 0),
-                new Vector3(1.06f, .02f, 1.06f), Mint).transform;
-            PatientBody = Person(Patient, "환자 캐릭터", Vector3.zero, Coral);
         }
 
         public void SetLamp(Renderer lamp, bool active) => lamp.sharedMaterial = MaterialFor(active ? Mint : Ink);

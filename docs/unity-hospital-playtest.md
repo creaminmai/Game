@@ -10,3 +10,17 @@ Mac Apple Silicon, Unity 6000.6.9f1, Metal, URP 17.6.0. 대상은 `unity/Assets/
 | 에디터 로그 | Unity Personal 라이선스 확인, Package Manager 연결 및 Hospital 장면 로드를 확인했다. 확인한 로그에서 C# 컴파일 오류나 런타임 예외는 발견되지 않았다. |
 
 독립 상태 검사는 CT 화면의 실시간 5초나 클릭 입력을 측정하지 않는다. 에이전트의 Game 뷰 클릭은 Computer Use의 창 오류로 전달되지 않았다. 실시간 CT 화면 측정, Mac 독립 실행 빌드, Web 빌드, Android/iOS 기기, 실제 플레이 영상은 이 기록의 미검증 범위다.
+
+## 대표 장면 원본 아트 후속 작업
+
+Blender에서 내보낸 병원 내부, 환자, 민지 GLB를 Unity의 glTFast 임포터에 연결했다. 병원 모델에 두 장비와 목재·직물·접촉 음영 텍스처가 들어 있다. 원본 GLB의 통로와 장비 중심을 따라 여정 좌표를 조정했고, 렌더 모델과 클릭용 환자 콜라이더를 분리했다. Unity 에디터에서 가져온 재질과 UV1 접촉 음영, 장비 승하차 모습, 실제 클릭과 동선은 재검증 대상이다.
+
+Play 후 게임 뷰에 초점을 두고 접수 대기에서 **F8**을 누르면 `artifacts/unity-hospital/before.png`와 `after.png`를 같은 카메라, 게임 뷰 해상도, 환자 위치로 저장한다. 이미지가 생성되려면 세 GLB 임포트가 성공해야 한다. Editor 로그에서 `[Hospital QA]`를 검색하면 CT·계획·치료의 활성 시간과 전이 시 자금을 확인할 수 있다. 이 로그는 화면 입력이나 재질의 검증을 대신하지 않는다.
+
+### 에디터 컴파일 복구
+
+이 프로젝트의 Unity 컴파일 응답 파일에는 처음에 `UnityEngine.ScreenCaptureModule.dll` 참조가 없었다. 내장 `com.unity.modules.screencapture` 1.0.0을 manifest에 추가한 뒤, 열려 있던 Unity 6000.6.9f1의 재컴파일 성공과 새 참조를 확인했다. Play에서 원본 병원, CT, 치료기, 환자와 민지를 확인했으며 그때 Console 오류는 0건이었다.
+
+glTFast 6.12.1의 초기 경고는 모델 파일 대신 `Editor/UI/GltfImporter.uxml`의 Animation 인스펙터 필드에서 발생했다. 새 로그에서는 세 GLB가 모두 glTFast의 ScriptedImporter를 사용했고, Play에 원본 모델이 표시됐다. 이전 UXML 경고는 재컴파일 이후 로그에 재발하지 않았다. 별도로 최초 재임포트 시 GLB 메타데이터 버전 경고 세 건이 기록됐다. F8 입력 후 PNG 파일 생성은 아직 확인하지 못했다.
+
+F8 비교 이미지 두 장의 실제 생성도 확인했다. 둘 다 2560×1440이며, 작업 시작본은 `artifacts/unity-overnight/starting/`에 복사했다.
