@@ -29,6 +29,7 @@ static partial class Checks
         Growth();
         StaffAndResearch();
         Guide();
+        Region();
         Console.WriteLine($"{count} hospital checks passed.");
     }
 
@@ -240,6 +241,100 @@ static partial class Checks
             day.Tick(.05f);
         }
         Verify(day.Complete, $"duties completed day {day.DayNumber}");
+    }
+
+    static void Region()
+    {
+        var hq = new HospitalDay();
+        var network = new HospitalNetwork(hq);
+        Verify(!network.CanOpenBranch && !network.OpenBranch() && !network.Switch(true), "locked branch");
+        FinishDay(hq);
+        Verify(hq.PurchaseExpansion() && network.StartNextDay(6) && hq.SetAutoAdmission(true), "regional path: unlock expanded HQ");
+        FinishWithDuties(hq, manualPlanning: true);
+        Verify(network.StartNextDay(6), "regional path: grow visit count");
+        FinishWithDuties(hq, manualPlanning: true);
+        Verify(hq.PurchaseTraining() && hq.SetAutoPlanning(true) && network.StartNextDay(6), "regional path: delegate");
+        FinishWithDuties(hq, manualPlanning: false);
+        Verify(hq.PurchaseLab() && hq.StartResearch(HospitalResearch.Ct) && network.StartNextDay(6), "regional path: start research");
+        FinishWithDuties(hq, manualPlanning: false);
+        Verify(network.StartNextDay(6) && hq.ChapterFour && !network.OpenBranch(), "research alone does not unlock region");
+        while (!network.CanOpenBranch && hq.DayNumber < 30)
+        {
+            FinishWithDuties(hq, manualPlanning: false);
+            if (!network.CanOpenBranch) Verify(network.StartNextDay(6), "advance toward regional requirements");
+        }
+        int before = network.Funds;
+        Verify(network.CanOpenBranch && network.OpenBranch() && !network.OpenBranch() && !network.Switch(true) &&
+            network.Funds == before - HospitalNetwork.BranchCost, "branch establishment charge once, opens at next rollover");
+
+        string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hospital-region-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new HospitalSave(System.IO.Path.Combine(folder, "region.bin"));
+            network.DismissStory(true);
+            store.SaveNetwork(network);
+            Verify(store.LoadNetwork(true, out network) == HospitalLoadResult.Loaded && network.NextStory == 0 &&
+                network.BranchOpeningDay == network.Main.DayNumber + 1 && !network.Switch(true), "pending opening and skipped story persist");
+            Verify(network.StartNextDay(6) && network.Switch(true) && network.Active == network.Branch, "branch opens after rollover");
+            network.Tick(1);
+            Verify(network.Time == 0 && network.Main.Paused && network.Branch.Paused, "both hospitals load paused");
+            network.TogglePause();
+            for (int i = 0; i < 500 && network.Branch.Patients[0].Stage != VisitStage.Ct; i++) network.Tick(.05f);
+            Verify(network.Branch.Patients[0].Stage == VisitStage.Ct && network.Branch.Patients[0].Duration == 4 &&
+                network.Main.CtOwner == 1 && network.Branch.CtOwner == 1 && network.Main.Time == network.Branch.Time,
+                "branch and HQ simulate independently with shared CT protocol and same clock");
+            Verify(network.Branch.Patients[3].Stage != VisitStage.NotArrived &&
+                network.Main.Patients[3].Stage == VisitStage.NotArrived, "branch books patients earlier");
+            Verify(!network.StartNextDay(4), "cannot roll over while either hospital is operating");
+            double time = network.Time;
+            network.TogglePause();
+            network.Switch(false);
+            network.Tick(1);
+            Verify(network.Time == time && network.Main.Paused && network.Branch.Paused, "view switching preserves pause");
+            network.Switch(true);
+            store.SaveNetwork(network);
+            Verify(store.LoadNetwork(true, out var loaded) == HospitalLoadResult.Loaded && loaded.ViewingBranch &&
+                loaded.Main.CtOwner == 1 && loaded.Branch.CtOwner == 1 && loaded.Branch.Patients[0].Duration == 4 &&
+                loaded.Time == time && loaded.Funds == network.Funds, "v5 restores active hospital, independent owners and shared protocol");
+            loaded.TogglePause();
+            int openingFunds = loaded.Funds;
+            var firstBranchPatient = loaded.Branch.Patients[0];
+            for (int i = 0; i < 12000 && !(firstBranchPatient.Stage == VisitStage.Treatment && firstBranchPatient.Elapsed > 29.5f); i++)
+                loaded.Tick(.05f);
+            Verify(firstBranchPatient.Stage == VisitStage.Treatment && loaded.Branch.TreatmentOwner == 1 &&
+                loaded.Branch.Rank(2) == 1 && loaded.Branch.Income == 0, "branch's first treatment holds its FIFO reservation before payment");
+            store.SaveNetwork(loaded);
+            Verify(store.LoadNetwork(true, out var boundary) == HospitalLoadResult.Loaded &&
+                boundary.Branch.TreatmentOwner == 1 && boundary.Branch.Income == 0, "branch restores before payment");
+            boundary.TogglePause();
+            boundary.Tick(1);
+            Verify(boundary.Branch.Income == 200 && boundary.Branch.TreatmentOwner == 2, "branch payment occurs once and dispatches FIFO successor");
+            store.SaveNetwork(boundary);
+            Verify(store.LoadNetwork(true, out loaded) == HospitalLoadResult.Loaded && loaded.Branch.Income == 200,
+                "branch restores after payment");
+            loaded.TogglePause();
+            for (int i = 0; i < 12000 && !loaded.Complete; i++) loaded.Tick(.05f);
+            Verify(loaded.Complete && loaded.Main.Departed == 6 && loaded.Branch.Departed == 4 &&
+                loaded.Funds == openingFunds + 2000, "both independent schedules and all visit fees settle exactly once");
+            store.SaveNetwork(loaded);
+            Verify(store.LoadNetwork(true, out var settled) == HospitalLoadResult.Loaded &&
+                settled.Complete && settled.Funds == loaded.Funds && !settled.OpenBranch(), "settled visits do not pay again after restore");
+            Verify(settled.Branch.PurchaseExpansion() && !settled.Branch.PurchaseExpansion() && !settled.Main.PurchaseExpansion() &&
+                settled.Funds == loaded.Funds - HospitalDay.ExpansionCost, "branch annex is a local capacity purchase with one shared charge");
+            Verify(settled.StartNextDay(6) && settled.Main.Time == 0 && settled.Branch.Time == 0, "second shared day resets both clocks and bookings");
+            settled.TogglePause();
+            for (int i = 0; i < 12000 && !settled.Complete; i++) settled.Tick(.05f);
+            Verify(settled.Complete && settled.BranchChapterComplete && settled.Branch.DualTreatment, "branch reaches eight departures and uses both rooms");
+            var file = System.IO.Path.Combine(folder, "region.bin");
+            byte[] corrupt = { 1, 2, 3 };
+            System.IO.File.WriteAllBytes(file, corrupt);
+            Verify(store.LoadNetwork(true, out _) == HospitalLoadResult.RecoveredBackup &&
+                System.IO.File.ReadAllBytes(file).SequenceEqual(corrupt), "damaged network save preserves the primary and restores the backup");
+        }
+        finally
+        {
+            if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
+        }
     }
 
     static void Guide()

@@ -11,6 +11,114 @@ namespace SunshineHospital
         private bool qaRunning;
         private float qaSpeed = 1f;
 
+        private IEnumerator VerifyNetwork()
+        {
+            var previousNetwork = network;
+            int previousSelection = selectedId;
+            bool previousOutside = outside, previousStaff = staffOpen, previousMap = mapOpen;
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/region"));
+            qaRunning = true;
+            qaSpeed = 0;
+            outside = staffOpen = mapOpen = false;
+            try
+            {
+                Directory.CreateDirectory(folder);
+                var main = new HospitalDay(room.UsesOriginalArt);
+                network = new HospitalNetwork(main);
+                SetDay(main);
+                outside = true;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "main-before-annex.png"));
+
+                for (int date = 1; date < 30; date++)
+                {
+                    for (int frame = 0; frame < 12000 && !main.Complete; frame++)
+                    {
+                        foreach (var patient in main.Patients)
+                        {
+                            if (!main.AutoAdmission && patient.Stage == VisitStage.Reception) main.Admit(patient.Id);
+                            if (!main.AutoPlanning && patient.Stage == VisitStage.AwaitingPlan) main.AssignPlan(patient.Id);
+                        }
+                        network.Tick(.05f);
+                    }
+                    if (!Expect(main.Complete, "regional route day completed")) yield break;
+                    if (date == 1)
+                    {
+                        if (!Expect(main.PurchaseExpansion(), "regional route annex")) yield break;
+                        yield return new WaitForEndOfFrame();
+                        WriteGameView(Path.Combine(folder, "main-after-annex.png"));
+                    }
+                    if (main.ChapterTwo && main.TrainingDay == 0)
+                    {
+                        main.PurchaseTraining();
+                        main.SetAutoPlanning(true);
+                    }
+                    if (main.ChapterThree && main.LabDay == 0)
+                    {
+                        main.PurchaseLab();
+                        main.StartResearch(HospitalResearch.Ct);
+                    }
+                    if (network.CanOpenBranch) break;
+                    network.StartNextDay(6);
+                    main.SetAutoAdmission(true);
+                }
+                if (!Expect(network.OpenBranch() && network.StartNextDay(6), "regional route opens on normal rules")) yield break;
+                SetDay(network.Active);
+                mapOpen = true;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "map.png"));
+                mapOpen = false;
+                if (!Expect(network.Switch(true), "regional route switches to branch")) yield break;
+                SetDay(network.Active);
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "branch-exterior.png"));
+
+                outside = false;
+                staffOpen = true;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "branch-research.png"));
+                staffOpen = false;
+                var visit = day.Patients[0];
+                Select(1);
+                StartCoroutine(RecordVisit(Path.Combine(folder, "visit.mp4")));
+                float deadline = Time.realtimeSinceStartup + 105;
+                while (visit.Stage < VisitStage.Treatment && Time.realtimeSinceStartup < deadline)
+                {
+                    network.Tick(Time.deltaTime);
+                    yield return null;
+                }
+                if (!Expect(visit.Stage == VisitStage.Treatment, "regional branch reaches treatment")) yield break;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "branch-treatment.png"));
+                var store = new HospitalSave(Path.Combine(folder, "isolated-qa.bin"));
+                store.SaveNetwork(network);
+                if (!Expect(store.LoadNetwork(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
+                    restored.ViewingBranch && restored.Branch.TreatmentOwner == 1, "regional branch restores treatment from isolated slot")) yield break;
+                while (visit.Stage != VisitStage.Complete && Time.realtimeSinceStartup < deadline)
+                {
+                    network.Tick(Time.deltaTime);
+                    yield return null;
+                }
+                if (!Expect(visit.Stage == VisitStage.Complete && day.Income == HospitalDay.VisitFee,
+                    "regional visit departed and was paid once")) yield break;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "branch-departure.png"));
+                yield return new WaitForSecondsRealtime(.75f);
+                Debug.Log($"[Hospital QA] Regional live scene passed. Captures: {folder}");
+            }
+            finally
+            {
+                network = previousNetwork;
+                outside = previousOutside;
+                staffOpen = previousStaff;
+                mapOpen = previousMap;
+                qaRunning = false;
+                qaSpeed = 1;
+                SetDay(network.Active);
+                Select(previousSelection);
+            }
+        }
+
         // F9 exercises the live scene at normal speed through the same actions
         // as the HUD, without simulating mouse clicks or modifying saved data.
         private IEnumerator VerifyVisit()

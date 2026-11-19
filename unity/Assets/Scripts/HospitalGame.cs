@@ -48,7 +48,8 @@ namespace SunshineHospital
             roomRoot.SetParent(transform, false);
             room = new HospitalRoom(roomRoot);
             save = new HospitalSave(Path.Combine(Application.persistentDataPath, "UnitySaves", "first-day.bin"));
-            SetDay(new HospitalDay(room.UsesOriginalArt));
+            network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
+            SetDay(network.Active);
             LoadDay(reportMissing: false);
         }
 
@@ -78,6 +79,7 @@ namespace SunshineHospital
             if (capturing) return;
             if (!qaRunning && room.UsesOriginalArt)
             {
+                if (Input.GetKeyDown(KeyCode.F4)) StartCoroutine(VerifyNetwork());
                 if (Input.GetKeyDown(KeyCode.F9)) StartCoroutine(VerifyVisit());
                 if (Input.GetKeyDown(KeyCode.F10)) StartCoroutine(VerifyDay());
                 if (Input.GetKeyDown(KeyCode.F11)) VerifySaveInEditor();
@@ -93,12 +95,13 @@ namespace SunshineHospital
             speed = qaSpeed;
             interactive = !qaRunning;
 #endif
-            if (interactive && !outside && !staffOpen) day.UpdateGuide(selectedId == 1);
+            if (interactive && !outside && !staffOpen && !mapOpen) day.UpdateGuide(selectedId == 1);
             bool guideOpen = interactive && day.ActiveGuide != GuideMoment.None;
-            if (!outside && !staffOpen && !guideOpen)
+            if (!outside && !staffOpen && !mapOpen && !guideOpen)
             {
                 if (interactive) PickPatient();
-                day.Tick(Time.deltaTime * speed);
+                if (interactive) network.Tick(Time.deltaTime * speed);
+                else day.Tick(Time.deltaTime * speed);
             }
             RefreshActors();
         }
@@ -123,7 +126,7 @@ namespace SunshineHospital
 
         private void RefreshActors()
         {
-            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0);
+            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0, LiveNetwork && network.ViewingBranch);
             float annexLift = 0;
             float lift = 0;
             foreach (var patient in day.Patients)
@@ -221,6 +224,11 @@ namespace SunshineHospital
             acceptInput = !capturing && !qaRunning;
             if (qaRunning) showGuide = false;
 #endif
+            if (mapOpen)
+            {
+                DrawNetwork(width, height, acceptInput);
+                return;
+            }
             if (staffOpen)
             {
                 DrawStaffAndResearch(width, height, acceptInput);
@@ -228,7 +236,7 @@ namespace SunshineHospital
             }
             Panel(new Rect(0, 0, width, Header), Paper);
             Panel(new Rect(0, Header - 1, width, 1), new Color(.84f, .80f, .70f));
-            GUI.Label(new Rect(20, 0, 230, 56), $"햇살병원 · {day.DayNumber}일차", heading);
+            GUI.Label(new Rect(20, 0, 230, 56), $"{ActiveHospitalName} · {CurrentDate}일차", heading);
             if (!outside)
             {
                 float slot = (width - 40) / day.Patients.Count;
@@ -264,6 +272,8 @@ namespace SunshineHospital
             {
                 GUI.Label(new Rect(20, 55, width - 40, 40), "병원 밖 · 진료 시간이 멈췄어요", label);
             }
+            if (GUI.Button(new Rect(width - 710, 10, 60, 38), LiveNetwork && network.NextStory != 0 ? "지도 •" : "지도", quiet) && acceptInput)
+                mapOpen = true;
             if (GUI.Button(new Rect(width - 645, 10, 105, 38), "직원 · 연구", patientTag) && acceptInput)
                 staffOpen = true;
             if (GUI.Button(new Rect(width - 528, 10, 98, 38), outside ? "병원 안" : "병원 밖", quiet) && acceptInput)
@@ -276,10 +286,10 @@ namespace SunshineHospital
             if (GUI.Button(new Rect(width - 420, 10, 62, 38), "저장", patientTag) && acceptInput) SaveDay();
             if (GUI.Button(new Rect(width - 353, 10, 72, 38), "불러오기", patientTag) && acceptInput) LoadDay(reportMissing: true);
             GUI.enabled = controlsEnabled;
-            GUI.Label(new Rect(width - 277, 0, 155, 56), $"운영 자금  {day.Funds:N0}만", label);
+            GUI.Label(new Rect(width - 277, 0, 155, 56), $"운영 자금  {(LiveNetwork ? network.Funds : day.Funds):N0}만", label);
             if (!outside && GUI.Button(new Rect(width - 116, 8, 96, 42), day.Paused ? "재생" : "일시정지",
                     day.Paused ? primary : quiet) && acceptInput)
-                day.TogglePause();
+                network.TogglePause();
 
             float footer = height - Footer;
             Panel(new Rect(0, footer, width, Footer), Paper);
@@ -298,7 +308,7 @@ namespace SunshineHospital
 
             var selection = Selection;
             string status = day.Complete ? "첫날 운영 완료"
-                : selection == null ? $"{day.DayNumber}일차 진료 · 귀가 {day.Departed}/{day.Patients.Count}"
+                : selection == null ? $"{CurrentDate}일차 진료 · 귀가 {day.Departed}/{day.Patients.Count}"
                 : $"{selection.Name} · {Status(selection.Stage)}";
             GUI.Label(new Rect(34, footer + 7, width - 255, 36), status, heading);
             string guidance = Time.unscaledTime < saveNoticeUntil ? saveNotice : Guidance(selection);
@@ -331,14 +341,15 @@ namespace SunshineHospital
 
         private void DrawGrowth(float width, float footer, bool acceptInput)
         {
-            string goal = day.ChapterFour ? "1~4장 · 완료"
+            string goal = LiveNetwork && network.ViewingBranch ? $"5장 · 분원 귀가 {Math.Min(day.LifetimeDeparted, 8)}/8"
+                : day.ChapterFour ? "5장 · 지도에서 물빛 분원 확인"
                 : day.ChapterThree ? "4장 · 연구소와 진료 개선"
                 : day.ChapterTwo ? $"3장 · 위임 방문 {day.DelegatedDepartures}/4"
                 : !day.ChapterOne ? $"1장 · 오늘 방문 {day.Departed}/{day.Patients.Count}"
                 : !day.Expanded ? "2장 · 치료별관 마련하기"
                 : !day.DualTreatment ? "2장 · 두 치료실 함께 운영하기"
                 : $"2장 · 누적 방문 {day.LifetimeDeparted}/12";
-            string title = outside ? (day.Expanded ? "본원과 치료별관" : "본원과 별관 예정지") : $"{day.DayNumber}일차 운영 완료";
+            string title = outside ? (day.Expanded ? "병원과 치료별관" : "병원과 별관 예정지") : $"{CurrentDate}일차 운영 완료";
             string detail = outside ? (day.ExpansionReason.Length == 0 ? "치료기 1대 추가 · 600만" : day.ExpansionReason)
                 : $"귀가 {day.Departed}/{day.Patients.Count}명 · 수입 {day.Income:N0}만 · 지출 {day.TotalExpense:N0}만";
             GUI.Label(new Rect(34, footer + 7, 210, 36), title, heading);
@@ -347,11 +358,12 @@ namespace SunshineHospital
             if (outside)
             {
                 if (!day.Expanded && GUI.Button(new Rect(width - 195, footer + 19, 175, 50),
-                    confirmExpansion ? "600만 지불하기" : "별관 증축", primary) && acceptInput)
+                    confirmExpansion ? "치료실 추가 · 600만" : "별관 증축", primary) && acceptInput)
                 {
                     if (confirmExpansion)
                     {
                         if (!day.PurchaseExpansion()) SetSaveNotice(day.ExpansionReason);
+                        else SetSaveNotice("치료별관 개방 · 치료실 2곳 운영");
                         confirmExpansion = false;
                     }
                     else if (day.ExpansionReason.Length == 0) confirmExpansion = true;
@@ -359,40 +371,52 @@ namespace SunshineHospital
                 }
                 return;
             }
-            if (GUI.Button(new Rect(width - 265, footer + 19, 118, 50), "다음 날 · 4명", primary) && acceptInput)
-                StartDay(HospitalDay.BookingCount);
-            if (day.Expanded && GUI.Button(new Rect(width - 140, footer + 19, 120, 50), "다음 날 · 6명", primary) && acceptInput)
+            if (LiveNetwork && !network.Complete)
+            {
+                GUI.Label(new Rect(width - 290, footer + 22, 270, 42), "다른 병원의 진료가 진행 중이에요", label);
+                return;
+            }
+            bool viewingBranch = LiveNetwork && network.ViewingBranch;
+            if (GUI.Button(new Rect(width - 265, footer + 19, 118, 50),
+                viewingBranch ? "다음 날" : "다음 날 · 4명", primary) && acceptInput)
+                StartDay(viewingBranch ? network.Main.Patients.Count : HospitalDay.BookingCount);
+            if (day.Expanded && !viewingBranch && GUI.Button(new Rect(width - 140, footer + 19, 120, 50), "다음 날 · 6명", primary) && acceptInput)
                 StartDay(HospitalDay.AnnexBookingCount);
         }
 
         private void StartDay(int bookings)
         {
-            if (day.StartNextDay(bookings)) SetDay(day);
+            if (network.StartNextDay(bookings)) SetDay(network.Active);
         }
 
-        private void SaveDay()
+        private bool SaveDay()
         {
             try
             {
-                save.Save(day);
-                SetSaveNotice("첫날 진료를 저장했어요");
+                save.SaveNetwork(network);
+                SetSaveNotice("병원 운영을 저장했어요");
+                return true;
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException or NotSupportedException)
             {
                 Debug.LogWarning($"[Hospital Save] Write failed ({error.GetType().Name}).");
                 SetSaveNotice("저장하지 못했어요 · 저장 공간을 확인해 주세요");
+                return false;
             }
         }
 
         private void LoadDay(bool reportMissing)
         {
-            HospitalLoadResult result = save.Load(room.UsesOriginalArt, out HospitalDay restored);
+            HospitalLoadResult result = save.LoadNetwork(room.UsesOriginalArt, out HospitalNetwork restored);
             if (restored != null)
             {
                 outside = false;
                 staffOpen = false;
                 confirmExpansion = false;
-                SetDay(restored);
+                mapOpen = false;
+                confirmBranch = false;
+                network = restored;
+                SetDay(network.Active);
             }
             string message = result switch
             {

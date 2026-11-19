@@ -12,13 +12,18 @@ namespace SunshineHospital
     {
         private const int Magic = 0x484F5350;
         private const int Version = 4;
+        private const int NetworkVersion = 5;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;
 
         public HospitalSave(string path) => this.path = Path.GetFullPath(path);
 
-        public void Save(HospitalDay day)
+        public void Save(HospitalDay day) => Write(Version, day.OriginalArt, day.WriteSave);
+
+        public void SaveNetwork(HospitalNetwork network) => Write(NetworkVersion, network.Main.OriginalArt, network.WriteSave);
+
+        private void Write(int version, bool originalArt, Action<BinaryWriter> write)
         {
             byte[] payload;
             using (var memory = new MemoryStream())
@@ -26,8 +31,8 @@ namespace SunshineHospital
                 using (var writer = new BinaryWriter(memory, System.Text.Encoding.UTF8, leaveOpen: true))
                 {
                     writer.Write(Magic);
-                    writer.Write(Version);
-                    day.WriteSave(writer);
+                    writer.Write(version);
+                    write(writer);
                 }
                 payload = memory.ToArray();
             }
@@ -48,7 +53,7 @@ namespace SunshineHospital
                 {
                     File.Move(temp, path);
                 }
-                else if (TryRead(path, day.OriginalArt, out _))
+                else if (TryRead(path, originalArt, out _))
                 {
                     File.Replace(temp, path, path + ".bak");
                 }
@@ -68,13 +73,21 @@ namespace SunshineHospital
 
         public HospitalLoadResult Load(bool originalArt, out HospitalDay day)
         {
+            var result = LoadNetwork(originalArt, out var network);
+            day = network?.Main;
+            if (day != null) day.SpendingLimit = null;
+            return result;
+        }
+
+        public HospitalLoadResult LoadNetwork(bool originalArt, out HospitalNetwork day)
+        {
             string backup = path + ".bak";
             if (TryRead(path, originalArt, out day)) return HospitalLoadResult.Loaded;
             if (TryRead(backup, originalArt, out day)) return HospitalLoadResult.RecoveredBackup;
             return File.Exists(path) || File.Exists(backup) ? HospitalLoadResult.Unreadable : HospitalLoadResult.Missing;
         }
 
-        private static bool TryRead(string file, bool originalArt, out HospitalDay day)
+        private static bool TryRead(string file, bool originalArt, out HospitalNetwork day)
         {
             day = null;
             if (!File.Exists(file)) return false;
@@ -94,8 +107,9 @@ namespace SunshineHospital
                 using var data = new BinaryReader(payload);
                 if (data.ReadInt32() != Magic) return false;
                 int version = data.ReadInt32();
-                if (version < 1 || version > Version) return false;
-                var restored = HospitalDay.ReadSave(data, originalArt, version);
+                if (version < 1 || version > NetworkVersion) return false;
+                var restored = version == NetworkVersion ? HospitalNetwork.ReadSave(data, originalArt)
+                    : new HospitalNetwork(HospitalDay.ReadSave(data, originalArt, version));
                 if (payload.Position != payload.Length) return false;
                 day = restored;
                 return true;
@@ -151,10 +165,10 @@ namespace SunshineHospital
             }
         }
 
-        internal static HospitalDay ReadSave(BinaryReader reader, bool originalArt, int version)
+        internal static HospitalDay ReadSave(BinaryReader reader, bool originalArt, int version, HospitalDay researchSource = null)
         {
             if (reader.ReadBoolean() != originalArt) throw new InvalidDataException("Different route layout.");
-            var day = new HospitalDay(originalArt);
+            var day = new HospitalDay(originalArt, regional: researchSource != null) { ResearchSource = researchSource };
             if (version >= 2)
             {
                 day.DayNumber = reader.ReadInt32();
@@ -211,8 +225,8 @@ namespace SunshineHospital
                     patient.DelegatedAdmission = reader.ReadBoolean();
                     patient.DelegatedPlan = reader.ReadBoolean();
                     if (patient.PlanPriority < 0 || patient.PlanPriority > day.patients.Length * 3 ||
-                        (patient.DelegatedAdmission && (day.DayNumber < 2 || patient.Stage < VisitStage.CtQueue)) ||
-                        (patient.DelegatedPlan && (day.TrainingDay == 0 || patient.Stage < VisitStage.PlanQueue)))
+                        (patient.DelegatedAdmission && ((day.DayNumber < 2 && !day.regional) || patient.Stage < VisitStage.CtQueue)) ||
+                        (patient.DelegatedPlan && ((day.TrainingDay == 0 && !day.regional) || patient.Stage < VisitStage.PlanQueue)))
                         throw new InvalidDataException("Invalid delegated visit.");
                 }
                 else if (patient.Stage >= VisitStage.CtQueue) patient.PlanPriority = patient.Id;
@@ -221,7 +235,7 @@ namespace SunshineHospital
                 if (!(Math.Abs(patient.Position.X) <= 20 && Math.Abs(patient.Position.Y) <= 20 && headingLength > .98f && headingLength < 1.02f))
                     throw new InvalidDataException("Invalid patient pose.");
 
-                bool arrived = day.time + .000001 >= (patient.Id - 1) * ArrivalInterval;
+                bool arrived = day.time + .000001 >= day.ArrivalAt(patient.Id);
                 if (arrived == (patient.Stage == VisitStage.NotArrived))
                     throw new InvalidDataException("Patient arrival contradicts the clock.");
 

@@ -59,6 +59,11 @@ namespace SunshineHospital
         private readonly DayRoutes routes;
         private int serial;
         private double time;
+        private readonly bool regional;
+        internal HospitalDay ResearchSource { get; set; }
+        internal Func<int> SpendingLimit { get; set; }
+        public bool CanSpend(int amount) => Funds >= amount && (SpendingLimit?.Invoke() ?? Funds) >= amount;
+        private double ArrivalAt(int id) => (id - 1) * (regional ? 3f : ArrivalInterval);
         public IReadOnlyList<PatientVisit> Patients { get; private set; }
         public bool Paused { get; private set; }
         public int Departed { get; private set; }
@@ -87,17 +92,18 @@ namespace SunshineHospital
         }
         public double Time => time;
 
-        public HospitalDay(bool originalArt = true, int bookingCount = BookingCount)
+        public HospitalDay(bool originalArt = true, int bookingCount = BookingCount, bool regional = false)
         {
             if (bookingCount != BookingCount && bookingCount != 1) throw new ArgumentOutOfRangeException(nameof(bookingCount));
             OriginalArt = originalArt;
+            this.regional = regional;
             routes = new DayRoutes(originalArt, bookingCount == 1);
             ResetPatients(bookingCount);
         }
 
         public string ExpansionReason => Expanded ? "치료별관 운영 중"
             : LifetimePaid == 0 ? "첫 환자 치료 후 열려요"
-            : Funds < ExpansionCost ? "자금이 부족해요 · 600만 필요" : "";
+            : !CanSpend(ExpansionCost) ? "자금이 부족해요 · 600만 필요" : "";
 
         public bool PurchaseExpansion()
         {
@@ -191,7 +197,7 @@ namespace SunshineHospital
             time += seconds;
             foreach (var patient in patients)
             {
-                if (patient.Stage == VisitStage.NotArrived && time + .000001 >= (patient.Id - 1) * ArrivalInterval)
+                if (patient.Stage == VisitStage.NotArrived && time + .000001 >= ArrivalAt(patient.Id))
                     Spawn(patient);
 
                 var path = routes.For(patient.Id, patient.Stage, patient.TreatmentRoom);

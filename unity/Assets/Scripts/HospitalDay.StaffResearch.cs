@@ -56,7 +56,7 @@ namespace SunshineHospital
 
         public bool PurchaseTraining()
         {
-            if (!ChapterTwo || TrainingDay != 0 || Funds < TrainingCost) return false;
+            if (!ChapterTwo || TrainingDay != 0 || !CanSpend(TrainingCost)) return false;
             TrainingDay = DayNumber;
             TrainingExpense = TrainingCost;
             return true;
@@ -64,7 +64,7 @@ namespace SunshineHospital
 
         public bool PurchaseLab()
         {
-            if (!ChapterThree || LabDay != 0 || Funds < LabCost) return false;
+            if (!ChapterThree || LabDay != 0 || !CanSpend(LabCost)) return false;
             LabDay = DayNumber;
             LabExpense = LabCost;
             ResearchPoints = ResearchPointCost;
@@ -76,7 +76,7 @@ namespace SunshineHospital
         {
             int slot = (int)project;
             if (slot < 0 || slot >= researchStarted.Length || LabDay == 0 || researchStarted[slot] != 0 ||
-                ResearchSlotBusy || Funds < ResearchCost || ResearchPoints < ResearchPointCost) return false;
+                ResearchSlotBusy || !CanSpend(ResearchCost) || ResearchPoints < ResearchPointCost) return false;
             ResearchExpense += ResearchCost;
             ResearchPoints -= ResearchPointCost;
             researchStarted[slot] = DayNumber;
@@ -93,8 +93,8 @@ namespace SunshineHospital
 
         private void UpdateDuties(float seconds)
         {
-            if (AutoAdmission) RunDuty(VisitStage.Reception, VisitStage.CtQueue, ref admissionCandidate, ref admissionElapsed, seconds);
-            if (AutoPlanning) RunDuty(VisitStage.AwaitingPlan, VisitStage.PlanQueue, ref planCandidate, ref planElapsed, seconds);
+            if (AutoAdmission || regional) RunDuty(VisitStage.Reception, VisitStage.CtQueue, ref admissionCandidate, ref admissionElapsed, seconds);
+            if (AutoPlanning || regional) RunDuty(VisitStage.AwaitingPlan, VisitStage.PlanQueue, ref planCandidate, ref planElapsed, seconds);
         }
 
         private void RunDuty(VisitStage ready, VisitStage queue, ref int candidate, ref double elapsed, float seconds)
@@ -202,7 +202,7 @@ namespace SunshineHospital
         {
             if ((AutoAdmission && DayNumber < 2) || (AutoPlanning && TrainingDay == 0) ||
                 TrainingDay < 0 || TrainingDay > DayNumber || (TrainingDay > 0 && !ChapterTwo) ||
-                DelegatedDepartures < 0 || DelegatedDepartures > LifetimeDeparted || (DelegatedDepartures > 0 && TrainingDay == 0) ||
+                DelegatedDepartures < 0 || DelegatedDepartures > LifetimeDeparted || (DelegatedDepartures > 0 && TrainingDay == 0 && !regional) ||
                 LabDay < 0 || LabDay > DayNumber || (LabDay > 0 && !ChapterThree) ||
                 ResearchPoints < 0 || ResearchPoints > ResearchPointCap || (LabDay == 0 && ResearchPoints != 0) ||
                 TrainingExpense != (TrainingDay == DayNumber ? TrainingCost : 0) ||
@@ -211,8 +211,8 @@ namespace SunshineHospital
                 Enumerable.Range(0, 2).Count(i => researchStarted[i] != 0 && researchApplied[i] == 0) > 1 ||
                 lastResearchClose < DayNumber - 1 || lastResearchClose > DayNumber ||
                 (lastResearchClose == DayNumber) != Complete ||
-                !ValidDuty(AutoAdmission, admissionCandidate, admissionElapsed) ||
-                !ValidDuty(AutoPlanning, planCandidate, planElapsed))
+                !ValidDuty(AutoAdmission || regional, admissionCandidate, admissionElapsed) ||
+                !ValidDuty(AutoPlanning || regional, planCandidate, planElapsed))
                 throw new InvalidDataException("Staff or research state inconsistent.");
         }
 
@@ -227,8 +227,8 @@ namespace SunshineHospital
 
         private float ActiveServiceDuration(VisitStage stage)
         {
-            if (stage == VisitStage.Ct && researchApplied[(int)HospitalResearch.Ct] > 0) return 4f;
-            if (stage == VisitStage.Planning && researchApplied[(int)HospitalResearch.Planning] > 0) return 4f;
+            if (stage == VisitStage.Ct && (ResearchSource ?? this).researchApplied[(int)HospitalResearch.Ct] > 0) return 4f;
+            if (stage == VisitStage.Planning && (ResearchSource ?? this).researchApplied[(int)HospitalResearch.Planning] > 0) return 4f;
             return PatientVisit.DurationOf(stage);
         }
     }
