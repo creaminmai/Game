@@ -8,33 +8,16 @@ namespace SunshineHospital
 {
     public sealed partial class HospitalGame : MonoBehaviour
     {
-        // Routes follow the central corridor. Service starts only after arrival.
-        private static readonly Vector3[] Entrance = { Point(0, 3), Point(-1.6f, 3), Point(-3.8f, 2.65f) };
-        private static readonly Vector3[] ToCt = { Point(-1.6f, 3), Point(0, 3), Point(0, -1.45f), Point(-4.25f, -1.45f) };
-        private static readonly Vector3[] ToPlanning = { Point(0, -1.45f), Point(2.95f, -1.45f), Point(3.6f, -2.1f) };
-        private static readonly Vector3[] ToTreatment = { Point(0, -1.45f), Point(0, 3.95f), Point(4.08f, 3.95f) };
-        private static readonly Vector3[] Exit = { Point(0, 3.95f), Point(0, 7f) };
-
-        private static readonly Vector3 CtBed = Point(-4f, -2.8f);
-        private static readonly Vector3 TreatmentBed = Point(4f, 3f);
         private static readonly Quaternion TreatmentYaw = Quaternion.Euler(0, -35, 0);
-        private static readonly Vector3 Bedside = Point(1.05f, 1.55f);
-        private static readonly Vector3 CtApproach = CtBed + Bedside;
-        private static readonly Vector3 TreatmentApproach = TreatmentBed + TreatmentYaw * Bedside;
-        private static readonly Vector3[] ArtEntrance = { Point(0, 3), Point(-1.5f, 3), Point(-2.5f, 3.12f) };
-        private static readonly Vector3[] ArtToCt = { Point(-1.5f, 3), Point(0, 3), Point(0, -2.8f), Point(-1.5f, -2.8f), CtApproach };
-        private static readonly Vector3[] ArtToPlanning = { Point(-1.5f, -2.8f), Point(0, -2.8f), Point(0, -1f), Point(1.5f, -1f), Point(2.4f, -1.8f) };
-        private static readonly Vector3[] ArtToTreatment = { Point(1.5f, -1f), Point(0, -1f), Point(0, 3), Point(1.5f, 3), Point(1.85f, 4.5f), TreatmentApproach };
-        private static readonly Vector3[] ArtExit = { Point(1.85f, 4.5f), Point(1.5f, 3), Point(0, 3), Point(0, 7f) };
-
-        private readonly PatientVisit visit = new();
+        private HospitalDay day;
         private HospitalRoom room;
         private Transform roomRoot;
+        private HospitalRoom.Actor[] actors;
+        private int selectedId;
+        private PatientVisit Selection => selectedId == 0 ? null : day.Patients[selectedId - 1];
 #if UNITY_EDITOR
         private bool capturing;
 #endif
-        private int waypoint;
-        private bool selected;
         private const float Header = 58f;
         private const float Footer = 88f;
         private static readonly Color Paper = new(1f, .965f, .898f);
@@ -55,116 +38,111 @@ namespace SunshineHospital
             roomRoot = new GameObject("병원 장면").transform;
             roomRoot.SetParent(transform, false);
             room = new HospitalRoom(roomRoot);
-            var selectionCollider = room.Patient.gameObject.AddComponent<CapsuleCollider>();
-            selectionCollider.center = new Vector3(0, .8f, 0);
-            selectionCollider.height = room.UsesOriginalArt ? 2f : 1.65f;
-            if (room.UsesOriginalArt) selectionCollider.center = Vector3.up;
-            selectionCollider.radius = .42f;
+            SetDay(new HospitalDay(room.UsesOriginalArt));
+        }
+
+        private void SetDay(HospitalDay next)
+        {
+            if (actors != null)
+                foreach (var actor in actors)
+                {
+                    actor.Root.gameObject.SetActive(false);
+                    Destroy(actor.Root.gameObject);
+                }
+            day = next;
+            selectedId = 0;
+            actors = new HospitalRoom.Actor[day.Patients.Count];
+            for (int i = 0; i < actors.Length; i++) actors[i] = room.CreatePatient(day.Patients[i]);
+            RefreshActors();
         }
 
         private void Update()
         {
             UpdateCameraViewport(room.Camera);
             if (Portrait) return;
+            float speed = 1f;
 #if UNITY_EDITOR
             if (capturing) return;
-            if (!qaRunning && visit.Stage <= VisitStage.Reception && room.UsesOriginalArt && Input.GetKeyDown(KeyCode.F9))
-                StartCoroutine(VerifyVisit());
-
-            if (visit.Stage == VisitStage.Reception && room.UsesOriginalArt && Input.GetKeyDown(KeyCode.F8))
+            if (!qaRunning && room.UsesOriginalArt)
             {
-                StartCoroutine(CaptureComparison());
-                return;
-            }
-#endif
-            if (Input.GetMouseButtonDown(0))
-            {
-                Vector3 mouse = Input.mousePosition;
-                if (mouse.y < Screen.height - Header * Scale && mouse.y > Footer * Scale &&
-                    Physics.Raycast(room.Camera.ScreenPointToRay(mouse), out RaycastHit hit) &&
-                    hit.transform == room.Patient)
-                    selected = true;
-            }
-
-            if (!visit.Paused)
-            {
-                Vector3[] route = visit.Stage switch
+                if (Input.GetKeyDown(KeyCode.F9)) StartCoroutine(VerifyVisit());
+                if (Input.GetKeyDown(KeyCode.F10)) StartCoroutine(VerifyDay());
+                if (Input.GetKeyDown(KeyCode.F8) && day.Patients[0].Stage == VisitStage.Reception)
                 {
-                    VisitStage.Entering => room.UsesOriginalArt ? ArtEntrance : Entrance,
-                    VisitStage.WalkingToCt => room.UsesOriginalArt ? ArtToCt : ToCt,
-                    VisitStage.WalkingToPlanning => room.UsesOriginalArt ? ArtToPlanning : ToPlanning,
-                    VisitStage.WalkingToTreatment => room.UsesOriginalArt ? ArtToTreatment : ToTreatment,
-                    VisitStage.Leaving => room.UsesOriginalArt ? ArtExit : Exit,
-                    _ => null
-                };
-                if (route != null) Walk(route);
-                else
-                {
-#if UNITY_EDITOR
-                    VisitStage previousStage = visit.Stage;
-                    float serviceSeconds = visit.Elapsed + Time.deltaTime;
-#endif
-                    visit.Tick(Time.deltaTime);
-#if UNITY_EDITOR
-                    if (previousStage != visit.Stage)
-                        Debug.Log($"[Hospital QA] {previousStage} → {visit.Stage}, active seconds {serviceSeconds:F3}, funds {visit.Funds}");
-#endif
+                    StartCoroutine(CaptureComparison());
+                    return;
                 }
             }
+            speed = qaSpeed;
+            if (!qaRunning)
+#endif
+                PickPatient();
+            day.Tick(Time.deltaTime * speed);
+            RefreshActors();
+        }
 
-            bool inService = visit.Stage == VisitStage.Ct || visit.Stage == VisitStage.Treatment;
+        private void PickPatient()
+        {
+            if (!Input.GetMouseButtonDown(0)) return;
+            Vector3 mouse = Input.mousePosition;
+            if (mouse.y >= Screen.height - Header * Scale || mouse.y <= Footer * Scale) return;
+            Physics.SyncTransforms();
+            if (!Physics.Raycast(room.Camera.ScreenPointToRay(mouse), out RaycastHit hit)) return;
+            for (int i = 0; i < actors.Length; i++)
+                if (hit.transform == actors[i].Root)
+                    Select(i + 1);
+        }
+
+        private void Select(int id)
+        {
+            if (id < 1 || id > day.Patients.Count || day.Patients[id - 1].Stage == VisitStage.NotArrived) return;
+            selectedId = id;
+        }
+
+        private void RefreshActors()
+        {
+            float lift = 0;
+            foreach (var patient in day.Patients)
+                lift = Mathf.Max(lift, RefreshActor(patient, actors[patient.Id - 1]));
+            room.SetTreatmentHeadLift(lift);
+            room.SetLamp(room.CtLamp, day.CtOwner != 0 && day.Patients[day.CtOwner - 1].Stage == VisitStage.Ct);
+            room.SetLamp(room.TreatmentLamp, day.TreatmentOwner != 0 && day.Patients[day.TreatmentOwner - 1].Stage == VisitStage.Treatment);
+        }
+
+        private float RefreshActor(PatientVisit patient, HospitalRoom.Actor actor)
+        {
+            bool visible = patient.Stage is not (VisitStage.NotArrived or VisitStage.Complete);
+            actor.Root.gameObject.SetActive(visible);
+            if (!visible) return 0;
+            actor.Root.SetPositionAndRotation(World(patient.Position), Quaternion.LookRotation(World(patient.Heading)));
+            bool inService = patient.Stage is VisitStage.Ct or VisitStage.Treatment;
+            actor.Selection.gameObject.SetActive(selectedId == patient.Id && !inService);
             if (inService && room.UsesOriginalArt)
             {
-                bool treatment = visit.Stage == VisitStage.Treatment;
+                bool treatment = patient.Stage == VisitStage.Treatment;
                 var yaw = treatment ? TreatmentYaw : Quaternion.identity;
-                var bed = treatment ? TreatmentBed : CtBed;
-                float edgeTime = Mathf.Min(visit.Elapsed, visit.Duration - visit.Elapsed);
+                var bed = World(treatment ? DayRoutes.TreatmentBed : DayRoutes.CtBed);
+                float edgeTime = Mathf.Min(patient.Elapsed, patient.Duration - patient.Elapsed);
                 float recline = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.15f, .75f, edgeTime));
                 float shift = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.75f, 1.35f, edgeTime));
-                var elevated = Vector3.Lerp(Bedside, new Vector3(1.05f, 1.22f, 2.05f), recline);
+                var elevated = Vector3.Lerp(World(DayRoutes.Bedside), new Vector3(1.05f, 1.22f, 2.05f), recline);
                 var at = Vector3.Lerp(elevated, new Vector3(0, 1.22f, .65f), shift);
-                room.PatientBody.SetPositionAndRotation(bed + yaw * at, yaw * Quaternion.Euler(-90 * recline, 0, 0));
-                room.SetTreatmentHeadLift(treatment ? 1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(1.35f, 1.75f, edgeTime)) : 0);
+                actor.Body.SetPositionAndRotation(bed + yaw * at, yaw * Quaternion.Euler(-90 * recline, 0, 0));
+                return treatment ? 1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(1.35f, 1.75f, edgeTime)) : 0;
             }
-            else
-            {
-                room.PatientBody.localPosition = inService
-                    ? room.Patient.InverseTransformVector(new Vector3(0, .8f, -.36f))
-                    : new Vector3(0, room.UsesOriginalArt ? .055f : 0f, 0);
-                room.PatientBody.localRotation = inService
-                    ? Quaternion.Inverse(room.Patient.rotation) * Quaternion.Euler(-90, 0, 0)
-                    : Quaternion.identity;
-                room.SetTreatmentHeadLift(visit.Stage == VisitStage.WalkingToTreatment || visit.Stage == VisitStage.Leaving
-                    ? Mathf.InverseLerp(2.5f, .5f, Vector3.Distance(room.Patient.position, TreatmentApproach))
-                    : 0);
-            }
-            room.Patient.gameObject.SetActive(visit.Stage != VisitStage.Complete);
-            room.Selection.gameObject.SetActive(selected && !inService);
-            room.SetLamp(room.CtLamp, visit.Stage == VisitStage.Ct);
-            room.SetLamp(room.TreatmentLamp, visit.Stage == VisitStage.Treatment);
+
+            actor.Body.localPosition = inService
+                ? actor.Root.InverseTransformVector(new Vector3(0, .8f, -.36f))
+                : new Vector3(0, room.UsesOriginalArt ? .055f : 0f, 0);
+            actor.Body.localRotation = inService
+                ? Quaternion.Inverse(actor.Root.rotation) * Quaternion.Euler(-90, 0, 0)
+                : Quaternion.identity;
+            return patient.Stage is VisitStage.WalkingToTreatment or VisitStage.Leaving
+                ? Mathf.InverseLerp(2.5f, .5f, System.Numerics.Vector2.Distance(patient.Position, DayRoutes.TreatmentApproach))
+                : 0;
         }
 
-        private void Walk(Vector3[] route)
-        {
-            float distance = Time.deltaTime * PatientVisit.WalkSpeed;
-            while (waypoint < route.Length)
-            {
-                Vector3 target = route[waypoint];
-                Vector3 offset = target - room.Patient.position;
-                float length = offset.magnitude;
-                if (length > .001f)
-                    room.Patient.rotation = Quaternion.LookRotation(offset);
-                room.Patient.position = Vector3.MoveTowards(room.Patient.position, target, distance);
-                if (length > distance) return;
-
-                distance -= length;
-                waypoint++;
-            }
-            waypoint = 0;
-            visit.Arrive();
-            if (room.UsesOriginalArt && visit.Stage == VisitStage.Reception)
-                room.Patient.rotation = Quaternion.Euler(0, 29, 0);
-        }
+        private static Vector3 World(System.Numerics.Vector2 point) => new(point.X, 0, point.Y);
 
         private void UpdateCameraViewport(Camera camera)
         {
@@ -202,23 +180,34 @@ namespace SunshineHospital
 #endif
             Panel(new Rect(0, 0, width, Header), Paper);
             Panel(new Rect(0, Header - 1, width, 1), new Color(.84f, .80f, .70f));
-            GUI.Label(new Rect(20, 0, 220, Header), "햇살병원", heading);
-            GUI.Label(new Rect(width - 277, 0, 155, Header), $"운영 자금  {visit.Funds:N0}만", label);
-            if (GUI.Button(new Rect(width - 116, 8, 96, 42), visit.Paused ? "재생" : "일시정지",
-                    visit.Paused ? primary : quiet) && acceptInput)
-                visit.TogglePause();
+            GUI.Label(new Rect(20, 0, 140, Header), "햇살병원", heading);
+            foreach (var patient in day.Patients)
+            {
+                bool enabled = GUI.enabled;
+                GUI.enabled = enabled && patient.Stage != VisitStage.NotArrived;
+                string name = patient.Stage == VisitStage.Complete ? patient.Name + " ✓" : patient.Name;
+                if (GUI.Button(new Rect(160 + (patient.Id - 1) * 96, 10, 90, 38), name,
+                        selectedId == patient.Id ? primary : patientTag) && acceptInput)
+                    Select(patient.Id);
+                GUI.enabled = enabled;
+            }
+            GUI.Label(new Rect(width - 277, 0, 155, Header), $"운영 자금  {day.Funds:N0}만", label);
+            if (GUI.Button(new Rect(width - 116, 8, 96, 42), day.Paused ? "재생" : "일시정지",
+                    day.Paused ? primary : quiet) && acceptInput)
+                day.TogglePause();
 
             float footer = height - Footer;
             Panel(new Rect(0, footer, width, Footer), Paper);
             Panel(new Rect(0, footer, width, 1), new Color(.84f, .80f, .70f));
-            Panel(new Rect(20, footer + 15, 4, 23), visit.Paused ? Coral : Mint);
-            GUI.Label(new Rect(34, footer + 7, width - 255, 36), Status(), heading);
-            GUI.Label(new Rect(34, footer + 42, width - 255, 34), Guidance(), label);
-
-            string action = visit.Stage switch
+            Panel(new Rect(20, footer + 15, 4, 23), day.Paused ? Coral : Mint);
+            var selection = Selection;
+            string status = day.Complete ? "첫날 운영 완료"
+                : selection == null ? $"첫날 진료 · 귀가 {day.Departed}/{day.Patients.Count}"
+                : $"{selection.Name} · {Status(selection.Stage)}";
+            GUI.Label(new Rect(34, footer + 7, width - 255, 36), status, heading);
+            GUI.Label(new Rect(34, footer + 42, width - 255, 34), Guidance(selection), label);
+            string action = selection?.Stage switch
             {
-                VisitStage.Complete or VisitStage.Leaving => null,
-                _ when !selected => "김영수 선택",
                 VisitStage.Reception => "접수하기",
                 VisitStage.AwaitingPlan => "계획 지시",
                 _ => null
@@ -226,36 +215,38 @@ namespace SunshineHospital
             if (action != null)
             {
                 bool enabled = GUI.enabled;
-                GUI.enabled = enabled && !visit.Paused;
+                GUI.enabled = enabled && !day.Paused;
                 if (GUI.Button(new Rect(width - 195, footer + 19, 175, 50), action, primary) && acceptInput)
                 {
-                    if (!selected) selected = true;
-                    else if (visit.Stage == VisitStage.Reception) visit.Admit();
-                    else if (visit.Stage == VisitStage.AwaitingPlan) visit.AssignPlan();
+                    if (selection.Stage == VisitStage.Reception) day.Admit(selection.Id);
+                    else day.AssignPlan(selection.Id);
                 }
                 GUI.enabled = enabled;
             }
 
-            if (visit.Stage == VisitStage.Reception || visit.Stage == VisitStage.AwaitingPlan)
+            if (selection != null && selection.Stage is VisitStage.Reception or VisitStage.AwaitingPlan)
             {
-                var marker = room.Camera.WorldToScreenPoint(room.Patient.position + Vector3.up * 2.13f);
+                var marker = room.Camera.WorldToScreenPoint(World(selection.Position) + Vector3.up * 2.13f);
                 var rect = new Rect(marker.x / scale - 43, (Screen.height - marker.y) / scale - 30, 86, 28);
-                if (GUI.Button(rect, "김영수", selected ? primary : patientTag) && acceptInput)
-                    selected = true;
+                GUI.Label(rect, selection.Name, primary);
             }
         }
 
-        private string Guidance()
+        private string Guidance(PatientVisit patient)
         {
-            if (visit.Paused) return "일시정지 중 · 재생을 누르면 이어집니다";
-            if (visit.Duration > 0f) return $"김영수 · {Mathf.CeilToInt(visit.Duration - visit.Elapsed)}초 남음";
-            return visit.Stage switch
+            if (day.Complete) return $"귀가 {day.Departed}/{day.Patients.Count}명 · 오늘 수입 {day.Income:N0}만";
+            if (day.Paused) return "일시정지 중 · 재생을 누르면 이어집니다";
+            if (patient == null) return "환자 또는 상단 이름을 눌러주세요";
+            if (patient.Duration > 0f) return $"{Mathf.CeilToInt(patient.Duration - patient.Elapsed)}초 남음";
+            int rank = day.Rank(patient.Id);
+            if (rank > 0) return $"대기 {rank}번째 · 차례가 오면 자동으로 이어집니다";
+            return patient.Stage switch
             {
                 VisitStage.Entering => "입장이 끝나면 접수할 수 있어요",
-                VisitStage.Reception => selected ? "김영수 · 접수하면 CT실로 이동합니다" : "환자 또는 선택 버튼을 눌러주세요",
-                VisitStage.AwaitingPlan => "김영수 · 치료 전에 계획 지시가 필요해요",
+                VisitStage.Reception => "접수하면 CT 순서가 정해집니다",
+                VisitStage.AwaitingPlan => "치료 전에 계획 지시가 필요해요",
                 VisitStage.Leaving or VisitStage.Complete => "오늘 일정 완료 · 수입 +200만",
-                _ => "김영수 · 도착하면 자동으로 이어집니다"
+                _ => "시설 예약 완료 · 도착하면 자동으로 진행합니다"
             };
         }
 
@@ -276,8 +267,14 @@ namespace SunshineHospital
                 prototype = new GameObject("비교용 임시 병원");
                 var before = new HospitalRoom(prototype.transform, preferOriginalArt: false);
                 UpdateCameraViewport(before.Camera);
-                before.Patient.SetPositionAndRotation(room.Patient.position, room.Patient.rotation);
-                before.Selection.gameObject.SetActive(selected);
+                foreach (var patient in day.Patients)
+                {
+                    var source = actors[patient.Id - 1];
+                    if (!source.Root.gameObject.activeSelf) continue;
+                    var actor = before.CreatePatient(patient);
+                    actor.Root.SetPositionAndRotation(source.Root.position, source.Root.rotation);
+                    actor.Selection.gameObject.SetActive(patient.Id == selectedId);
+                }
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "before.png"));
                 Debug.Log($"[Hospital QA] Same-camera Game view images saved in {folder}");
@@ -375,21 +372,23 @@ namespace SunshineHospital
             GUI.color = previous;
         }
 
-        private string Status() => visit.Stage switch
+        private static string Status(VisitStage stage) => stage switch
         {
             VisitStage.Entering => "병원에 도착했어요",
             VisitStage.Reception => "접수를 기다리고 있어요",
-            VisitStage.WalkingToCt => "CT실로 이동 중 · CT 예약됨",
+            VisitStage.CtQueue => "CT 대기",
+            VisitStage.WalkingToCt => "CT실로 이동 중",
             VisitStage.Ct => "CT 촬영 중",
             VisitStage.WalkingToPlanning => "계획실로 이동 중",
             VisitStage.AwaitingPlan => "치료 계획 지시 대기",
+            VisitStage.PlanQueue => "계획 검토 대기",
             VisitStage.Planning => "치료 계획 검토 중",
-            VisitStage.WalkingToTreatment => "치료실로 이동 중 · 치료실 예약됨",
+            VisitStage.TreatmentQueue => "치료실 대기",
+            VisitStage.WalkingToTreatment => "치료실로 이동 중",
             VisitStage.Treatment => "방사선치료 중",
             VisitStage.Leaving => "치료를 마치고 귀가 중",
             _ => "환자가 귀가했어요"
         };
 
-        private static Vector3 Point(float x, float z) => new(x, 0, z);
     }
 }

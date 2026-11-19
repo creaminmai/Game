@@ -9,58 +9,60 @@ namespace SunshineHospital
     public sealed partial class HospitalGame
     {
         private bool qaRunning;
+        private float qaSpeed = 1f;
 
         // F9 exercises the live scene at normal speed through the same actions
         // as the HUD, without simulating mouse clicks or modifying saved data.
         private IEnumerator VerifyVisit()
         {
-            if (visit.Paused) yield break;
+            SetDay(new HospitalDay(room.UsesOriginalArt, 1));
+            var visit = day.Patients[0];
             qaRunning = true;
-            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/live"));
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/single-regression"));
             try
             {
                 Directory.CreateDirectory(folder);
                 StartCoroutine(RecordVisit(Path.Combine(folder, "visit.mp4")));
-                yield return WaitForStage(VisitStage.Reception, 15);
+                yield return WaitForStage(visit, VisitStage.Reception, 15);
                 if (!Expect(visit.Stage == VisitStage.Reception, "arrival at reception")) yield break;
-                selected = false;
+                selectedId = 0;
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "reception.png"));
                 yield return new WaitForSecondsRealtime(1);
-                selected = true;
+                Select(1);
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "selected.png"));
 
                 yield return new WaitForSecondsRealtime(1);
-                if (!Expect(visit.Admit() && !visit.Admit() && visit.CtReserved && visit.Funds == 900, "admission and CT reservation")) yield break;
-                visit.TogglePause();
-                Vector3 pausedPosition = room.Patient.position;
+                if (!Expect(day.Admit(1) && !day.Admit(1) && (day.CtOwner == 1) && day.Funds == 900, "admission and CT reservation")) yield break;
+                day.TogglePause();
+                Vector3 pausedPosition = actors[0].Root.position;
                 yield return new WaitForSecondsRealtime(1);
-                if (!Expect(room.Patient.position == pausedPosition && visit.Stage == VisitStage.WalkingToCt, "paused movement")) yield break;
-                visit.TogglePause();
+                if (!Expect(actors[0].Root.position == pausedPosition && visit.Stage == VisitStage.WalkingToCt, "paused movement")) yield break;
+                day.TogglePause();
 
-                yield return WaitForStage(VisitStage.Ct, 20);
-                if (!Expect(visit.Stage == VisitStage.Ct && visit.CtReserved, "CT begins after arrival")) yield break;
+                yield return WaitForStage(visit, VisitStage.Ct, 20);
+                if (!Expect(visit.Stage == VisitStage.Ct && (day.CtOwner == 1), "CT begins after arrival")) yield break;
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "ct.png"));
-                yield return WaitForStage(VisitStage.AwaitingPlan, 20);
-                if (!Expect(visit.Stage == VisitStage.AwaitingPlan && !visit.CtReserved && visit.AssignPlan() && !visit.AssignPlan(), "CT release and single plan assignment")) yield break;
+                yield return WaitForStage(visit, VisitStage.AwaitingPlan, 20);
+                if (!Expect(visit.Stage == VisitStage.AwaitingPlan && !(day.CtOwner == 1) && day.AssignPlan(1) && !day.AssignPlan(1), "CT release and single plan assignment")) yield break;
 
-                yield return WaitForStage(VisitStage.Treatment, 22);
-                if (!Expect(visit.Stage == VisitStage.Treatment && visit.TreatmentReserved && visit.Funds == 900, "treatment begins without early reward")) yield break;
+                yield return WaitForStage(visit, VisitStage.Treatment, 22);
+                if (!Expect(visit.Stage == VisitStage.Treatment && (day.TreatmentOwner == 1) && day.Funds == 900, "treatment begins without early reward")) yield break;
                 yield return new WaitForSecondsRealtime(2);
-                visit.TogglePause();
+                day.TogglePause();
                 float pausedElapsed = visit.Elapsed;
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "treatment.png"));
                 yield return new WaitForSecondsRealtime(1);
                 if (!Expect(Mathf.Approximately(pausedElapsed, visit.Elapsed), "paused treatment timer")) yield break;
-                visit.TogglePause();
+                day.TogglePause();
 
-                yield return WaitForStage(VisitStage.Leaving, 35);
-                if (!Expect(visit.Stage == VisitStage.Leaving && visit.Funds == 1100 && !visit.TreatmentReserved, "single 200 reward at treatment end")) yield break;
-                yield return WaitForStage(VisitStage.Complete, 15);
-                if (!Expect(visit.Stage == VisitStage.Complete && visit.Funds == 1100 && !room.Patient.gameObject.activeSelf, "departure and unchanged funds")) yield break;
+                yield return WaitForStage(visit, VisitStage.Leaving, 35);
+                if (!Expect(visit.Stage == VisitStage.Leaving && day.Funds == 1100 && !(day.TreatmentOwner == 1), "single 200 reward at treatment end")) yield break;
+                yield return WaitForStage(visit, VisitStage.Complete, 15);
+                if (!Expect(visit.Stage == VisitStage.Complete && day.Funds == 1100 && !actors[0].Root.gameObject.activeSelf, "departure and unchanged funds")) yield break;
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "departure.png"));
                 yield return new WaitForSecondsRealtime(1);
@@ -68,7 +70,58 @@ namespace SunshineHospital
             }
             finally
             {
-                if (visit.Paused) visit.TogglePause();
+                if (day.Paused) day.TogglePause();
+                qaRunning = false;
+            }
+        }
+
+        private IEnumerator VerifyDay()
+        {
+            SetDay(new HospitalDay(room.UsesOriginalArt));
+            qaRunning = true;
+            qaSpeed = 10f;
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/four-patient"));
+            try
+            {
+                Directory.CreateDirectory(folder);
+                float deadline = Time.realtimeSinceStartup + 40;
+                while (day.Patients[3].Stage != VisitStage.Reception && Time.realtimeSinceStartup < deadline)
+                    yield return null;
+                if (!Expect(day.Patients[3].Stage == VisitStage.Reception, "four arrived at reception")) yield break;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "reception.png"));
+
+                int[] order = { 3, 1, 4, 2 };
+                foreach (int id in order)
+                {
+                    Select(id);
+                    if (!Expect(day.Admit(id) && !day.Admit(id), $"patient {id} admitted once")) yield break;
+                }
+                if (!Expect(day.CtOwner == 3 && day.Rank(1) == 1 && day.Rank(2) == 3, "CT FIFO and travel reservation")) yield break;
+
+                int peakQueue = 0;
+                while (!day.Complete && Time.realtimeSinceStartup < deadline)
+                {
+                    foreach (var patient in day.Patients)
+                    {
+                        if (patient.Stage == VisitStage.AwaitingPlan)
+                        {
+                            Select(patient.Id);
+                            day.AssignPlan(patient.Id);
+                        }
+                        peakQueue = Mathf.Max(peakQueue, day.Rank(patient.Id));
+                    }
+                    yield return null;
+                }
+                if (!Expect(day.Complete && day.Departed == 4 && day.Income == 800 && day.Funds == 1700 && peakQueue >= 2,
+                        "four departures, shared queue and 800 income")) yield break;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "summary.png"));
+                Debug.Log($"[Hospital QA] Four-patient live scene passed at 10×. Captures: {folder}");
+            }
+            finally
+            {
+                qaSpeed = 1f;
                 qaRunning = false;
             }
         }
@@ -146,7 +199,7 @@ namespace SunshineHospital
             Debug.Log($"[Hospital QA] Recorded {frames} timestamped Game view frames to {path}");
         }
 
-        private IEnumerator WaitForStage(VisitStage stage, float timeout)
+        private IEnumerator WaitForStage(PatientVisit visit, VisitStage stage, float timeout)
         {
             float deadline = Time.realtimeSinceStartup + timeout;
             while (visit.Stage != stage && Time.realtimeSinceStartup < deadline)

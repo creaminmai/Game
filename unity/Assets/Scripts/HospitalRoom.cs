@@ -17,9 +17,22 @@ namespace SunshineHospital
         private static readonly Color White = new(.98f, .97f, .93f);
 
         public Camera Camera { get; }
-        public Transform Patient { get; }
-        public Transform PatientBody { get; }
-        public Transform Selection { get; }
+        private readonly Transform root;
+        private readonly GameObject patientModel;
+
+        internal sealed class Actor
+        {
+            public Transform Root { get; }
+            public Transform Body { get; }
+            public Transform Selection { get; }
+
+            public Actor(Transform root, Transform body, Transform selection)
+            {
+                Root = root;
+                Body = body;
+                Selection = selection;
+            }
+        }
         public Renderer CtLamp { get; }
         public Renderer TreatmentLamp { get; }
         public bool UsesOriginalArt { get; }
@@ -30,7 +43,8 @@ namespace SunshineHospital
         public HospitalRoom(Transform root, bool preferOriginalArt = true)
         {
             var interior = preferOriginalArt ? LoadArt("hospital-interior") : null;
-            var patientModel = interior != null ? LoadArt("patient") : null;
+            this.root = root;
+            patientModel = interior != null ? LoadArt("patient") : null;
             var nurseModel = interior != null ? LoadArt("nurse") : null;
             UsesOriginalArt = interior != null && patientModel != null && nurseModel != null;
             if (preferOriginalArt && !UsesOriginalArt)
@@ -82,12 +96,21 @@ namespace SunshineHospital
                 TreatmentLamp = Lamp(root, new Vector3(5.3f, 1.75f, 3.08f));
             }
 
-            Patient = Group(root, "김영수", new Vector3(0, 0, 6.6f));
-            Selection = Shape(Patient, "선택 표시", PrimitiveType.Cylinder, new Vector3(0, .065f, 0),
+        }
+
+        internal Actor CreatePatient(PatientVisit visit)
+        {
+            var actor = Group(root, visit.Name, Vector3.zero);
+            var selection = Shape(actor, "선택 표시", PrimitiveType.Cylinder, new Vector3(0, .065f, 0),
                 new Vector3(1.06f, .02f, 1.06f), Mint).transform;
-            PatientBody = UsesOriginalArt
-                ? PlacePerson(patientModel, Patient, Vector3.zero, true, originalArtMirrorsX)
-                : Person(Patient, "환자 캐릭터", Vector3.zero, Coral);
+            var body = UsesOriginalArt
+                ? PlacePerson(patientModel, actor, Vector3.zero, visit.Id <= 2, originalArtMirrorsX)
+                : Person(actor, "환자 캐릭터", Vector3.zero, Coral);
+            var collider = actor.gameObject.AddComponent<CapsuleCollider>();
+            collider.height = UsesOriginalArt ? 2f : 1.65f;
+            collider.center = Vector3.up * collider.height / 2;
+            collider.radius = .40f;
+            return new Actor(actor, body, selection);
         }
 
         public void SetTreatmentHeadLift(float fraction)
