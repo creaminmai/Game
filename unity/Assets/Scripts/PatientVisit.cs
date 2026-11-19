@@ -67,6 +67,7 @@ namespace SunshineHospital
         public HospitalDay(bool originalArt = true, int bookingCount = BookingCount)
         {
             if (bookingCount != BookingCount && bookingCount != 1) throw new ArgumentOutOfRangeException(nameof(bookingCount));
+            OriginalArt = originalArt;
             routes = new DayRoutes(originalArt, bookingCount == 1);
             patients = new PatientVisit[bookingCount];
             for (int i = 0; i < patients.Length; i++) patients[i] = new PatientVisit(i + 1, Names[i]);

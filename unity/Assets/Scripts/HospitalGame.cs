@@ -1,7 +1,8 @@
+using System;
+using System.IO;
 using UnityEngine;
 #if UNITY_EDITOR
 using System.Collections;
-using System.IO;
 #endif
 
 namespace SunshineHospital
@@ -14,6 +15,9 @@ namespace SunshineHospital
         private Transform roomRoot;
         private HospitalRoom.Actor[] actors;
         private int selectedId;
+        private HospitalSave save;
+        private string saveNotice;
+        private float saveNoticeUntil;
         private PatientVisit Selection => selectedId == 0 ? null : day.Patients[selectedId - 1];
 #if UNITY_EDITOR
         private bool capturing;
@@ -38,7 +42,9 @@ namespace SunshineHospital
             roomRoot = new GameObject("병원 장면").transform;
             roomRoot.SetParent(transform, false);
             room = new HospitalRoom(roomRoot);
+            save = new HospitalSave(Path.Combine(Application.persistentDataPath, "UnitySaves", "first-day.bin"));
             SetDay(new HospitalDay(room.UsesOriginalArt));
+            LoadDay(reportMissing: false);
         }
 
         private void SetDay(HospitalDay next)
@@ -67,6 +73,7 @@ namespace SunshineHospital
             {
                 if (Input.GetKeyDown(KeyCode.F9)) StartCoroutine(VerifyVisit());
                 if (Input.GetKeyDown(KeyCode.F10)) StartCoroutine(VerifyDay());
+                if (Input.GetKeyDown(KeyCode.F11)) VerifySaveInEditor();
                 if (Input.GetKeyDown(KeyCode.F8) && day.Patients[0].Stage == VisitStage.Reception)
                 {
                     StartCoroutine(CaptureComparison());
@@ -191,6 +198,11 @@ namespace SunshineHospital
                     Select(patient.Id);
                 GUI.enabled = enabled;
             }
+            bool controlsEnabled = GUI.enabled;
+            GUI.enabled = controlsEnabled && day.Patients.Count == HospitalDay.BookingCount;
+            if (GUI.Button(new Rect(width - 420, 10, 62, 38), "저장", patientTag) && acceptInput) SaveDay();
+            if (GUI.Button(new Rect(width - 353, 10, 72, 38), "불러오기", patientTag) && acceptInput) LoadDay(reportMissing: true);
+            GUI.enabled = controlsEnabled;
             GUI.Label(new Rect(width - 277, 0, 155, Header), $"운영 자금  {day.Funds:N0}만", label);
             if (GUI.Button(new Rect(width - 116, 8, 96, 42), day.Paused ? "재생" : "일시정지",
                     day.Paused ? primary : quiet) && acceptInput)
@@ -205,7 +217,8 @@ namespace SunshineHospital
                 : selection == null ? $"첫날 진료 · 귀가 {day.Departed}/{day.Patients.Count}"
                 : $"{selection.Name} · {Status(selection.Stage)}";
             GUI.Label(new Rect(34, footer + 7, width - 255, 36), status, heading);
-            GUI.Label(new Rect(34, footer + 42, width - 255, 34), Guidance(selection), label);
+            string guidance = Time.unscaledTime < saveNoticeUntil ? saveNotice : Guidance(selection);
+            GUI.Label(new Rect(34, footer + 42, width - 255, 34), guidance, label);
             string action = selection?.Stage switch
             {
                 VisitStage.Reception => "접수하기",
@@ -232,6 +245,40 @@ namespace SunshineHospital
             }
         }
 
+        private void SaveDay()
+        {
+            try
+            {
+                save.Save(day);
+                SetSaveNotice("첫날 진료를 저장했어요");
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or NotSupportedException)
+            {
+                Debug.LogWarning($"[Hospital Save] Write failed ({error.GetType().Name}).");
+                SetSaveNotice("저장하지 못했어요 · 저장 공간을 확인해 주세요");
+            }
+        }
+
+        private void LoadDay(bool reportMissing)
+        {
+            HospitalLoadResult result = save.Load(room.UsesOriginalArt, out HospitalDay restored);
+            if (restored != null) SetDay(restored);
+            string message = result switch
+            {
+                HospitalLoadResult.Loaded => "저장한 진료를 불러왔어요 · 재생을 눌러주세요",
+                HospitalLoadResult.RecoveredBackup => "직전 백업을 불러왔어요 · 재생을 눌러주세요",
+                HospitalLoadResult.Unreadable => "저장 파일을 읽지 못했어요 · 현재 진료는 유지됩니다",
+                _ => reportMissing ? "저장한 진료가 없어요" : null
+            };
+            if (message != null) SetSaveNotice(message);
+        }
+
+        private void SetSaveNotice(string message)
+        {
+            saveNotice = message;
+            saveNoticeUntil = Time.unscaledTime + 6f;
+        }
+
         private string Guidance(PatientVisit patient)
         {
             if (day.Complete) return $"귀가 {day.Departed}/{day.Patients.Count}명 · 오늘 수입 {day.Income:N0}만";
@@ -244,6 +291,7 @@ namespace SunshineHospital
             {
                 VisitStage.Entering => "입장이 끝나면 접수할 수 있어요",
                 VisitStage.Reception => "접수하면 CT 순서가 정해집니다",
+                VisitStage.WalkingToPlanning => "계획실에 도착하면 지시할 수 있어요",
                 VisitStage.AwaitingPlan => "치료 전에 계획 지시가 필요해요",
                 VisitStage.Leaving or VisitStage.Complete => "오늘 일정 완료 · 수입 +200만",
                 _ => "시설 예약 완료 · 도착하면 자동으로 진행합니다"

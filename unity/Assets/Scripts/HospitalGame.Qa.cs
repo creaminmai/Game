@@ -15,6 +15,8 @@ namespace SunshineHospital
         // as the HUD, without simulating mouse clicks or modifying saved data.
         private IEnumerator VerifyVisit()
         {
+            var previousDay = day;
+            int previousSelection = selectedId;
             SetDay(new HospitalDay(room.UsesOriginalArt, 1));
             var visit = day.Patients[0];
             qaRunning = true;
@@ -70,13 +72,16 @@ namespace SunshineHospital
             }
             finally
             {
-                if (day.Paused) day.TogglePause();
                 qaRunning = false;
+                SetDay(previousDay);
+                Select(previousSelection);
             }
         }
 
         private IEnumerator VerifyDay()
         {
+            var previousDay = day;
+            int previousSelection = selectedId;
             SetDay(new HospitalDay(room.UsesOriginalArt));
             qaRunning = true;
             qaSpeed = 10f;
@@ -123,6 +128,31 @@ namespace SunshineHospital
             {
                 qaSpeed = 1f;
                 qaRunning = false;
+                SetDay(previousDay);
+                Select(previousSelection);
+            }
+        }
+
+        private void VerifySaveInEditor()
+        {
+            string folder = Path.Combine(Application.temporaryCachePath, "hospital-qa-" + System.Guid.NewGuid().ToString("N"));
+            try
+            {
+                var testDay = new HospitalDay(room.UsesOriginalArt);
+                var testStore = new HospitalSave(Path.Combine(folder, "first-day.bin"));
+                for (int i = 0; i < 24; i++) testDay.Tick(1);
+                testDay.Admit(3);
+                testDay.Admit(1);
+                testDay.Tick(.25f);
+                testStore.Save(testDay);
+                bool okay = testStore.Load(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
+                    restored.Paused && restored.CtOwner == 3 && restored.Rank(1) == 1 &&
+                    restored.Patients[2].Position == testDay.Patients[2].Position && restored.Funds == 900;
+                Expect(okay, "Unity save file reproduces paused travel and FIFO in isolated editor storage");
+            }
+            finally
+            {
+                if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
             }
         }
 
@@ -161,6 +191,7 @@ namespace SunshineHospital
                 while (qaRunning)
                 {
                     yield return endOfFrame;
+                    if (!qaRunning) break;
                     long elapsed = (long)((Time.realtimeSinceStartupAsDouble - start) * 1000);
                     if (elapsed < next) continue;
                     next = elapsed + 1000 / rate;
