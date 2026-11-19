@@ -23,7 +23,10 @@ namespace SunshineHospital
         internal int QueueOrder { get; set; }
         public int TreatmentRoom { get; internal set; } = -1;
         public bool Paid => Stage is VisitStage.Leaving or VisitStage.Complete;
-        public float Duration => DurationOf(Stage);
+        public float Duration { get; internal set; }
+        internal int PlanPriority { get; set; }
+        public bool DelegatedAdmission { get; internal set; }
+        public bool DelegatedPlan { get; internal set; }
 
         internal PatientVisit(int id, string name)
         {
@@ -69,7 +72,7 @@ namespace SunshineHospital
         public int LifetimeDeparted => LifetimePaid - Income / VisitFee + Departed;
         public bool ChapterOne => DayNumber > 1 || Complete;
         public bool ChapterTwo => ChapterOne && Expanded && DualTreatment && LifetimeDeparted >= 12;
-        public int Funds => OpeningFunds + Income - ExpansionExpense;
+        public int Funds => OpeningFunds + Income - TotalExpense;
         public bool Complete => Departed == patients.Length;
         public int CtOwner => Owner(VisitStage.WalkingToCt, VisitStage.Ct);
         public int PlanOwner => Owner(VisitStage.Planning);
@@ -109,6 +112,7 @@ namespace SunshineHospital
         {
             if (!Complete || patients.Length == 1 || (bookings != BookingCount && (bookings != AnnexBookingCount || !Expanded)))
                 return false;
+            CloseResearchDay();
             OpeningFunds = Funds;
             Income = 0;
             ExpansionExpense = 0;
@@ -116,6 +120,7 @@ namespace SunshineHospital
             time = 0;
             serial = 0;
             DayNumber++;
+            AdvanceStaffAndResearchDay();
             ResetPatients(bookings);
             return true;
         }
@@ -158,11 +163,22 @@ namespace SunshineHospital
             }
         }
 
-        private bool Request(int id, VisitStage expected, VisitStage queued)
+        private bool Request(int id, VisitStage expected, VisitStage queued, bool delegated = false)
         {
             var patient = Find(id);
             if (Paused || patient == null || patient.Stage != expected) return false;
             Enqueue(patient, queued);
+            if (queued == VisitStage.CtQueue)
+            {
+                patient.PlanPriority = patient.QueueOrder;
+                patient.DelegatedAdmission = delegated;
+                if (admissionCandidate == id) ResetDuty(ref admissionCandidate, ref admissionElapsed);
+            }
+            else
+            {
+                patient.DelegatedPlan = delegated;
+                if (planCandidate == id) ResetDuty(ref planCandidate, ref planElapsed);
+            }
             Dispatch();
             return true;
         }
@@ -183,7 +199,9 @@ namespace SunshineHospital
                 else if (patient.Duration > 0f)
                     AdvanceService(patient, seconds);
             }
+            UpdateDuties(seconds);
             Dispatch();
+            CloseResearchDay();
             if (Expanded && TreatmentOwnerAt(0) is int main && main != 0 &&
                 TreatmentOwnerAt(1) is int annex && annex != 0 &&
                 patients[main - 1].Stage == VisitStage.Treatment && patients[annex - 1].Stage == VisitStage.Treatment)
@@ -251,6 +269,7 @@ namespace SunshineHospital
                 case VisitStage.Leaving:
                     SetStage(patient, VisitStage.Complete);
                     Departed++;
+                    if (patient.DelegatedAdmission && patient.DelegatedPlan) DelegatedDepartures++;
                     break;
             }
         }
@@ -294,9 +313,10 @@ namespace SunshineHospital
             SetStage(patient, VisitStage.Entering);
         }
 
-        private static void SetStage(PatientVisit patient, VisitStage stage)
+        private void SetStage(PatientVisit patient, VisitStage stage)
         {
             patient.Stage = stage;
+            patient.Duration = ActiveServiceDuration(stage);
             patient.ServiceTime = 0;
             patient.Waypoint = 0;
             patient.QueueOrder = 0;

@@ -27,6 +27,7 @@ static partial class Checks
         Spacing(true);
         AdditionalChecks();
         Growth();
+        StaffAndResearch();
         Console.WriteLine($"{count} hospital checks passed.");
     }
 
@@ -164,6 +165,80 @@ static partial class Checks
             day.Tick(.05f);
         }
         Verify(day.Complete && day.Departed == day.Patients.Count, "everyone departed before closing");
+    }
+
+    static void StaffAndResearch()
+    {
+        var day = new HospitalDay();
+        Verify(!day.SetAutoAdmission(true) && !day.SetAutoPlanning(true) && !day.PurchaseTraining() && !day.PurchaseLab(),
+            "staff and research start locked");
+        FinishDay(day);
+        Verify(day.PurchaseExpansion() && day.StartNextDay(6) && day.SetAutoAdmission(true),
+            "free automation after day one");
+        var first = day.Patients[0];
+        Until(day, () => first.Stage == VisitStage.Reception, "automatic admission candidate arrives");
+        day.Tick(1);
+        Verify(day.Admit(first.Id), "manual intake can beat the scheduled action");
+        day.Tick(1);
+        Verify(!day.Admit(first.Id) && !first.DelegatedAdmission, "manual intake cannot be paid or admitted twice");
+
+        FinishWithDuties(day, manualPlanning: true);
+        Verify(day.StartNextDay(4), "third day");
+        FinishWithDuties(day, manualPlanning: true);
+        Verify(day.ChapterTwo && day.PurchaseTraining() && !day.PurchaseTraining() && day.TrainingExpense == 500 &&
+            !day.AutoPlanning && day.SetAutoPlanning(true), "one training charge and opt-in planning");
+        Verify(day.StartNextDay(4), "delegated operating day");
+        FinishWithDuties(day, manualPlanning: false);
+        Verify(day.ChapterThree && day.DelegatedDepartures == 4 && day.PurchaseLab() && !day.PurchaseLab() &&
+            day.ResearchPoints == 6 && day.LabExpense == 1800, "chapter three and laboratory charge");
+        Verify(day.StartResearch(HospitalResearch.Ct) && day.ResearchPoints == 0 && day.ResearchExpense == 500 &&
+            !day.StartResearch(HospitalResearch.Planning) && !day.StartResearch(HospitalResearch.Ct), "single research slot and immutable price");
+        Verify(day.StartNextDay(6) && !day.ChapterFour && day.ResearchPoints == 0, "building after close earns no retroactive points");
+        var patient = day.Patients[0];
+        Until(day, () => patient.Stage == VisitStage.Ct, "admission automatically reaches CT");
+        Verify(patient.Duration == 5, "pending research does not affect current visit");
+        FinishWithDuties(day, manualPlanning: false);
+        Verify(day.ResearchPoints == 4 && day.ResearchStatus(HospitalResearch.Ct).Contains("다음 날") && !day.ChapterFour,
+            "one subsequent operating day completes research without applying early");
+        Verify(day.StartNextDay(6) && day.ChapterFour, "completed CT research applies before arrivals");
+        patient = day.Patients[0];
+        Until(day, () => patient.Stage == VisitStage.Ct, "first visit after research");
+        Verify(patient.Duration == 4 && patient.DelegatedAdmission, "CT research shortens the next service to four seconds");
+        string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hospital-staff-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new HospitalSave(System.IO.Path.Combine(folder, "day.bin"));
+            day.Tick(1);
+            store.Save(day);
+            Verify(store.Load(true, out var loaded) == HospitalLoadResult.Loaded && loaded.AutoAdmission && loaded.AutoPlanning &&
+                loaded.ChapterFour && loaded.ResearchPoints == 4 && loaded.TrainingDay == 3 && loaded.LabDay == 4 &&
+                loaded.Patients[0].Duration == 4 && loaded.Patients[0].Elapsed == patient.Elapsed &&
+                loaded.Funds == day.Funds, "staff, research, clock and active service survive save");
+            loaded.TogglePause();
+            FinishWithDuties(loaded, manualPlanning: false);
+            Verify(loaded.ResearchPoints == 8 && loaded.StartResearch(HospitalResearch.Planning), "second project after first applied");
+            Verify(loaded.StartNextDay(4), "planning research progress day");
+            FinishWithDuties(loaded, manualPlanning: false);
+            Verify(loaded.StartNextDay(4), "planning research application day");
+            Until(loaded, () => loaded.Patients[0].Stage == VisitStage.Planning, "automatic planning after research");
+            Verify(loaded.Patients[0].Duration == 4 && loaded.Patients[0].DelegatedPlan, "planning research shortens the next service");
+        }
+        finally
+        {
+            if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
+        }
+    }
+
+    static void FinishWithDuties(HospitalDay day, bool manualPlanning)
+    {
+        for (int i = 0; i < 15000 && !day.Complete; i++)
+        {
+            if (manualPlanning)
+                foreach (var patient in day.Patients)
+                    if (patient.Stage == VisitStage.AwaitingPlan) day.AssignPlan(patient.Id);
+            day.Tick(.05f);
+        }
+        Verify(day.Complete, $"duties completed day {day.DayNumber}");
     }
 
     static void OnePatient()

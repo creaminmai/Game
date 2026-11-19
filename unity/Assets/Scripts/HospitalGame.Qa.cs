@@ -227,6 +227,91 @@ namespace SunshineHospital
             }
         }
 
+        private IEnumerator VerifyResearch()
+        {
+            var previous = day;
+            int previousSelection = selectedId;
+            bool previousExterior = outside;
+            bool previousStaff = staffOpen;
+            qaRunning = true;
+            staffOpen = outside = false;
+            qaSpeed = 16f;
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/research"));
+            try
+            {
+                var fixture = new HospitalDay(room.UsesOriginalArt);
+                if (!PrepareTrainingFixture(fixture)) yield break;
+                SetDay(fixture);
+                Directory.CreateDirectory(folder);
+                staffOpen = true;
+                StartCoroutine(RecordVisit(Path.Combine(folder, "visit.mp4")));
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "training.png"));
+                if (!Expect(day.PurchaseTraining() && day.SetAutoPlanning(true) && day.StartNextDay(4),
+                    "training and next operating day")) yield break;
+                SetDay(day);
+                staffOpen = false;
+                float deadline = Time.realtimeSinceStartup + 75;
+                while (!day.Complete && Time.realtimeSinceStartup < deadline) yield return null;
+                if (!Expect(day.Complete && day.ChapterThree && day.DelegatedDepartures == 4 && day.PurchaseLab() &&
+                    day.StartResearch(HospitalResearch.Ct), "four fully delegated visits unlock and start research")) yield break;
+                outside = true;
+                yield return new WaitForSecondsRealtime(.7f);
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "laboratory.png"));
+                if (!Expect(day.StartNextDay(4) && !day.ChapterFour, "research stays pending until another day closes")) yield break;
+                SetDay(day);
+                outside = false;
+                while (!day.Complete && Time.realtimeSinceStartup < deadline) yield return null;
+                if (!Expect(day.Complete && day.ResearchPoints == 4 && day.StartNextDay(4) && day.ChapterFour,
+                    "one operating day completes research; effect starts on next day")) yield break;
+                SetDay(day);
+                while (day.Patients[0].Stage != VisitStage.Ct && Time.realtimeSinceStartup < deadline) yield return null;
+                if (!Expect(day.Patients[0].Stage == VisitStage.Ct && day.Patients[0].Duration == 4,
+                    "live CT uses applied four-second protocol")) yield break;
+                var store = new HospitalSave(Path.Combine(folder, "research-test.bin"));
+                store.Save(day);
+                if (!Expect(store.Load(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
+                    restored.AutoAdmission && restored.AutoPlanning && restored.ChapterFour &&
+                    restored.Patients[0].Duration == 4 && restored.Funds == day.Funds,
+                    "research, funds and active CT duration restore")) yield break;
+                Select(1);
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "improved-ct.png"));
+                yield return new WaitForSecondsRealtime(.7f);
+                Debug.Log("[Hospital QA] Staff and research scene passed (chapter-two fixture, then 16× live operation).");
+            }
+            finally
+            {
+                qaSpeed = 1;
+                qaRunning = false;
+                outside = previousExterior;
+                staffOpen = previousStaff;
+                SetDay(previous);
+                Select(previousSelection);
+            }
+        }
+
+        private static bool PrepareTrainingFixture(HospitalDay fixture)
+        {
+            for (int dayNumber = 1; dayNumber <= 3; dayNumber++)
+            {
+                for (int frame = 0; frame < 12000 && !fixture.Complete; frame++)
+                {
+                    foreach (var patient in fixture.Patients)
+                    {
+                        if (patient.Stage == VisitStage.Reception) fixture.Admit(patient.Id);
+                        if (patient.Stage == VisitStage.AwaitingPlan) fixture.AssignPlan(patient.Id);
+                    }
+                    fixture.Tick(.05f);
+                }
+                if (!fixture.Complete) return false;
+                if (dayNumber == 1 && !fixture.PurchaseExpansion()) return false;
+                if (dayNumber < 3 && !fixture.StartNextDay(4)) return false;
+            }
+            return Expect(fixture.ChapterTwo && fixture.SetAutoAdmission(true), "isolated completed chapter-two fixture");
+        }
+
         private IEnumerator PlayQaDay(float deadline, System.Func<bool> capture, string image = null)
         {
             while (!day.Complete && Time.realtimeSinceStartup < deadline)

@@ -11,7 +11,7 @@ namespace SunshineHospital
     public sealed class HospitalSave
     {
         private const int Magic = 0x484F5350;
-        private const int Version = 2;
+        private const int Version = 3;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;
@@ -94,7 +94,7 @@ namespace SunshineHospital
                 using var data = new BinaryReader(payload);
                 if (data.ReadInt32() != Magic) return false;
                 int version = data.ReadInt32();
-                if (version != 1 && version != Version) return false;
+                if (version < 1 || version > Version) return false;
                 var restored = HospitalDay.ReadSave(data, originalArt, version);
                 if (payload.Position != payload.Length) return false;
                 day = restored;
@@ -128,6 +128,7 @@ namespace SunshineHospital
             writer.Write(LifetimePaid);
             writer.Write(Expanded);
             writer.Write(DualTreatment);
+            WriteStaffResearch(writer);
             writer.Write(time);
             writer.Write(serial);
             writer.Write(Income);
@@ -143,6 +144,9 @@ namespace SunshineHospital
                 writer.Write(patient.Waypoint);
                 writer.Write(patient.QueueOrder);
                 writer.Write(patient.TreatmentRoom);
+                writer.Write(patient.PlanPriority);
+                writer.Write(patient.DelegatedAdmission);
+                writer.Write(patient.DelegatedPlan);
             }
         }
 
@@ -166,11 +170,13 @@ namespace SunshineHospital
                     throw new InvalidDataException("Inconsistent hospital growth state.");
                 day.ResetPatients(count);
             }
+            if (version >= 3) day.ReadStaffResearch(reader);
             day.time = reader.ReadDouble();
             day.serial = reader.ReadInt32();
             day.Income = reader.ReadInt32();
             day.Departed = reader.ReadInt32();
             day.Paused = true;
+            if (version < 3) day.lastResearchClose = day.Complete ? day.DayNumber : day.DayNumber - 1;
             if (version == 1) day.LifetimePaid = day.Income / VisitFee;
             if (!(day.time >= 0 && day.time < double.MaxValue) || day.serial < 0 || day.serial > day.patients.Length * 3)
                 throw new InvalidDataException("Invalid day clock or queue sequence.");
@@ -185,6 +191,7 @@ namespace SunshineHospital
                     throw new InvalidDataException("Unknown patient state.");
 
                 patient.Stage = (VisitStage)value;
+                patient.Duration = day.ActiveServiceDuration(patient.Stage);
                 patient.Position = new Vector2(reader.ReadSingle(), reader.ReadSingle());
                 patient.Heading = new Vector2(reader.ReadSingle(), reader.ReadSingle());
                 patient.ServiceTime = reader.ReadDouble();
@@ -194,6 +201,18 @@ namespace SunshineHospital
                 patient.TreatmentRoom = version >= 2 ? reader.ReadInt32() : usedRoom ? 0 : -1;
                 if (usedRoom ? patient.TreatmentRoom < 0 || patient.TreatmentRoom >= treatment.Length : patient.TreatmentRoom != -1)
                     throw new InvalidDataException("Invalid treatment room.");
+
+                if (version >= 3)
+                {
+                    patient.PlanPriority = reader.ReadInt32();
+                    patient.DelegatedAdmission = reader.ReadBoolean();
+                    patient.DelegatedPlan = reader.ReadBoolean();
+                    if (patient.PlanPriority < 0 || patient.PlanPriority > day.patients.Length * 3 ||
+                        (patient.DelegatedAdmission && (day.DayNumber < 2 || patient.Stage < VisitStage.CtQueue)) ||
+                        (patient.DelegatedPlan && (day.TrainingDay == 0 || patient.Stage < VisitStage.PlanQueue)))
+                        throw new InvalidDataException("Invalid delegated visit.");
+                }
+                else if (patient.Stage >= VisitStage.CtQueue) patient.PlanPriority = patient.Id;
 
                 float headingLength = patient.Heading.LengthSquared();
                 if (!(Math.Abs(patient.Position.X) <= 20 && Math.Abs(patient.Position.Y) <= 20 && headingLength > .98f && headingLength < 1.02f))
@@ -230,12 +249,13 @@ namespace SunshineHospital
             int pastPaid = day.LifetimePaid - paid;
             if (day.Income != paid * VisitFee || day.Departed != departed ||
                 pastPaid < (day.DayNumber - 1) * BookingCount || pastPaid > (day.DayNumber - 1) * AnnexBookingCount ||
-                day.OpeningFunds != StartingFunds + pastPaid * VisitFee - (day.Expanded ? ExpansionCost - day.ExpansionExpense : 0) ||
+                day.OpeningFunds != StartingFunds + pastPaid * VisitFee - (day.Expanded ? ExpansionCost - day.ExpansionExpense : 0) - day.PastStaffResearchExpense ||
                 day.Funds < 0 || (day.Expanded && day.LifetimePaid == 0) ||
                 ct > 1 || planner > 1 || Array.Exists(treatment, count => count > 1) ||
                 !day.QueueHasOwner(VisitStage.CtQueue, ct == 1) || !day.QueueHasOwner(VisitStage.PlanQueue, planner == 1) ||
                 !day.QueueHasOwner(VisitStage.TreatmentQueue, Array.TrueForAll(treatment, count => count == 1)))
                 throw new InvalidDataException("Facility or income state is inconsistent.");
+            day.ValidateStaffResearch();
             return day;
         }
 

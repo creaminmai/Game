@@ -88,3 +88,13 @@ Unity 6000.6.9f1 Apple Silicon, Metal, URP 17.6.0, 가로 화면과 고정된 �
 독립 코드 검사 **131개** 통과 및 실제 에디터 재컴파일 성공. F7 자동 시연은 첫 치료가 끝난 테스트 상태에서 시작했다. 외부 시간 정지, 결제 연타 차단, 4명 마감, 다음 날 6명·동시 치료·수입 1,200만·자금 2,300만 및 두 예약 복원을 확인했다. 전체 첫 치료 이전과 이 시연의 조작은 사용자 수동 입력으로 확인한 범위가 아니다.
 
 [증축 전 외부](../artifacts/unity-overnight/campus/outside-before.png) · [증축 후 외부](../artifacts/unity-overnight/campus/outside-after.png) · [실제 동시 치료](../artifacts/unity-overnight/campus/dual-treatment.png) · [6명 요약](../artifacts/unity-overnight/campus/six-summary.png) · [자동 통합 시연](../artifacts/unity-overnight/campus/visit.mp4). 영상은 외부 구간 이후 게임 진행을 12배속으로 실행했다.
+
+## 직원 위임과 연구
+
+민지 무료 접수(2일차부터), 챕터 2 완료 후 운영 교육 500만, 계획 지시 위임 및 양쪽 업무를 위임한 방문 4회로 챕터 3을 연결했다. 담당자 지시는 환자가 준비된 후 3초를 사용하고, 수동 지시가 먼저 처리한 환자는 다시 처리하지 않는다. 교육 이후에도 위임은 직접 켜야 한다.
+
+3장 이후 1,800만 연구소, 시작 점수 6점, 정상 마감마다 4점, 연구 1건 500만·6점과 슬롯 1개를 이식했다. CT 및 계획 연구는 시작 후 다음 운영일에 완료되며 그다음 날부터 해당 서비스가 5초에서 4초가 된다. 연구소와 연구원은 기존 GLB를 사용했다. 저장 버전 3은 위임 대기, 구매, 적용일과 연구 상태를 복원하고 이전 버전을 읽는다.
+
+독립 코드 **161개 검사**, Unity 재컴파일 성공. F6은 코드로 준비한 챕터 2 완료 상태에서 시작했다. 실제 에디터에서 교육, 4명 자동 위임, 연구소·CT 선택, 다음 운영일 마감, 후속 운영일의 CT 4초 및 저장·불러오기를 확인했다. 두 번째 계획 연구는 코드에서 4초까지 확인했다.
+
+[교육](../artifacts/unity-overnight/research/training.png) · [연구소 외부](../artifacts/unity-overnight/research/laboratory.png) · [적용된 CT](../artifacts/unity-overnight/research/improved-ct.png) · [자동 시연](../artifacts/unity-overnight/research/visit.mp4). 에디터의 운영 진행은 16배속이다.

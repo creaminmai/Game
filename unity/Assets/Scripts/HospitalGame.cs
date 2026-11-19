@@ -16,6 +16,7 @@ namespace SunshineHospital
         private HospitalRoom.Actor[] actors;
         private int selectedId;
         private bool outside;
+        private bool staffOpen;
         private bool confirmExpansion;
         private HospitalSave save;
         private string saveNotice;
@@ -78,6 +79,7 @@ namespace SunshineHospital
                 if (Input.GetKeyDown(KeyCode.F10)) StartCoroutine(VerifyDay());
                 if (Input.GetKeyDown(KeyCode.F11)) VerifySaveInEditor();
                 if (Input.GetKeyDown(KeyCode.F7)) StartCoroutine(VerifyCampus());
+                if (Input.GetKeyDown(KeyCode.F6)) StartCoroutine(VerifyResearch());
                 if (Input.GetKeyDown(KeyCode.F8) && day.Patients[0].Stage == VisitStage.Reception)
                 {
                     StartCoroutine(CaptureComparison());
@@ -87,8 +89,8 @@ namespace SunshineHospital
             speed = qaSpeed;
             if (!qaRunning)
 #endif
-                if (!outside) PickPatient();
-            if (!outside) day.Tick(Time.deltaTime * speed);
+                if (!outside && !staffOpen) PickPatient();
+            if (!outside && !staffOpen) day.Tick(Time.deltaTime * speed);
             RefreshActors();
         }
 
@@ -112,7 +114,7 @@ namespace SunshineHospital
 
         private void RefreshActors()
         {
-            room.ApplyCampus(outside, day.Expanded);
+            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0);
             float annexLift = 0;
             float lift = 0;
             foreach (var patient in day.Patients)
@@ -198,6 +200,11 @@ namespace SunshineHospital
 #if UNITY_EDITOR
             acceptInput = !capturing && !qaRunning;
 #endif
+            if (staffOpen)
+            {
+                DrawStaffAndResearch(width, height, acceptInput);
+                return;
+            }
             Panel(new Rect(0, 0, width, Header), Paper);
             Panel(new Rect(0, Header - 1, width, 1), new Color(.84f, .80f, .70f));
             GUI.Label(new Rect(20, 0, 230, 56), $"햇살병원 · {day.DayNumber}일차", heading);
@@ -236,6 +243,8 @@ namespace SunshineHospital
             {
                 GUI.Label(new Rect(20, 55, width - 40, 40), "병원 밖 · 진료 시간이 멈췄어요", label);
             }
+            if (GUI.Button(new Rect(width - 645, 10, 105, 38), "직원 · 연구", patientTag) && acceptInput)
+                staffOpen = true;
             if (GUI.Button(new Rect(width - 528, 10, 98, 38), outside ? "병원 안" : "병원 밖", quiet) && acceptInput)
             {
                 outside = !outside;
@@ -296,14 +305,16 @@ namespace SunshineHospital
 
         private void DrawGrowth(float width, float footer, bool acceptInput)
         {
-            string goal = !day.ChapterOne ? $"1장 · 오늘 방문 {day.Departed}/{day.Patients.Count}"
-                : day.ChapterTwo ? "2장 · 완료"
+            string goal = day.ChapterFour ? "1~4장 · 완료"
+                : day.ChapterThree ? "4장 · 연구소와 진료 개선"
+                : day.ChapterTwo ? $"3장 · 위임 방문 {day.DelegatedDepartures}/4"
+                : !day.ChapterOne ? $"1장 · 오늘 방문 {day.Departed}/{day.Patients.Count}"
                 : !day.Expanded ? "2장 · 치료별관 마련하기"
                 : !day.DualTreatment ? "2장 · 두 치료실 함께 운영하기"
                 : $"2장 · 누적 방문 {day.LifetimeDeparted}/12";
             string title = outside ? (day.Expanded ? "본원과 치료별관" : "본원과 별관 예정지") : $"{day.DayNumber}일차 운영 완료";
             string detail = outside ? (day.ExpansionReason.Length == 0 ? "치료기 1대 추가 · 600만" : day.ExpansionReason)
-                : $"귀가 {day.Departed}/{day.Patients.Count}명 · 수입 {day.Income:N0}만 · 지출 {day.ExpansionExpense:N0}만";
+                : $"귀가 {day.Departed}/{day.Patients.Count}명 · 수입 {day.Income:N0}만 · 지출 {day.TotalExpense:N0}만";
             GUI.Label(new Rect(34, footer + 7, 210, 36), title, heading);
             GUI.Label(new Rect(248, footer + 7, width - 535, 36), goal, label);
             GUI.Label(new Rect(34, footer + 42, width - 295, 34), Time.unscaledTime < saveNoticeUntil ? saveNotice : detail, label);
@@ -353,6 +364,7 @@ namespace SunshineHospital
             if (restored != null)
             {
                 outside = false;
+                staffOpen = false;
                 confirmExpansion = false;
                 SetDay(restored);
             }

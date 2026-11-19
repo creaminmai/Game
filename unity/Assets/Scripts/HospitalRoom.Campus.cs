@@ -6,12 +6,13 @@ namespace SunshineHospital
     {
         private Transform exterior;
         private Transform exteriorAnnex;
+        private Transform researchLab;
         private Transform annex;
         private Transform annexHead;
         private Vector3 annexHeadRest;
         private Renderer annexLamp;
 
-        internal void ApplyCampus(bool outside, bool expanded)
+        internal void ApplyCampus(bool outside, bool expanded, bool hasLab)
         {
             if (expanded && annex == null) BuildAnnex();
             if (outside && exterior == null) BuildExterior();
@@ -21,10 +22,12 @@ namespace SunshineHospital
             {
                 exterior.gameObject.SetActive(outside);
                 exteriorAnnex.gameObject.SetActive(expanded);
+                if (hasLab && researchLab == null) BuildResearchLab();
+                if (researchLab != null) researchLab.gameObject.SetActive(hasLab);
             }
-            var shift = new Vector3(outside ? 2f : expanded ? 2.65f : 0f, 0, 0);
+            var shift = new Vector3(outside ? (hasLab ? 0f : 2f) : expanded ? 2.65f : 0f, 0, 0);
             Camera.transform.position = new Vector3(11, 18, 20) + shift;
-            Camera.orthographicSize = outside ? 9.8f : expanded ? 10f : 8.6f;
+            Camera.orthographicSize = outside ? (hasLab ? 11.1f : 9.8f) : expanded ? 10f : 8.6f;
         }
 
         internal void SetAnnexActivity(float lift, bool active)
@@ -62,7 +65,7 @@ namespace SunshineHospital
         private void BuildExterior()
         {
             exterior = Group(root.parent, "병원 외부", Vector3.zero);
-            Box(exterior, "정원", new Vector3(2, -.3f, .5f), new Vector3(22f, .4f, 15f), new Color(.65f, .73f, .48f));
+            Box(exterior, "정원", new Vector3(.5f, -.3f, .5f), new Vector3(25f, .4f, 15f), new Color(.65f, .73f, .48f));
             Box(exterior, "앞뜰 보행로", new Vector3(2, -.03f, 5.05f), new Vector3(18f, .15f, 2.5f), Wood);
             Box(exterior, "본원", new Vector3(0, 2.2f, 0), new Vector3(9, 4.4f, 6), Cream);
             for (int side = -1; side <= 1; side += 2)
@@ -86,6 +89,22 @@ namespace SunshineHospital
             Box(exteriorAnnex, "별관 지붕", new Vector3(0, 3.04f, 0), new Vector3(4.4f, .28f, 5.4f), Mint);
             Window(exteriorAnnex, -.9f, 1.55f, 2.58f);
             Window(exteriorAnnex, .85f, 1.55f, 2.58f);
+        }
+
+        private void BuildResearchLab()
+        {
+            var site = new Vector3(-8.2f, 0, -.8f);
+            researchLab = Group(exterior, "연구소", site);
+            var model = LoadArt("research-lab");
+            if (model != null) PlaceArt(model, researchLab, Vector3.zero, originalArtMirrorsX);
+            else
+            {
+                Box(researchLab, "연구소 벽", new Vector3(0, 1.35f, 0), new Vector3(4.6f, 2.7f, 3.9f), Cream);
+                Box(researchLab, "코랄 지붕", new Vector3(0, 2.8f, 0), new Vector3(4.9f, .25f, 4.2f), Coral);
+            }
+            var researcher = LoadArt("researcher");
+            if (researcher != null)
+                PlacePerson(researcher, researchLab, new Vector3(.75f, .45f, 1f), false, originalArtMirrorsX);
         }
 
         private void Window(Transform parent, float x, float y, float z)
