@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace SunshineHospital
 {
-    internal sealed class HospitalRoom
+    internal sealed partial class HospitalRoom
     {
         private readonly Dictionary<Color, Material> materials = new();
         private readonly Shader shader = Shader.Find("Universal Render Pipeline/Lit");
@@ -43,7 +43,7 @@ namespace SunshineHospital
         public HospitalRoom(Transform root, bool preferOriginalArt = true)
         {
             var interior = preferOriginalArt ? LoadArt("hospital-interior") : null;
-            this.root = root;
+            this.root = Group(root, "진료실", Vector3.zero);
             patientModel = interior != null ? LoadArt("patient") : null;
             var nurseModel = interior != null ? LoadArt("nurse") : null;
             UsesOriginalArt = interior != null && patientModel != null && nurseModel != null;
@@ -66,6 +66,7 @@ namespace SunshineHospital
             light.shadows = LightShadows.Soft;
             light.transform.rotation = Quaternion.Euler(49, -38, 0);
 
+            root = this.root;
             if (UsesOriginalArt)
             {
                 var model = PlaceArt(interior, root, Vector3.zero, mirrorX: false);

@@ -15,6 +15,8 @@ namespace SunshineHospital
         private Transform roomRoot;
         private HospitalRoom.Actor[] actors;
         private int selectedId;
+        private bool outside;
+        private bool confirmExpansion;
         private HospitalSave save;
         private string saveNotice;
         private float saveNoticeUntil;
@@ -22,7 +24,7 @@ namespace SunshineHospital
 #if UNITY_EDITOR
         private bool capturing;
 #endif
-        private const float Header = 58f;
+        private const float Header = 102f;
         private const float Footer = 88f;
         private static readonly Color Paper = new(1f, .965f, .898f);
         private static readonly Color Ink = new(.15f, .22f, .19f);
@@ -75,6 +77,7 @@ namespace SunshineHospital
                 if (Input.GetKeyDown(KeyCode.F9)) StartCoroutine(VerifyVisit());
                 if (Input.GetKeyDown(KeyCode.F10)) StartCoroutine(VerifyDay());
                 if (Input.GetKeyDown(KeyCode.F11)) VerifySaveInEditor();
+                if (Input.GetKeyDown(KeyCode.F7)) StartCoroutine(VerifyCampus());
                 if (Input.GetKeyDown(KeyCode.F8) && day.Patients[0].Stage == VisitStage.Reception)
                 {
                     StartCoroutine(CaptureComparison());
@@ -84,8 +87,8 @@ namespace SunshineHospital
             speed = qaSpeed;
             if (!qaRunning)
 #endif
-                PickPatient();
-            day.Tick(Time.deltaTime * speed);
+                if (!outside) PickPatient();
+            if (!outside) day.Tick(Time.deltaTime * speed);
             RefreshActors();
         }
 
@@ -109,10 +112,18 @@ namespace SunshineHospital
 
         private void RefreshActors()
         {
+            room.ApplyCampus(outside, day.Expanded);
+            float annexLift = 0;
             float lift = 0;
             foreach (var patient in day.Patients)
-                lift = Mathf.Max(lift, RefreshActor(patient, actors[patient.Id - 1]));
+            {
+                float patientLift = RefreshActor(patient, actors[patient.Id - 1]);
+                if (patient.TreatmentRoom == 1) annexLift = Mathf.Max(annexLift, patientLift);
+                else lift = Mathf.Max(lift, patientLift);
+            }
             room.SetTreatmentHeadLift(lift);
+            room.SetAnnexActivity(annexLift, day.TreatmentOwnerAt(1) != 0 &&
+                day.Patients[day.TreatmentOwnerAt(1) - 1].Stage == VisitStage.Treatment);
             room.SetLamp(room.CtLamp, day.CtOwner != 0 && day.Patients[day.CtOwner - 1].Stage == VisitStage.Ct);
             room.SetLamp(room.TreatmentLamp, day.TreatmentOwner != 0 && day.Patients[day.TreatmentOwner - 1].Stage == VisitStage.Treatment);
         }
@@ -129,7 +140,7 @@ namespace SunshineHospital
             {
                 bool treatment = patient.Stage == VisitStage.Treatment;
                 var yaw = treatment ? TreatmentYaw : Quaternion.identity;
-                var bed = World(treatment ? DayRoutes.TreatmentBed : DayRoutes.CtBed);
+                var bed = World(treatment ? DayRoutes.BedAt(patient.TreatmentRoom) : DayRoutes.CtBed);
                 float edgeTime = Mathf.Min(patient.Elapsed, patient.Duration - patient.Elapsed);
                 float recline = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.15f, .75f, edgeTime));
                 float shift = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.75f, 1.35f, edgeTime));
@@ -146,7 +157,7 @@ namespace SunshineHospital
                 ? Quaternion.Inverse(actor.Root.rotation) * Quaternion.Euler(-90, 0, 0)
                 : Quaternion.identity;
             return patient.Stage is VisitStage.WalkingToTreatment or VisitStage.Leaving
-                ? Mathf.InverseLerp(2.5f, .5f, System.Numerics.Vector2.Distance(patient.Position, DayRoutes.TreatmentApproach))
+                ? Mathf.InverseLerp(2.5f, .5f, System.Numerics.Vector2.Distance(patient.Position, DayRoutes.ApproachAt(patient.TreatmentRoom)))
                 : 0;
         }
 
@@ -189,24 +200,54 @@ namespace SunshineHospital
 #endif
             Panel(new Rect(0, 0, width, Header), Paper);
             Panel(new Rect(0, Header - 1, width, 1), new Color(.84f, .80f, .70f));
-            GUI.Label(new Rect(20, 0, 140, Header), "햇살병원", heading);
-            foreach (var patient in day.Patients)
+            GUI.Label(new Rect(20, 0, 230, 56), $"햇살병원 · {day.DayNumber}일차", heading);
+            if (!outside)
             {
-                bool enabled = GUI.enabled;
-                GUI.enabled = enabled && patient.Stage != VisitStage.NotArrived;
-                string name = patient.Stage == VisitStage.Complete ? patient.Name + " ✓" : patient.Name;
-                if (GUI.Button(new Rect(160 + (patient.Id - 1) * 96, 10, 90, 38), name,
-                        selectedId == patient.Id ? primary : patientTag) && acceptInput)
-                    Select(patient.Id);
-                GUI.enabled = enabled;
+                float slot = (width - 40) / day.Patients.Count;
+                foreach (var patient in day.Patients)
+                {
+                    bool enabled = GUI.enabled;
+                    GUI.enabled = enabled && patient.Stage != VisitStage.NotArrived;
+                    string state = patient.Stage switch
+                    {
+                        VisitStage.NotArrived => "도착 예정",
+                        VisitStage.Reception => "접수 필요",
+                        VisitStage.AwaitingPlan => "계획 필요",
+                        VisitStage.CtQueue => "CT 대기",
+                        VisitStage.WalkingToCt => "CT 이동",
+                        VisitStage.Ct => "CT 촬영",
+                        VisitStage.WalkingToPlanning => "계획실 이동",
+                        VisitStage.PlanQueue => "계획 대기",
+                        VisitStage.Planning => "계획 중",
+                        VisitStage.TreatmentQueue => "치료 대기",
+                        VisitStage.WalkingToTreatment => "치료실 이동",
+                        VisitStage.Treatment => "치료 중",
+                        VisitStage.Leaving => "귀가 중",
+                        VisitStage.Complete => "귀가 완료",
+                        _ => "입장 중"
+                    };
+                    if (GUI.Button(new Rect(20 + (patient.Id - 1) * slot, 58, slot - 6, 36),
+                            $"{patient.Name} · {state}", selectedId == patient.Id ? primary : patientTag) && acceptInput)
+                        Select(patient.Id);
+                    GUI.enabled = enabled;
+                }
+            }
+            else
+            {
+                GUI.Label(new Rect(20, 55, width - 40, 40), "병원 밖 · 진료 시간이 멈췄어요", label);
+            }
+            if (GUI.Button(new Rect(width - 528, 10, 98, 38), outside ? "병원 안" : "병원 밖", quiet) && acceptInput)
+            {
+                outside = !outside;
+                confirmExpansion = false;
             }
             bool controlsEnabled = GUI.enabled;
-            GUI.enabled = controlsEnabled && day.Patients.Count == HospitalDay.BookingCount;
+            GUI.enabled = controlsEnabled && day.Patients.Count != 1;
             if (GUI.Button(new Rect(width - 420, 10, 62, 38), "저장", patientTag) && acceptInput) SaveDay();
             if (GUI.Button(new Rect(width - 353, 10, 72, 38), "불러오기", patientTag) && acceptInput) LoadDay(reportMissing: true);
             GUI.enabled = controlsEnabled;
-            GUI.Label(new Rect(width - 277, 0, 155, Header), $"운영 자금  {day.Funds:N0}만", label);
-            if (GUI.Button(new Rect(width - 116, 8, 96, 42), day.Paused ? "재생" : "일시정지",
+            GUI.Label(new Rect(width - 277, 0, 155, 56), $"운영 자금  {day.Funds:N0}만", label);
+            if (!outside && GUI.Button(new Rect(width - 116, 8, 96, 42), day.Paused ? "재생" : "일시정지",
                     day.Paused ? primary : quiet) && acceptInput)
                 day.TogglePause();
 
@@ -214,9 +255,15 @@ namespace SunshineHospital
             Panel(new Rect(0, footer, width, Footer), Paper);
             Panel(new Rect(0, footer, width, 1), new Color(.84f, .80f, .70f));
             Panel(new Rect(20, footer + 15, 4, 23), day.Paused ? Coral : Mint);
+            if (outside || day.Complete)
+            {
+                DrawGrowth(width, footer, acceptInput);
+                return;
+            }
+
             var selection = Selection;
             string status = day.Complete ? "첫날 운영 완료"
-                : selection == null ? $"첫날 진료 · 귀가 {day.Departed}/{day.Patients.Count}"
+                : selection == null ? $"{day.DayNumber}일차 진료 · 귀가 {day.Departed}/{day.Patients.Count}"
                 : $"{selection.Name} · {Status(selection.Stage)}";
             GUI.Label(new Rect(34, footer + 7, width - 255, 36), status, heading);
             string guidance = Time.unscaledTime < saveNoticeUntil ? saveNotice : Guidance(selection);
@@ -247,6 +294,45 @@ namespace SunshineHospital
             }
         }
 
+        private void DrawGrowth(float width, float footer, bool acceptInput)
+        {
+            string goal = !day.ChapterOne ? $"1장 · 오늘 방문 {day.Departed}/{day.Patients.Count}"
+                : day.ChapterTwo ? "2장 · 완료"
+                : !day.Expanded ? "2장 · 치료별관 마련하기"
+                : !day.DualTreatment ? "2장 · 두 치료실 함께 운영하기"
+                : $"2장 · 누적 방문 {day.LifetimeDeparted}/12";
+            string title = outside ? (day.Expanded ? "본원과 치료별관" : "본원과 별관 예정지") : $"{day.DayNumber}일차 운영 완료";
+            string detail = outside ? (day.ExpansionReason.Length == 0 ? "치료기 1대 추가 · 600만" : day.ExpansionReason)
+                : $"귀가 {day.Departed}/{day.Patients.Count}명 · 수입 {day.Income:N0}만 · 지출 {day.ExpansionExpense:N0}만";
+            GUI.Label(new Rect(34, footer + 7, 210, 36), title, heading);
+            GUI.Label(new Rect(248, footer + 7, width - 535, 36), goal, label);
+            GUI.Label(new Rect(34, footer + 42, width - 295, 34), Time.unscaledTime < saveNoticeUntil ? saveNotice : detail, label);
+            if (outside)
+            {
+                if (!day.Expanded && GUI.Button(new Rect(width - 195, footer + 19, 175, 50),
+                    confirmExpansion ? "600만 지불하기" : "별관 증축", primary) && acceptInput)
+                {
+                    if (confirmExpansion)
+                    {
+                        if (!day.PurchaseExpansion()) SetSaveNotice(day.ExpansionReason);
+                        confirmExpansion = false;
+                    }
+                    else if (day.ExpansionReason.Length == 0) confirmExpansion = true;
+                    else SetSaveNotice(day.ExpansionReason);
+                }
+                return;
+            }
+            if (GUI.Button(new Rect(width - 265, footer + 19, 118, 50), "다음 날 · 4명", primary) && acceptInput)
+                StartDay(HospitalDay.BookingCount);
+            if (day.Expanded && GUI.Button(new Rect(width - 140, footer + 19, 120, 50), "다음 날 · 6명", primary) && acceptInput)
+                StartDay(HospitalDay.AnnexBookingCount);
+        }
+
+        private void StartDay(int bookings)
+        {
+            if (day.StartNextDay(bookings)) SetDay(day);
+        }
+
         private void SaveDay()
         {
             try
@@ -264,7 +350,12 @@ namespace SunshineHospital
         private void LoadDay(bool reportMissing)
         {
             HospitalLoadResult result = save.Load(room.UsesOriginalArt, out HospitalDay restored);
-            if (restored != null) SetDay(restored);
+            if (restored != null)
+            {
+                outside = false;
+                confirmExpansion = false;
+                SetDay(restored);
+            }
             string message = result switch
             {
                 HospitalLoadResult.Loaded => "저장한 진료를 불러왔어요 · 재생을 눌러주세요",

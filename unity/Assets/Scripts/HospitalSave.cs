@@ -11,7 +11,7 @@ namespace SunshineHospital
     public sealed class HospitalSave
     {
         private const int Magic = 0x484F5350;
-        private const int Version = 1;
+        private const int Version = 2;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;
@@ -92,8 +92,10 @@ namespace SunshineHospital
 
                 using var payload = new MemoryStream(bytes, 0, length, writable: false);
                 using var data = new BinaryReader(payload);
-                if (data.ReadInt32() != Magic || data.ReadInt32() != Version) return false;
-                var restored = HospitalDay.ReadSave(data, originalArt);
+                if (data.ReadInt32() != Magic) return false;
+                int version = data.ReadInt32();
+                if (version != 1 && version != Version) return false;
+                var restored = HospitalDay.ReadSave(data, originalArt, version);
                 if (payload.Position != payload.Length) return false;
                 day = restored;
                 return true;
@@ -117,8 +119,15 @@ namespace SunshineHospital
 
         internal void WriteSave(BinaryWriter writer)
         {
-            if (patients.Length != BookingCount) throw new InvalidOperationException("Only the first-day game can be saved.");
+            if (patients.Length == 1) throw new InvalidOperationException("A one-patient QA run cannot be saved.");
             writer.Write(OriginalArt);
+            writer.Write(DayNumber);
+            writer.Write(patients.Length);
+            writer.Write(OpeningFunds);
+            writer.Write(ExpansionExpense);
+            writer.Write(LifetimePaid);
+            writer.Write(Expanded);
+            writer.Write(DualTreatment);
             writer.Write(time);
             writer.Write(serial);
             writer.Write(Income);
@@ -133,25 +142,42 @@ namespace SunshineHospital
                 writer.Write(patient.ServiceTime);
                 writer.Write(patient.Waypoint);
                 writer.Write(patient.QueueOrder);
+                writer.Write(patient.TreatmentRoom);
             }
         }
 
-        internal static HospitalDay ReadSave(BinaryReader reader, bool originalArt)
+        internal static HospitalDay ReadSave(BinaryReader reader, bool originalArt, int version)
         {
             if (reader.ReadBoolean() != originalArt) throw new InvalidDataException("Different route layout.");
-            var day = new HospitalDay(originalArt)
+            var day = new HospitalDay(originalArt);
+            if (version >= 2)
             {
-                time = reader.ReadDouble(),
-                serial = reader.ReadInt32(),
-                Income = reader.ReadInt32(),
-                Departed = reader.ReadInt32(),
-                Paused = true
-            };
-            if (!(day.time >= 0 && day.time < double.MaxValue) || day.serial < 0 || day.serial > BookingCount * 3)
+                day.DayNumber = reader.ReadInt32();
+                int count = reader.ReadInt32();
+                day.OpeningFunds = reader.ReadInt32();
+                day.ExpansionExpense = reader.ReadInt32();
+                day.LifetimePaid = reader.ReadInt32();
+                day.Expanded = reader.ReadBoolean();
+                day.DualTreatment = reader.ReadBoolean();
+                if (day.DayNumber < 1 || day.DayNumber > 1000000 ||
+                    (count != BookingCount && (count != AnnexBookingCount || !day.Expanded || day.DayNumber == 1)) ||
+                    (day.ExpansionExpense != 0 && (day.ExpansionExpense != ExpansionCost || !day.Expanded)) ||
+                    (day.DualTreatment && !day.Expanded))
+                    throw new InvalidDataException("Inconsistent hospital growth state.");
+                day.ResetPatients(count);
+            }
+            day.time = reader.ReadDouble();
+            day.serial = reader.ReadInt32();
+            day.Income = reader.ReadInt32();
+            day.Departed = reader.ReadInt32();
+            day.Paused = true;
+            if (version == 1) day.LifetimePaid = day.Income / VisitFee;
+            if (!(day.time >= 0 && day.time < double.MaxValue) || day.serial < 0 || day.serial > day.patients.Length * 3)
                 throw new InvalidDataException("Invalid day clock or queue sequence.");
 
             var queueOrders = new HashSet<int>();
-            int paid = 0, departed = 0, ct = 0, planner = 0, treatment = 0;
+            int paid = 0, departed = 0, ct = 0, planner = 0;
+            var treatment = new int[day.Expanded ? 2 : 1];
             foreach (var patient in day.patients)
             {
                 int value = reader.ReadInt32();
@@ -164,6 +190,10 @@ namespace SunshineHospital
                 patient.ServiceTime = reader.ReadDouble();
                 patient.Waypoint = reader.ReadInt32();
                 patient.QueueOrder = reader.ReadInt32();
+                bool usedRoom = patient.Stage >= VisitStage.WalkingToTreatment;
+                patient.TreatmentRoom = version >= 2 ? reader.ReadInt32() : usedRoom ? 0 : -1;
+                if (usedRoom ? patient.TreatmentRoom < 0 || patient.TreatmentRoom >= treatment.Length : patient.TreatmentRoom != -1)
+                    throw new InvalidDataException("Invalid treatment room.");
 
                 float headingLength = patient.Heading.LengthSquared();
                 if (!(Math.Abs(patient.Position.X) <= 20 && Math.Abs(patient.Position.Y) <= 20 && headingLength > .98f && headingLength < 1.02f))
@@ -176,7 +206,7 @@ namespace SunshineHospital
                 if (!(patient.ServiceTime >= 0 && (patient.Duration == 0 ? patient.ServiceTime == 0 : patient.ServiceTime < patient.Duration)))
                     throw new InvalidDataException("Invalid service timer.");
 
-                int routeLength = day.routes.For(patient.Id, patient.Stage)?.Length ?? 1;
+                int routeLength = day.routes.For(patient.Id, patient.Stage, patient.TreatmentRoom)?.Length ?? 1;
                 if (patient.Waypoint < 0 || patient.Waypoint >= routeLength)
                     throw new InvalidDataException("Invalid route checkpoint.");
 
@@ -194,17 +224,22 @@ namespace SunshineHospital
                 if (patient.Stage == VisitStage.Complete) departed++;
                 if (patient.Stage is VisitStage.Ct or VisitStage.WalkingToCt) ct++;
                 if (patient.Stage == VisitStage.Planning) planner++;
-                if (patient.Stage is VisitStage.Treatment or VisitStage.WalkingToTreatment) treatment++;
+                if (patient.Stage is VisitStage.Treatment or VisitStage.WalkingToTreatment) treatment[patient.TreatmentRoom]++;
             }
 
-            if (day.Income != paid * VisitFee || day.Departed != departed || ct > 1 || planner > 1 || treatment > 1 ||
-                !day.QueueHasOwner(VisitStage.CtQueue, ct) || !day.QueueHasOwner(VisitStage.PlanQueue, planner) ||
-                !day.QueueHasOwner(VisitStage.TreatmentQueue, treatment))
+            int pastPaid = day.LifetimePaid - paid;
+            if (day.Income != paid * VisitFee || day.Departed != departed ||
+                pastPaid < (day.DayNumber - 1) * BookingCount || pastPaid > (day.DayNumber - 1) * AnnexBookingCount ||
+                day.OpeningFunds != StartingFunds + pastPaid * VisitFee - (day.Expanded ? ExpansionCost - day.ExpansionExpense : 0) ||
+                day.Funds < 0 || (day.Expanded && day.LifetimePaid == 0) ||
+                ct > 1 || planner > 1 || Array.Exists(treatment, count => count > 1) ||
+                !day.QueueHasOwner(VisitStage.CtQueue, ct == 1) || !day.QueueHasOwner(VisitStage.PlanQueue, planner == 1) ||
+                !day.QueueHasOwner(VisitStage.TreatmentQueue, Array.TrueForAll(treatment, count => count == 1)))
                 throw new InvalidDataException("Facility or income state is inconsistent.");
             return day;
         }
 
-        private bool QueueHasOwner(VisitStage stage, int owners) =>
-            owners == 1 || !Array.Exists(patients, patient => patient.Stage == stage);
+        private bool QueueHasOwner(VisitStage stage, bool allOwnersBusy) =>
+            allOwnersBusy || !Array.Exists(patients, patient => patient.Stage == stage);
     }
 }

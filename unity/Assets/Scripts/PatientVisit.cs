@@ -21,6 +21,7 @@ namespace SunshineHospital
         internal double ServiceTime { get; set; }
         internal int Waypoint { get; set; }
         internal int QueueOrder { get; set; }
+        public int TreatmentRoom { get; internal set; } = -1;
         public bool Paid => Stage is VisitStage.Leaving or VisitStage.Complete;
         public float Duration => DurationOf(Stage);
 
@@ -42,26 +43,45 @@ namespace SunshineHospital
     public sealed partial class HospitalDay
     {
         public const int BookingCount = 4;
+        public const int AnnexBookingCount = 6;
+        public const int ExpansionCost = 600;
         public const int StartingFunds = 900;
         public const int VisitFee = 200;
         public const float ArrivalInterval = 6f;
         private const float WalkSpeed = 2.1f;
         private const float StepSeconds = .05f;
 
-        private static readonly string[] Names = { "김영수", "이정호", "박상철", "최민석" };
-        private readonly PatientVisit[] patients;
+        private static readonly string[] Names = { "김영수", "이정호", "박상철", "최민석", "윤태호", "오진우" };
+        private PatientVisit[] patients;
         private readonly DayRoutes routes;
         private int serial;
         private double time;
-        public IReadOnlyList<PatientVisit> Patients { get; }
+        public IReadOnlyList<PatientVisit> Patients { get; private set; }
         public bool Paused { get; private set; }
         public int Departed { get; private set; }
         public int Income { get; private set; }
-        public int Funds => StartingFunds + Income;
+        public int DayNumber { get; private set; } = 1;
+        public int OpeningFunds { get; private set; } = StartingFunds;
+        public int ExpansionExpense { get; private set; }
+        public int LifetimePaid { get; private set; }
+        public bool Expanded { get; private set; }
+        public bool DualTreatment { get; private set; }
+        public int LifetimeDeparted => LifetimePaid - Income / VisitFee + Departed;
+        public bool ChapterOne => DayNumber > 1 || Complete;
+        public bool ChapterTwo => ChapterOne && Expanded && DualTreatment && LifetimeDeparted >= 12;
+        public int Funds => OpeningFunds + Income - ExpansionExpense;
         public bool Complete => Departed == patients.Length;
         public int CtOwner => Owner(VisitStage.WalkingToCt, VisitStage.Ct);
         public int PlanOwner => Owner(VisitStage.Planning);
-        public int TreatmentOwner => Owner(VisitStage.WalkingToTreatment, VisitStage.Treatment);
+        public int TreatmentOwner => TreatmentOwnerAt(0);
+
+        public int TreatmentOwnerAt(int room)
+        {
+            foreach (var patient in patients)
+                if (patient.TreatmentRoom == room && patient.Stage is VisitStage.WalkingToTreatment or VisitStage.Treatment)
+                    return patient.Id;
+            return 0;
+        }
         public double Time => time;
 
         public HospitalDay(bool originalArt = true, int bookingCount = BookingCount)
@@ -69,8 +89,42 @@ namespace SunshineHospital
             if (bookingCount != BookingCount && bookingCount != 1) throw new ArgumentOutOfRangeException(nameof(bookingCount));
             OriginalArt = originalArt;
             routes = new DayRoutes(originalArt, bookingCount == 1);
-            patients = new PatientVisit[bookingCount];
-            for (int i = 0; i < patients.Length; i++) patients[i] = new PatientVisit(i + 1, Names[i]);
+            ResetPatients(bookingCount);
+        }
+
+        public string ExpansionReason => Expanded ? "치료별관 운영 중"
+            : LifetimePaid == 0 ? "첫 환자 치료 후 열려요"
+            : Funds < ExpansionCost ? "자금이 부족해요 · 600만 필요" : "";
+
+        public bool PurchaseExpansion()
+        {
+            if (ExpansionReason.Length != 0 || patients.Length == 1) return false;
+            ExpansionExpense = ExpansionCost;
+            Expanded = true;
+            Dispatch();
+            return true;
+        }
+
+        public bool StartNextDay(int bookings)
+        {
+            if (!Complete || patients.Length == 1 || (bookings != BookingCount && (bookings != AnnexBookingCount || !Expanded)))
+                return false;
+            OpeningFunds = Funds;
+            Income = 0;
+            ExpansionExpense = 0;
+            Departed = 0;
+            time = 0;
+            serial = 0;
+            DayNumber++;
+            ResetPatients(bookings);
+            return true;
+        }
+
+        private void ResetPatients(int bookings)
+        {
+            patients = new PatientVisit[bookings];
+            for (int i = 0; i < patients.Length; i++)
+                patients[i] = new PatientVisit(i + 1, Names[(i + (i < 4 ? DayNumber - 1 : 0)) % (i < 4 ? 4 : 6)]);
             Patients = Array.AsReadOnly(patients);
             Spawn(patients[0]);
         }
@@ -123,13 +177,17 @@ namespace SunshineHospital
                 if (patient.Stage == VisitStage.NotArrived && time + .000001 >= (patient.Id - 1) * ArrivalInterval)
                     Spawn(patient);
 
-                var path = routes.For(patient.Id, patient.Stage);
+                var path = routes.For(patient.Id, patient.Stage, patient.TreatmentRoom);
                 if (path != null)
                     Walk(patient, path, seconds);
                 else if (patient.Duration > 0f)
                     AdvanceService(patient, seconds);
             }
             Dispatch();
+            if (Expanded && TreatmentOwnerAt(0) is int main && main != 0 &&
+                TreatmentOwnerAt(1) is int annex && annex != 0 &&
+                patients[main - 1].Stage == VisitStage.Treatment && patients[annex - 1].Stage == VisitStage.Treatment)
+                DualTreatment = true;
         }
 
         private void AdvanceService(PatientVisit patient, float seconds)
@@ -147,6 +205,7 @@ namespace SunshineHospital
                 case VisitStage.Treatment:
                     SetStage(patient, VisitStage.Leaving);
                     Income += VisitFee;
+                    LifetimePaid++;
                     break;
             }
         }
@@ -155,7 +214,7 @@ namespace SunshineHospital
         {
             // A new reservation remains held while the previous patient clears the approach.
             if (patient.Stage == VisitStage.WalkingToTreatment && patient.Waypoint >= path.Length - 2 &&
-                Array.Exists(patients, other => other.Stage == VisitStage.Leaving && other.Waypoint < 2)) return;
+                Array.Exists(patients, other => other.Stage == VisitStage.Leaving && other.TreatmentRoom == patient.TreatmentRoom && other.Waypoint < 2)) return;
             if (patient.Stage == VisitStage.WalkingToCt && patient.Waypoint >= path.Length - 1 &&
                 Array.Exists(patients, other => other.Stage == VisitStage.WalkingToPlanning && other.Waypoint < 2)) return;
 
@@ -200,16 +259,19 @@ namespace SunshineHospital
         {
             if (CtOwner == 0) AssignFirst(VisitStage.CtQueue, VisitStage.WalkingToCt);
             if (PlanOwner == 0) AssignFirst(VisitStage.PlanQueue, VisitStage.Planning);
-            if (TreatmentOwner == 0) AssignFirst(VisitStage.TreatmentQueue, VisitStage.WalkingToTreatment);
+            if (TreatmentOwnerAt(0) == 0) AssignFirst(VisitStage.TreatmentQueue, VisitStage.WalkingToTreatment, 0);
+            if (Expanded && TreatmentOwnerAt(1) == 0) AssignFirst(VisitStage.TreatmentQueue, VisitStage.WalkingToTreatment, 1);
         }
 
-        private void AssignFirst(VisitStage queued, VisitStage assigned)
+        private void AssignFirst(VisitStage queued, VisitStage assigned, int room = -1)
         {
             PatientVisit first = null;
             foreach (var patient in patients)
                 if (patient.Stage == queued && (first == null || patient.QueueOrder < first.QueueOrder))
                     first = patient;
-            if (first != null) SetStage(first, assigned);
+            if (first == null) return;
+            first.TreatmentRoom = room;
+            SetStage(first, assigned);
         }
 
         private int Owner(VisitStage active, VisitStage walking = VisitStage.NotArrived)

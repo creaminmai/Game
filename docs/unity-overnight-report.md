@@ -80,3 +80,11 @@ Unity 6000.6.9f1 Apple Silicon, Metal, URP 17.6.0, 가로 화면과 고정된 �
 - F11로 치료 수입 지급 전후를 전용 `artifacts/unity-overnight/restart-qa/`에 저장했다. 에디터를 종료한 뒤 Hub로 재실행했고, 다른 Unity 프로세스에서 두 파일을 모두 일시정지 상태로 복원했다. 양쪽 시나리오가 귀가 후 각각 **자금 1,100만·수입 200만**이었다. 사용자 저장 버튼은 사용하지 않았다.
 - [접수 대기](../artifacts/unity-overnight/four-patient/reception.png), [치료 일시정지](../artifacts/unity-overnight/four-patient/paused-treatment.png), [4명 귀가 요약](../artifacts/unity-overnight/four-patient/summary.png), [4명 시연 MP4](../artifacts/unity-overnight/four-patient/visit.mp4). 영상은 실제 에디터 자동 조작을 연속 녹화한 **게임 진행 10배속** 영상이다.
 - 독립 검사 116개는 별도 통과했다. 버튼의 수동 클릭, 모든 장비 동작의 시각적 간섭과 모바일 실행은 아직 확인하지 않았다.
+
+## 외관, 첫 증축, 다음 운영일
+
+외부에 나가면 운영 시간이 멈추고, 내부로 돌아오면 이전 일시정지 상태를 유지한다. 첫 치료 완료 후 외부에서 600만을 확인 결제하면 별관 외관과 원본 GLB 치료실이 표시된다. 본원과 별관은 하나의 치료 FIFO를 공유하며 각각 한 명을 이동 중부터 예약한다. 첫날 예약 수는 그대로 유지하고, 마감 후 별관이 있으면 다음 날 4명 또는 6명을 선택한다. 일일 지출·수입을 분리했고 챕터 1·2는 귀가 수와 실제 동시 치료에 연결했다. 버전 2 저장은 별관·날짜·예약과 두 치료실 소유자를 보존하며 버전 1도 읽는다.
+
+독립 코드 검사 **131개** 통과 및 실제 에디터 재컴파일 성공. F7 자동 시연은 첫 치료가 끝난 테스트 상태에서 시작했다. 외부 시간 정지, 결제 연타 차단, 4명 마감, 다음 날 6명·동시 치료·수입 1,200만·자금 2,300만 및 두 예약 복원을 확인했다. 전체 첫 치료 이전과 이 시연의 조작은 사용자 수동 입력으로 확인한 범위가 아니다.
+
+[증축 전 외부](../artifacts/unity-overnight/campus/outside-before.png) · [증축 후 외부](../artifacts/unity-overnight/campus/outside-after.png) · [실제 동시 치료](../artifacts/unity-overnight/campus/dual-treatment.png) · [6명 요약](../artifacts/unity-overnight/campus/six-summary.png) · [자동 통합 시연](../artifacts/unity-overnight/campus/visit.mp4). 영상은 외부 구간 이후 게임 진행을 12배속으로 실행했다.

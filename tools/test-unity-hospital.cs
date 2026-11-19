@@ -26,6 +26,7 @@ static partial class Checks
         Spacing(false);
         Spacing(true);
         AdditionalChecks();
+        Growth();
         Console.WriteLine($"{count} hospital checks passed.");
     }
 
@@ -111,6 +112,59 @@ static partial class Checks
     }
 
     static bool InRoom(PatientVisit patient) => patient.Stage is not (VisitStage.Complete or VisitStage.NotArrived);
+
+    static void Growth()
+    {
+        var day = new HospitalDay();
+        Verify(!day.PurchaseExpansion() && day.Funds == 900 && !day.StartNextDay(4), "growth locked until actual events");
+        var first = day.Patients[0];
+        Until(day, () => first.Stage == VisitStage.Reception, "growth fixture reception");
+        day.Admit(1);
+        Until(day, () => first.Stage == VisitStage.AwaitingPlan, "growth fixture planning");
+        day.AssignPlan(1);
+        Until(day, () => first.Stage == VisitStage.Leaving, "first treatment opens expansion before departure");
+        Verify(day.Funds == 1100 && day.PurchaseExpansion() && !day.PurchaseExpansion() && day.Funds == 500,
+            "expansion charges 600 exactly once");
+        Verify(day.Patients.Count == 4 && !day.StartNextDay(6), "cannot change today's bookings");
+        FinishDay(day);
+        Verify(day.ChapterOne && day.Income == 800 && day.ExpansionExpense == 600 && day.Funds == 1100, "first-day ledger with purchase");
+        Verify(day.StartNextDay(6) && day.DayNumber == 2 && day.Funds == 1100 &&
+            day.Income == 0 && day.ExpansionExpense == 0 && day.Departed == 0 &&
+            day.CtOwner == 0 && day.PlanOwner == 0 && day.TreatmentOwnerAt(1) == 0, "six-visit new day resets daily state");
+        FinishDay(day);
+        Verify(day.DualTreatment && day.LifetimeDeparted == 10 && day.Income == 1200 && day.Funds == 2300 &&
+            !day.ChapterTwo, "simultaneous care and all six receipts, chapter still needs 12");
+        Verify(day.StartNextDay(4), "four visits remain selectable after annex");
+        FinishDay(day);
+        Verify(day.ChapterTwo && day.LifetimeDeparted == 14 && day.Funds == 3100, "chapter two uses recorded visits and dual care");
+        string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hospital-growth-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new HospitalSave(System.IO.Path.Combine(folder, "day.bin"));
+            store.Save(day);
+            Verify(store.Load(true, out var restored) == HospitalLoadResult.Loaded &&
+                restored.DayNumber == 3 && restored.Expanded && restored.DualTreatment && restored.ChapterTwo && restored.Funds == 3100 &&
+                !restored.PurchaseExpansion(), "growth save restores date, ledger, chapters and paid expansion");
+        }
+        finally
+        {
+            if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
+        }
+    }
+
+    static void FinishDay(HospitalDay day)
+    {
+        for (int frame = 0; frame < 12000 && !day.Complete; frame++)
+        {
+            foreach (var patient in day.Patients)
+            {
+                if (patient.Stage == VisitStage.Reception) day.Admit(patient.Id);
+                if (patient.Stage == VisitStage.AwaitingPlan) day.AssignPlan(patient.Id);
+            }
+            day.Tick(.05f);
+        }
+        Verify(day.Complete && day.Departed == day.Patients.Count, "everyone departed before closing");
+    }
 
     static void OnePatient()
     {

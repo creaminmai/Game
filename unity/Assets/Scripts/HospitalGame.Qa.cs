@@ -154,6 +154,97 @@ namespace SunshineHospital
             }
         }
 
+        private IEnumerator VerifyCampus()
+        {
+            var previousDay = day;
+            int previousSelection = selectedId;
+            bool previousExterior = outside;
+            qaRunning = true;
+            outside = false;
+            qaSpeed = 1;
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/campus"));
+            try
+            {
+                Directory.CreateDirectory(folder);
+                var fixture = new HospitalDay(room.UsesOriginalArt);
+                if (!AdvanceTo(fixture, VisitStage.Reception) || !fixture.Admit(1) ||
+                    !AdvanceTo(fixture, VisitStage.AwaitingPlan) || !fixture.AssignPlan(1) ||
+                    !AdvanceTo(fixture, VisitStage.Leaving)) yield break;
+                SetDay(fixture);
+                outside = true;
+                StartCoroutine(RecordVisit(Path.Combine(folder, "visit.mp4")));
+                double time = day.Time;
+                yield return new WaitForSecondsRealtime(.65f);
+                if (!Expect(day.Time == time && day.Funds == 1100, "outside holds the hospital clock")) yield break;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "outside-before.png"));
+                if (!Expect(day.PurchaseExpansion() && !day.PurchaseExpansion() && day.Funds == 500,
+                    "annex costs 600 exactly once")) yield break;
+                yield return new WaitForSecondsRealtime(.65f);
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "outside-after.png"));
+
+                outside = false;
+                qaSpeed = 12f;
+                float deadline = Time.realtimeSinceStartup + 75;
+                yield return PlayQaDay(deadline, null);
+                if (!Expect(day.Complete && day.Departed == 4 && day.Funds == 1100, "expanded first day closes with four")) yield break;
+                if (!Expect(day.StartNextDay(6) && day.Funds == 1100 && day.DayNumber == 2, "next day opens six appointments")) yield break;
+                SetDay(day);
+
+                bool capturedDual = false;
+                string savePath = Path.Combine(folder, "expanded-test.bin");
+                yield return PlayQaDay(deadline, () =>
+                {
+                    int mainOwner = day.TreatmentOwnerAt(0);
+                    int annexOwner = day.TreatmentOwnerAt(1);
+                    if (capturedDual || mainOwner == 0 || annexOwner == 0 ||
+                        day.Patients[mainOwner - 1].Stage != VisitStage.Treatment ||
+                        day.Patients[annexOwner - 1].Stage != VisitStage.Treatment) return false;
+                    capturedDual = true;
+                    new HospitalSave(savePath).Save(day);
+                    return true;
+                }, Path.Combine(folder, "dual-treatment.png"));
+                if (!Expect(capturedDual && day.Complete && day.Departed == 6 && day.Income == 1200 && day.Funds == 2300,
+                    "six appointments, concurrent treatment and next-day ledger")) yield break;
+                var store = new HospitalSave(savePath);
+                if (!Expect(store.Load(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
+                    restored.Paused && restored.Expanded && restored.DayNumber == 2 &&
+                    restored.TreatmentOwnerAt(0) != 0 && restored.TreatmentOwnerAt(1) != 0,
+                    "both owners restore with the annex and date")) yield break;
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "six-summary.png"));
+                yield return new WaitForSecondsRealtime(.8f);
+                Debug.Log("[Hospital QA] Campus scene passed (fixture before first purchase, then 12× operation).");
+            }
+            finally
+            {
+                qaSpeed = 1;
+                qaRunning = false;
+                outside = previousExterior;
+                SetDay(previousDay);
+                Select(previousSelection);
+            }
+        }
+
+        private IEnumerator PlayQaDay(float deadline, System.Func<bool> capture, string image = null)
+        {
+            while (!day.Complete && Time.realtimeSinceStartup < deadline)
+            {
+                foreach (var patient in day.Patients)
+                {
+                    if (patient.Stage == VisitStage.Reception) day.Admit(patient.Id);
+                    if (patient.Stage == VisitStage.AwaitingPlan) day.AssignPlan(patient.Id);
+                }
+                if (capture != null && capture())
+                {
+                    yield return new WaitForEndOfFrame();
+                    WriteGameView(image);
+                }
+                yield return null;
+            }
+        }
+
         private void VerifySaveInEditor()
         {
             string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/restart-qa"));
