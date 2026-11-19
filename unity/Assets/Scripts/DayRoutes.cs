@@ -17,6 +17,8 @@ namespace SunshineHospital
         internal static Vector2 BedAt(int room) => room == 1 ? TreatmentBed + AnnexOffset : TreatmentBed;
         internal static Vector2 ApproachAt(int room) => room == 1 ? TreatmentApproach + AnnexOffset : TreatmentApproach;
 
+        private readonly Vector2[] returnToTreatment;
+        private readonly Vector2[] returnToAnnex;
         private readonly Vector2[][] annexOutbound = new Vector2[HospitalDay.AnnexBookingCount][];
         private readonly Vector2[][] annexReturn = new Vector2[HospitalDay.AnnexBookingCount][];
         internal Vector2 Spawn { get; }
@@ -24,6 +26,12 @@ namespace SunshineHospital
 
         internal DayRoutes(bool art, bool single)
         {
+            returnToTreatment = new[] { new Vector2(-1.62f, 3.12f), new Vector2(.38f, 3.42f),
+                new Vector2(1.55f, 3.42f), new Vector2(1.85f, 4.5f),
+                art ? TreatmentApproach : new Vector2(4.08f, 3.95f) };
+            returnToAnnex = new[] { new Vector2(-1.62f, 3.12f), new Vector2(.38f, 3.42f),
+                new Vector2(1.55f, 3.42f), new Vector2(1.85f, 4.5f), new Vector2(4.2f, 5.15f),
+                new Vector2(10, 5.15f), ApproachAt(1) };
             Spawn = new Vector2(-.38f, 6.6f);
             for (int i = 0; i < paths.Length; i++)
             {
@@ -82,8 +90,10 @@ namespace SunshineHospital
             }
         }
 
-        internal Vector2[] For(int id, VisitStage stage, int room = -1)
+        internal Vector2[] For(int id, VisitStage stage, int room = -1, bool returning = false)
         {
+            if (stage == VisitStage.WalkingToTreatment && returning)
+                return room == 1 ? returnToAnnex : returnToTreatment;
             if (room == 1 && stage == VisitStage.WalkingToTreatment) return annexOutbound[id - 1];
             if (room == 1 && stage == VisitStage.Leaving) return annexReturn[id - 1];
             return paths[id - 1].TryGetValue(stage, out var path) ? path : null;

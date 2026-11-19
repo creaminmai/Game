@@ -47,7 +47,7 @@ namespace SunshineHospital
             var oldPage = alphaPage;
             bool oldTitle = titleOpen, oldOutside = outside, oldMap = mapOpen, oldStaff = staffOpen;
             int oldId = selectedId;
-            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/alpha-ui"));
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/production-3d"));
             qaRunning = capturingHud = true;
             qaSpeed = 0;
             try
@@ -100,6 +100,9 @@ namespace SunshineHospital
                 CloseAlphaPage();
                 outside = true;
                 yield return HudCapture(folder, "expansion");
+                confirmExpansion = true;
+                yield return HudCapture(folder, "expansion-preview");
+                confirmExpansion = false;
                 outside = false;
                 network.ApplyDecoration(0);
                 network.ApplyDecoration(7);
@@ -190,6 +193,40 @@ namespace SunshineHospital
                 slot.SaveNetwork(network);
                 if (!Expect(slot.LoadNetwork(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
                     restored.Site == HospitalSite.Coast && restored.Branch != null, "three hospital isolated save restores")) yield break;
+                bool returnCaptured = false;
+                for (int date = 0; date < 20 && !network.SeasonComplete; date++)
+                {
+                    foreach (var study in new[] { HospitalResearch.Ct, HospitalResearch.Planning, HospitalResearch.CtII })
+                        if (main.StartResearch(study)) break;
+                    var booking = day.Patients[0];
+                    if (!returnCaptured && booking.CourseVisit >= 2)
+                    {
+                        for (int step = 0; step < 3000 && booking.Stage != VisitStage.Treatment; step++)
+                            network.Tick(.05f);
+                        if (!Expect(booking.Stage == VisitStage.Treatment, "return booking went from intake to treatment")) yield break;
+                        Select(1);
+                        yield return HudCapture(folder, "return-treatment");
+                        yield return new WaitForSecondsRealtime(2.5f);
+                        returnCaptured = true;
+                    }
+                    for (int step = 0; step < 14000 && !network.Complete; step++) network.Tick(.05f);
+                    if (!Expect(network.Complete, "linked hospitals completed their scheduled visits")) yield break;
+                    if (!day.Expanded) day.PurchaseExpansion();
+                    if (!network.StartNextDay(6)) yield break;
+                    SetDay(network.Active);
+                }
+                if (!Expect(network.SeasonComplete && returnCaptured && network.StartStory(64), "season ending was earned from operating records")) yield break;
+                yield return new WaitForSecondsRealtime(.35f);
+                yield return HudCapture(folder, "season-finale");
+                yield return new WaitForSecondsRealtime(2.4f);
+                network.AdvanceStory();
+                var finaleSlot = new HospitalSave(Path.Combine(folder, "isolated-finale.bin"));
+                finaleSlot.SaveNetwork(network);
+                if (!Expect(finaleSlot.LoadNetwork(room.UsesOriginalArt, out var ending) == HospitalLoadResult.Loaded &&
+                    ending.SeasonComplete && ending.StoryMoment == 64 && ending.StoryLine == 1, "season finale line restored")) yield break;
+                yield return HudCapture(folder, "season-finale-next");
+                yield return new WaitForSecondsRealtime(2.4f);
+                network.AdvanceStory();
                 Debug.Log($"[Hospital QA] Alpha HUD and three hospitals captured: {folder}");
             }
             finally

@@ -36,6 +36,8 @@ namespace SunshineHospital
             (16, _) => "다음 운영일부터 지도에서 분원에 갈 수 있어요. 첫 목표는 분원 환자 여덟 분의 귀가예요.",
             (32, 0) => "바다빛에서도 함께 준비해 온 교육을 이제 써볼 수 있겠어요.",
             (32, _) => "다음 운영일부터 바다빛으로 가 볼까요? 도착 간격과 장비 대기를 확인해 주세요.",
+            (64, 0) => "본원과 두 분원에서 치료 과정을 마친 분들이 생겼어요. 서로의 기록을 읽고 바꿔 온 덕분이에요.",
+            (64, _) => "첫 시즌을 마쳤어요. 앞으로도 세 병원을 자유롭게 운영하고, 지나온 이야기를 다시 볼 수 있어요.",
             _ => null
         };
 
@@ -117,7 +119,7 @@ namespace SunshineHospital
                     outside = false;
                     CloseAlphaPage();
                 }
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < 7; i++)
                     if ((network.AvailableStories & (1 << i)) != 0)
                         if (GUI.Button(new Rect(x + 24, y + 110 + i * 38, 700, 32), GrowthStory(1 << i), patientTag) && input)
                         {

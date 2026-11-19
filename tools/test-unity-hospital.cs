@@ -245,6 +245,11 @@ static partial class Checks
 
     static void Region()
     {
+        var late = new HospitalDay();
+        for (int i = 0; i < HospitalDay.ClosingSecond + 1; i++) late.Tick(1);
+        FinishDay(late);
+        Verify(late.DepartedByClosing == 0 && !late.MetClosingTarget && late.Patients[0].Satisfaction < 85,
+            "post-closing departures do not count and actual reception wait affects satisfaction");
         var ledger = new HospitalNetwork(new HospitalDay());
         var site = HospitalSite.Main;
         Verify(ledger.ApplyDecoration(0) && ledger.ApplyDecoration(7) && ledger.ApplyDecoration(0) &&
@@ -260,21 +265,32 @@ static partial class Checks
                 ledger.WriteSave(writer);
             data.Position = 0;
             using var read = new System.IO.BinaryReader(data);
-            var resumed = HospitalNetwork.ReadSave(read, true, 7);
+            var resumed = HospitalNetwork.ReadSave(read, true, 8);
             Verify(resumed.StoryMoment == 1 && resumed.StoryLine == 1 && resumed.Funds == 1530 &&
                 resumed.ExpenseToday(site) == 170, "story and paid amounts round-trip");
             var bytes = data.ToArray();
-            int ledgerOffset = bytes.Length - (26 * sizeof(int) * 2 + sizeof(int) * 2);
-            using var oldFormat = new System.IO.MemoryStream(bytes, 0, ledgerOffset);
-            using var oldReader = new System.IO.BinaryReader(oldFormat);
-            var legacyDecorations = HospitalNetwork.ReadSave(oldReader, true, 6);
-            Verify(legacyDecorations.Funds == 1530 && legacyDecorations.ExpenseToday(site) == 0,
-                "legacy decor keeps its funds without inventing an operating date");
+            int ledgerOffset = bytes.Length - (26 * sizeof(int) * 2 + sizeof(int) * 4 + sizeof(byte) * 2);
+            using (var legacyBytes = new System.IO.MemoryStream())
+            {
+                using (var legacyWriter = new System.IO.BinaryWriter(legacyBytes, System.Text.Encoding.UTF8, true))
+                {
+                    ledger.Main.WriteSave(legacyWriter, 6);
+                    legacyWriter.Write(0); legacyWriter.Write(false); legacyWriter.Write(0);
+                    legacyWriter.Write(0); legacyWriter.Write(0);
+                    legacyWriter.Write(129); legacyWriter.Write(129);
+                    for (int i = 0; i < 13; i++) legacyWriter.Write(0);
+                }
+                legacyBytes.Position = 0;
+                using var oldReader = new System.IO.BinaryReader(legacyBytes);
+                var legacyDecorations = HospitalNetwork.ReadSave(oldReader, true, 6);
+                Verify(legacyDecorations.Funds == 1530 && legacyDecorations.ExpenseToday(site) == 0,
+                    "legacy decor keeps its funds without inventing an operating date");
+            }
             data.Position = ledgerOffset;
             using (var writer = new System.IO.BinaryWriter(data, System.Text.Encoding.UTF8, true))
                 writer.Write(73);
             data.Position = 0;
-            var priceChanged = HospitalNetwork.ReadSave(read, true, 7);
+            var priceChanged = HospitalNetwork.ReadSave(read, true, 8);
             Verify(priceChanged.Funds == 1537 && priceChanged.ExpenseToday(site) == 163 &&
                 priceChanged.ApplyDecoration(0) && priceChanged.Funds == 1537,
                 "a recorded purchase price different from the catalog survives load and reapplying the item");
@@ -419,6 +435,44 @@ static partial class Checks
                 alpha.Funds == settled.Funds && alpha.Coast.Time == settled.Coast.Time &&
                 alpha.Switch(HospitalSite.Riverside) && alpha.Owns(0) && alpha.Decorations == 1 && alpha.LastDay.Departed == 4,
                 "third hospital, site-specific decor and previous results restore");
+            Verify(settled.CoordinationComplete && settled.JointClosingDays == 3, "three measured days precede coastal opening");
+            bool sawReturn = false, coastAwarded = false;
+            for (int date = 0; date < 20 && !settled.SeasonComplete; date++)
+            {
+                foreach (var project in new[] { HospitalResearch.Planning, HospitalResearch.CtII, HospitalResearch.PlanningII })
+                    if (settled.Main.StartResearch(project)) break;
+                var course = settled.Coast.Patients[0];
+                if (course.CourseVisit >= 2)
+                {
+                    for (int tick = 0; tick < 800 && course.Stage < VisitStage.WalkingToTreatment; tick++)
+                    {
+                        settled.Tick(.05f);
+                        VerifyReturnRoute(course);
+                    }
+                    sawReturn |= course.Stage == VisitStage.WalkingToTreatment;
+                }
+                for (int step = 0; step < 14000 && !settled.Complete; step++) settled.Tick(.05f);
+                Verify(settled.Complete, "all sites close during season test");
+                if (!settled.Coast.Expanded) settled.Coast.PurchaseExpansion();
+                int beforeClose = settled.Funds;
+                Verify(settled.StartNextDay(6), "season rolls into next day");
+                if (!coastAwarded)
+                {
+                    Verify(settled.CoastalChapterComplete && settled.LastSeasonCredit == 3000 &&
+                        settled.Funds == beforeClose + 3000, "first coastal close credits the milestone once");
+                    coastAwarded = true;
+                }
+                else Verify(settled.LastSeasonCredit == 0 && settled.Funds == beforeClose, "coastal credit cannot repeat");
+            }
+            Verify(sawReturn && settled.SeasonComplete && settled.Main.CompletedResearchCount >= 6 &&
+                settled.Main.CompletedCourses > 0 && settled.Branch.CompletedCourses > 0 && settled.Coast.CompletedCourses > 0,
+                "season ending is earned from courses, applied research and actual satisfaction");
+            var seasonalStore = new HospitalSave(System.IO.Path.Combine(folder, "season.bin"));
+            Verify(settled.StartStory(64), "finale replay is available");
+            settled.AdvanceStory();
+            seasonalStore.SaveNetwork(settled);
+            Verify(seasonalStore.LoadNetwork(true, out var ending) == HospitalLoadResult.Loaded && ending.SeasonComplete &&
+                ending.StoryMoment == 64 && ending.StoryLine == 1 && ending.Funds == settled.Funds, "season and finale restore");
             store.Archive();
             Verify(System.IO.Directory.GetFiles(folder, "region.bin.previous-*").Length == 2, "new game archives primary and backup");
             var file = System.IO.Path.Combine(folder, "region.bin");
@@ -431,6 +485,12 @@ static partial class Checks
         {
             if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
         }
+    }
+
+    static void VerifyReturnRoute(PatientVisit patient)
+    {
+        if (patient.Stage > VisitStage.Reception && patient.Stage < VisitStage.TreatmentQueue)
+            throw new InvalidOperationException("Returning course repeated CT or planning.");
     }
 
     static void Guide()

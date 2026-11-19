@@ -406,7 +406,11 @@ namespace SunshineHospital
 
         private void DrawGrowth(float width, float footer, bool acceptInput)
         {
-            string goal = LiveNetwork && network.Site != HospitalSite.Main ? $"5장 · 분원 귀가 {Math.Min(day.LifetimeDeparted, 8)}/8"
+            string goal = LiveNetwork && network.SeasonComplete ? "첫 시즌 완료 · 자유 운영"
+                : LiveNetwork && network.CoastalChapterComplete ? "8장 · 세 병원 과정 완료 · 연구 6개 · 만족도 85"
+                : LiveNetwork && network.BranchChapterComplete && !network.CoordinationComplete
+                ? $"6장 · 영업시간 내 공동 운영 {network.JointClosingDays}/3일"
+                : LiveNetwork && network.Site != HospitalSite.Main ? $"5장 · 분원 귀가 {Math.Min(day.LifetimeDeparted, 8)}/8"
                 : day.ChapterFour ? "5장 · 지도에서 물빛 분원 확인"
                 : day.ChapterThree ? "4장 · 연구소와 진료 개선"
                 : day.ChapterTwo ? $"3장 · 위임 방문 {day.DelegatedDepartures}/4"
@@ -453,7 +457,11 @@ namespace SunshineHospital
 
         private void StartDay(int bookings)
         {
-            if (network.StartNextDay(bookings)) SetDay(network.Active);
+            if (network.StartNextDay(bookings))
+            {
+                SetDay(network.Active);
+                if (network.LastSeasonCredit > 0) SetSaveNotice($"챕터 정산 · 공동 자금 +{network.LastSeasonCredit:N0}만");
+            }
         }
 
         private bool SaveDay()

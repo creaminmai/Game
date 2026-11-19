@@ -13,7 +13,7 @@ namespace SunshineHospital
     public sealed class PatientVisit
     {
         public int Id { get; }
-        public string Name { get; }
+        public string Name { get; internal set; }
         public VisitStage Stage { get; internal set; }
         public Vector2 Position { get; internal set; }
         public Vector2 Heading { get; internal set; } = Vector2.UnitY;
@@ -25,6 +25,9 @@ namespace SunshineHospital
         public bool Paid => Stage is VisitStage.Leaving or VisitStage.Complete;
         public float Duration { get; internal set; }
         internal int PlanPriority { get; set; }
+        public int CourseVisit { get; internal set; }
+        internal double WaitSeconds { get; set; }
+        public int Satisfaction => Math.Max(40, 90 - 2 * (int)Math.Min(25, Math.Floor(Math.Max(0, WaitSeconds - 60) / 10)));
         public bool DelegatedAdmission { get; internal set; }
         public bool DelegatedPlan { get; internal set; }
 
@@ -68,6 +71,14 @@ namespace SunshineHospital
         public IReadOnlyList<PatientVisit> Patients { get; private set; }
         public bool Paused { get; private set; }
         public int Departed { get; private set; }
+        public const int ClosingSecond = 360;
+        public bool CoursesEnabled { get; private set; }
+        public int CourseProgress { get; private set; }
+        public int CompletedCourses { get; private set; }
+        internal void EnableCourses() => CoursesEnabled = true;
+
+        public int DepartedByClosing { get; private set; }
+        public bool MetClosingTarget => DepartedByClosing * 10 >= patients.Length * 9;
         public int Income { get; private set; }
         public int DayNumber { get; private set; } = 1;
         public int OpeningFunds { get; private set; } = StartingFunds;
@@ -124,6 +135,7 @@ namespace SunshineHospital
             Income = 0;
             ExpansionExpense = 0;
             Departed = 0;
+            DepartedByClosing = 0;
             time = 0;
             serial = 0;
             DayNumber++;
@@ -137,7 +149,13 @@ namespace SunshineHospital
         {
             patients = new PatientVisit[bookings];
             for (int i = 0; i < patients.Length; i++)
-                patients[i] = new PatientVisit(i + 1, Names[(i + (i < 4 ? DayNumber - 1 : 0)) % (i < 4 ? 4 : 6)]);
+            {
+                int offset = CoursesEnabled ? CompletedCourses : DayNumber - 1;
+                patients[i] = new PatientVisit(i + 1, Names[i < 4 ? (i + offset) % 4 : i])
+                {
+                    CourseVisit = CoursesEnabled && i == 0 ? CourseProgress + 1 : 0
+                };
+            }
             Patients = Array.AsReadOnly(patients);
             Spawn(patients[0]);
         }
@@ -175,8 +193,9 @@ namespace SunshineHospital
         {
             var patient = Find(id);
             if (Paused || patient == null || patient.Stage != expected) return false;
-            Enqueue(patient, queued);
-            if (queued == VisitStage.CtQueue)
+            Enqueue(patient, expected == VisitStage.Reception && patient.CourseVisit >= 2
+                ? VisitStage.TreatmentQueue : queued);
+            if (expected == VisitStage.Reception)
             {
                 patient.PlanPriority = patient.QueueOrder;
                 patient.DelegatedAdmission = delegated;
@@ -201,7 +220,9 @@ namespace SunshineHospital
                 if (patient.Stage == VisitStage.NotArrived && time + .000001 >= ArrivalAt(patient.Id))
                     Spawn(patient);
 
-                var path = routes.For(patient.Id, patient.Stage, patient.TreatmentRoom);
+                if (patient.Stage is VisitStage.Reception or VisitStage.AwaitingPlan || IsQueue(patient.Stage))
+                    patient.WaitSeconds += seconds;
+                var path = routes.For(patient.Id, patient.Stage, patient.TreatmentRoom, patient.CourseVisit >= 2);
                 if (path != null)
                     Walk(patient, path, seconds);
                 else if (patient.Duration > 0f)
@@ -277,6 +298,12 @@ namespace SunshineHospital
                 case VisitStage.Leaving:
                     SetStage(patient, VisitStage.Complete);
                     Departed++;
+                    if (time <= ClosingSecond) DepartedByClosing++;
+                    if (patient.CourseVisit != 0)
+                    {
+                        CourseProgress = patient.CourseVisit % 3;
+                        if (CourseProgress == 0) CompletedCourses++;
+                    }
                     if (patient.DelegatedAdmission && patient.DelegatedPlan) DelegatedDepartures++;
                     break;
             }

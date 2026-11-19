@@ -61,7 +61,7 @@ namespace SunshineHospital
                     network.DismissStory(true);
             }
             GUI.Label(new Rect(left + 25, top + 412, 650, 26),
-                Time.unscaledTime < saveNoticeUntil ? saveNotice : "병원별 예약과 시설 · 공동 자금과 연구 · 같은 운영일", label);
+                Time.unscaledTime < saveNoticeUntil ? saveNotice : $"09:00–18:00 · 6장 공동 운영 {network.JointClosingDays}/3일 · 영업시간 내 귀가 90% 목표", label);
         }
 
         private void DrawMapNode(float x, float y, HospitalSite site, bool input)

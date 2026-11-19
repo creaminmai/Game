@@ -161,7 +161,8 @@ namespace SunshineHospital
                 selectedId = 0;
                 return;
             }
-            GUI.Label(new Rect(box.x + 14, box.y + 70, 238, 37), Guidance(patient), smallText);
+            GUI.Label(new Rect(box.x + 14, box.y + 70, 238, 37), patient.CourseVisit == 0 ? Guidance(patient) :
+                $"치료 과정 {patient.CourseVisit}/3 · {Guidance(patient)}", smallText);
             if (patient.Stage == VisitStage.Reception || patient.Stage == VisitStage.AwaitingPlan)
             {
                 bool enabled = GUI.enabled;

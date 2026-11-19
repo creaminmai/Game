@@ -30,11 +30,13 @@ namespace SunshineHospital
         public int DelegatedDepartures { get; private set; }
         public int LabDay { get; private set; }
         public int ResearchPoints { get; private set; }
+        internal void AddResearchPoints(int points) => ResearchPoints = Math.Min(ResearchPointCap, ResearchPoints + points);
         public int TrainingExpense { get; private set; }
         public int LabExpense { get; private set; }
         public int ResearchExpense { get; private set; }
         public int TotalExpense => ExpansionExpense + TrainingExpense + LabExpense + ResearchExpense;
         public bool ChapterThree => DelegatedDepartures >= BookingCount;
+        public int CompletedResearchCount => researchApplied.Count(day => day != 0);
         public bool ChapterFour => researchApplied.Any(value => value != 0);
         public bool ResearchSlotBusy => Enumerable.Range(0, researchStarted.Length).Any(i => researchStarted[i] != 0 && researchApplied[i] == 0);
 

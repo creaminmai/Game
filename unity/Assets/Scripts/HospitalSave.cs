@@ -12,7 +12,7 @@ namespace SunshineHospital
     {
         private const int Magic = 0x484F5350;
         private const int Version = 4;
-        private const int NetworkVersion = 7;
+        private const int NetworkVersion = 8;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;
@@ -156,6 +156,13 @@ namespace SunshineHospital
             writer.Write(serial);
             writer.Write(Income);
             writer.Write(Departed);
+            if (version >= 8)
+            {
+                writer.Write(DepartedByClosing);
+                writer.Write(CoursesEnabled);
+                writer.Write(CourseProgress);
+                writer.Write(CompletedCourses);
+            }
             foreach (var patient in patients)
             {
                 writer.Write((int)patient.Stage);
@@ -170,6 +177,11 @@ namespace SunshineHospital
                 writer.Write(patient.PlanPriority);
                 writer.Write(patient.DelegatedAdmission);
                 writer.Write(patient.DelegatedPlan);
+                if (version >= 8)
+                {
+                    writer.Write(patient.CourseVisit);
+                    writer.Write(patient.WaitSeconds);
+                }
             }
         }
 
@@ -200,6 +212,19 @@ namespace SunshineHospital
             day.serial = reader.ReadInt32();
             day.Income = reader.ReadInt32();
             day.Departed = reader.ReadInt32();
+            day.DepartedByClosing = version >= 8 ? reader.ReadInt32() : day.time <= ClosingSecond ? day.Departed : 0;
+            if (version >= 8)
+            {
+                day.CoursesEnabled = reader.ReadBoolean();
+                day.CourseProgress = reader.ReadInt32();
+                day.CompletedCourses = reader.ReadInt32();
+                if (day.CourseProgress < 0 || day.CourseProgress > 2 || day.CompletedCourses < 0 ||
+                    day.CompletedCourses > day.DayNumber / 3 || (!day.CoursesEnabled && (day.CourseProgress != 0 || day.CompletedCourses != 0)))
+                    throw new InvalidDataException("Invalid course ledger.");
+            }
+            if (day.DepartedByClosing < 0 || day.DepartedByClosing > day.Departed ||
+                (day.time <= ClosingSecond && day.DepartedByClosing != day.Departed))
+                throw new InvalidDataException("Invalid closing-time totals.");
             day.Paused = true;
             if (version < 3) day.lastResearchClose = day.Complete ? day.DayNumber : day.DayNumber - 1;
             if (version == 1) day.LifetimePaid = day.Income / VisitFee;
@@ -239,6 +264,23 @@ namespace SunshineHospital
                 }
                 else if (patient.Stage >= VisitStage.CtQueue) patient.PlanPriority = patient.Id;
 
+                if (version >= 8)
+                {
+                    patient.CourseVisit = reader.ReadInt32();
+                    patient.WaitSeconds = reader.ReadDouble();
+                    if (patient.CourseVisit < 0 || patient.CourseVisit > 3 ||
+                        (patient.CourseVisit > 0 && (!day.CoursesEnabled || patient.Id != 1)) ||
+                        !(patient.WaitSeconds >= 0 && patient.WaitSeconds <= day.time + .01) ||
+                        (patient.CourseVisit >= 2 && patient.Stage > VisitStage.Reception && patient.Stage < VisitStage.TreatmentQueue))
+                        throw new InvalidDataException("Invalid return booking.");
+                    if (day.CoursesEnabled && patient.Id <= 4)
+                    {
+                        var first = day.patients[0];
+                        int cohort = day.CompletedCourses - (first.CourseVisit == 3 && first.Stage == VisitStage.Complete ? 1 : 0);
+                        patient.Name = Names[(patient.Id - 1 + Math.Max(0, cohort)) % 4];
+                    }
+                }
+
                 float headingLength = patient.Heading.LengthSquared();
                 if (!(Math.Abs(patient.Position.X) <= 20 && Math.Abs(patient.Position.Y) <= 20 && headingLength > .98f && headingLength < 1.02f))
                     throw new InvalidDataException("Invalid patient pose.");
@@ -250,7 +292,7 @@ namespace SunshineHospital
                 if (!(patient.ServiceTime >= 0 && (patient.Duration == 0 ? patient.ServiceTime == 0 : patient.ServiceTime < patient.Duration)))
                     throw new InvalidDataException("Invalid service timer.");
 
-                int routeLength = day.routes.For(patient.Id, patient.Stage, patient.TreatmentRoom)?.Length ?? 1;
+                int routeLength = day.routes.For(patient.Id, patient.Stage, patient.TreatmentRoom, patient.CourseVisit >= 2)?.Length ?? 1;
                 if (patient.Waypoint < 0 || patient.Waypoint >= routeLength)
                     throw new InvalidDataException("Invalid route checkpoint.");
 

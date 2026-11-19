@@ -28,15 +28,38 @@ namespace SunshineHospital
         public bool Complete => Main.Complete && (!Available(HospitalSite.Riverside) || Branch.Complete) && (!Available(HospitalSite.Coast) || Coast.Complete);
         public double Time => Math.Max(Main.Time, Math.Max(Branch?.Time ?? 0, Coast?.Time ?? 0));
         public int BranchOpeningDay { get; private set; }
-        public int Funds => Main.Funds + (Branch == null ? 0 : Branch.Funds - HospitalDay.StartingFunds) + (Coast == null ? 0 : Coast.Funds - HospitalDay.StartingFunds) - PurchasesOn(0, null);
+        public int Funds => Main.Funds + (Branch == null ? 0 : Branch.Funds - HospitalDay.StartingFunds) + (Coast == null ? 0 : Coast.Funds - HospitalDay.StartingFunds) - PurchasesOn(0, null) + SeasonBonus;
         public int Reputation => Math.Min(100, InitialReputation + Main.DayNumber - 1 + (Main.Complete ? 1 : 0)
             + (Main.ChapterOne ? 3 : 0) + (Main.ChapterTwo ? 3 : 0) + (Main.ChapterThree ? 3 : 0) + (Main.ChapterFour ? 3 : 0));
         public bool BranchChapterComplete => Branch != null && Branch.LifetimeDeparted >= 8;
         public bool DelegationReady => Main.TrainingDay != 0 && Main.AutoAdmission && Main.AutoPlanning;
         public bool CanOpenBranch => Branch == null && Main.ChapterFour && DelegationReady &&
             Reputation >= RequiredReputation && Funds >= BranchCost && Main.Complete;
-        public bool CanOpenCoast => Coast == null && BranchChapterComplete && DelegationReady && Complete &&
+        public bool CanOpenCoast => Coast == null && BranchChapterComplete && CoordinationComplete && DelegationReady && Complete &&
             Reputation >= AlphaCatalog.CoastReputation && Funds >= AlphaCatalog.CoastCost && Main.ResearchActive(HospitalResearch.EducationIII);
+
+        public int JointClosingDays { get; private set; }
+        public bool CoordinationComplete => JointClosingDays == 3;
+        public bool CoastalChapterComplete { get; private set; }
+        public bool SeasonComplete { get; private set; }
+        public int LastSeasonCredit { get; private set; }
+        public double NetworkSatisfaction
+        {
+            get
+            {
+                int total = 0, count = 0;
+                foreach (HospitalDay site in new[] { Main, Branch, Coast })
+                    if (site != null)
+                        foreach (var patient in site.Patients)
+                            if (patient.Stage == VisitStage.Complete)
+                            {
+                                count++;
+                                total += patient.Satisfaction;
+                            }
+                return count == 0 ? 0 : (double)total / count;
+            }
+        }
+        private int SeasonBonus => (CoordinationComplete ? 2500 : 0) + (CoastalChapterComplete ? 3000 : 0);
 
         private int storySeen;
         public int StoryMoment { get; private set; }
@@ -162,10 +185,26 @@ namespace SunshineHospital
 
         public bool StartNextDay(int mainBookings)
         {
-            if (!Complete) return false;
+            if (!Complete || (mainBookings != HospitalDay.BookingCount &&
+                (mainBookings != HospitalDay.AnnexBookingCount || !Main.Expanded))) return false;
+            if (CoordinationComplete) Main.EnableCourses();
+            int previousBonus = SeasonBonus;
             int date = Main.DayNumber;
+            bool qualifyingDay = BranchChapterComplete && Available(HospitalSite.Riverside) &&
+                Main.MetClosingTarget && Branch.MetClosingTarget;
+            bool qualifyingCoast = Available(HospitalSite.Coast) && Coast.Departed > 0;
+            bool seasonReady = (CoastalChapterComplete || qualifyingCoast) && Main.CompletedResearchCount >= 6 &&
+                Main.CompletedCourses > 0 && Branch?.CompletedCourses > 0 && Coast?.CompletedCourses > 0 && NetworkSatisfaction >= 85;
             var mainResult = (Main.Income, ExpenseToday(HospitalSite.Main), Main.Departed);
             if (!Main.StartNextDay(mainBookings)) return false;
+            if (qualifyingDay && !CoordinationComplete)
+            {
+                JointClosingDays++;
+                if (CoordinationComplete) Main.AddResearchPoints(10);
+            }
+            if (qualifyingCoast) CoastalChapterComplete = true;
+            if (seasonReady) SeasonComplete = true;
+            LastSeasonCredit = SeasonBonus - previousBonus;
             (lastIncome[0], lastExpense[0], lastDeparted[0]) = mainResult;
             CloseSatellite(Branch, BranchOpeningDay, date);
             CloseSatellite(Coast, CoastOpeningDay, date);
@@ -177,6 +216,7 @@ namespace SunshineHospital
             if (satellite == null || date < opening) return;
             int i = (int)satellite.Site;
             (lastIncome[i], lastExpense[i], lastDeparted[i]) = (satellite.Income, satellite.TotalExpense + PurchasesOn(date, satellite.Site), satellite.Departed);
+            if (CoordinationComplete) satellite.EnableCourses();
             satellite.StartNextDay(satellite.Site == HospitalSite.Coast && satellite.Expanded
                 ? HospitalDay.AnnexBookingCount : HospitalDay.BookingCount);
         }
@@ -185,12 +225,12 @@ namespace SunshineHospital
         public void DismissStory(bool skipAll)
         {
             int next = FirstUnseenStory();
-            if (skipAll) storySeen = 63;
+            if (skipAll) storySeen = 127;
             else if (next != 0) storySeen |= next;
         }
 
         public int AvailableStories => (Main.ChapterOne ? 1 : 0) | (Main.Expanded ? 2 : 0) |
-                (Main.TrainingDay != 0 ? 4 : 0) | (Main.LabDay != 0 ? 8 : 0) | (Branch != null ? 16 : 0) | (Coast != null ? 32 : 0);
+                (Main.TrainingDay != 0 ? 4 : 0) | (Main.LabDay != 0 ? 8 : 0) | (Branch != null ? 16 : 0) | (Coast != null ? 32 : 0) | (SeasonComplete ? 64 : 0);
 
         private int FirstUnseenStory()
         {
@@ -200,14 +240,14 @@ namespace SunshineHospital
 
         internal void WriteSave(BinaryWriter writer)
         {
-            Main.WriteSave(writer, 6);
+            Main.WriteSave(writer, 8);
             writer.Write(BranchOpeningDay);
             writer.Write(ViewingBranch);
             writer.Write(storySeen);
-            Branch?.WriteSave(writer, 6);
+            Branch?.WriteSave(writer, 8);
             writer.Write((int)Site);
             writer.Write(CoastOpeningDay);
-            Coast?.WriteSave(writer, 6);
+            Coast?.WriteSave(writer, 8);
             for (int i = 0; i < owned.Length; i++)
             {
                 writer.Write(owned[i]);
@@ -223,11 +263,15 @@ namespace SunshineHospital
             }
             writer.Write(StoryMoment);
             writer.Write(StoryLine);
+            writer.Write(JointClosingDays);
+            writer.Write(CoastalChapterComplete);
+            writer.Write(SeasonComplete);
+            writer.Write(LastSeasonCredit);
         }
 
         internal static HospitalNetwork ReadSave(BinaryReader reader, bool originalArt, int version)
         {
-            int dayVersion = version >= 6 ? 6 : 4;
+            int dayVersion = version >= 8 ? 8 : version >= 6 ? 6 : 4;
             var main = HospitalDay.ReadSave(reader, originalArt, dayVersion);
             var network = new HospitalNetwork(main)
             {
@@ -236,7 +280,7 @@ namespace SunshineHospital
                 storySeen = reader.ReadInt32()
             };
             int opening = network.BranchOpeningDay;
-            if (opening < 0 || opening > main.DayNumber + 1 || network.storySeen < 0 || network.storySeen > (version >= 6 ? 63 : 31) ||
+            if (opening < 0 || opening > main.DayNumber + 1 || network.storySeen < 0 || network.storySeen > (version >= 8 ? 127 : version >= 6 ? 63 : 31) ||
                 (network.ViewingBranch && (opening == 0 || opening > main.DayNumber)))
                 throw new InvalidDataException("Invalid network state.");
             if (opening > 0)
@@ -292,8 +336,9 @@ namespace SunshineHospital
                     network.purchases[i] = (amount, date);
                 }
                 int moment = reader.ReadInt32(), line = reader.ReadInt32();
-                if (line < 0 || line > 1 || (moment == 0 ? line != 0 : !network.StartStory(moment)))
+                if (line < 0 || line > 1 || (moment == 0 ? line != 0 : (moment != 64 && !network.StartStory(moment)) || (moment == 64 && version < 8)))
                     throw new InvalidDataException("Invalid growth dialogue.");
+                network.StoryMoment = moment;
                 network.StoryLine = line;
             }
             else
@@ -304,6 +349,22 @@ namespace SunshineHospital
                 if (network.Branch != null) network.purchases[RiversidePurchase] = (9000, opening - 1);
                 if (network.Coast != null) network.purchases[CoastPurchase] = (20000, network.CoastOpeningDay - 1);
                 if (main.DayNumber > 1) network.lastExpense[0] += network.PurchasesOn(main.DayNumber - 1, HospitalSite.Main);
+            }
+            if (version >= 8)
+            {
+                network.JointClosingDays = reader.ReadInt32();
+                network.CoastalChapterComplete = reader.ReadBoolean();
+                network.SeasonComplete = reader.ReadBoolean();
+                network.LastSeasonCredit = reader.ReadInt32();
+                if ((network.StoryMoment == 64 && !network.SeasonComplete) ||
+                    (network.SeasonComplete && (!network.CoastalChapterComplete || main.CompletedResearchCount < 6 ||
+                    main.CompletedCourses == 0 || network.Branch?.CompletedCourses == 0 || network.Coast?.CompletedCourses == 0)) ||
+                    (network.LastSeasonCredit != 0 && network.LastSeasonCredit != 2500 && network.LastSeasonCredit != 3000 && network.LastSeasonCredit != 5500))
+                    throw new InvalidDataException("Invalid finale or award.");
+                if (network.JointClosingDays < 0 || network.JointClosingDays > 3 ||
+                    (network.JointClosingDays != 0 && !network.BranchChapterComplete) ||
+                    (network.CoastalChapterComplete && (network.Coast == null || network.Coast.DayNumber < 2)))
+                    throw new InvalidDataException("Invalid season progress.");
             }
             if (network.Funds < 0) throw new InvalidDataException("Invalid shared funds.");
             return network;
