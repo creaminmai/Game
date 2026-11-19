@@ -64,6 +64,7 @@ namespace SunshineHospital
 
         private void Update()
         {
+            if (day == null || room == null) return;
             UpdateCameraViewport(room.Camera);
             if (Portrait) return;
             float speed = 1f;
@@ -161,6 +162,7 @@ namespace SunshineHospital
 
         private void OnGUI()
         {
+            if (day == null || room == null) return;
             InitializeStyles();
             float scale = Portrait ? Screen.width / 520f : Scale;
             Matrix4x4 previous = GUI.matrix;

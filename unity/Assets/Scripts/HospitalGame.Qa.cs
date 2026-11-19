@@ -89,7 +89,8 @@ namespace SunshineHospital
             try
             {
                 Directory.CreateDirectory(folder);
-                float deadline = Time.realtimeSinceStartup + 40;
+                StartCoroutine(RecordVisit(Path.Combine(folder, "visit.mp4")));
+                float deadline = Time.realtimeSinceStartup + 60;
                 while (day.Patients[3].Stage != VisitStage.Reception && Time.realtimeSinceStartup < deadline)
                     yield return null;
                 if (!Expect(day.Patients[3].Stage == VisitStage.Reception, "four arrived at reception")) yield break;
@@ -104,6 +105,14 @@ namespace SunshineHospital
                 }
                 if (!Expect(day.CtOwner == 3 && day.Rank(1) == 1 && day.Rank(2) == 3, "CT FIFO and travel reservation")) yield break;
 
+                var moving = day.Patients[2];
+                day.TogglePause();
+                var position = moving.Position;
+                yield return new WaitForSecondsRealtime(1);
+                if (!Expect(moving.Position == position && moving.Stage == VisitStage.WalkingToCt, "four-patient movement pauses")) yield break;
+                day.TogglePause();
+
+                bool checkedTreatmentPause = false;
                 int peakQueue = 0;
                 while (!day.Complete && Time.realtimeSinceStartup < deadline)
                 {
@@ -116,12 +125,24 @@ namespace SunshineHospital
                         }
                         peakQueue = Mathf.Max(peakQueue, day.Rank(patient.Id));
                     }
+                    if (!checkedTreatmentPause && moving.Stage == VisitStage.Treatment && moving.Elapsed > 2f)
+                    {
+                        day.TogglePause();
+                        float elapsed = moving.Elapsed;
+                        yield return new WaitForEndOfFrame();
+                        WriteGameView(Path.Combine(folder, "paused-treatment.png"));
+                        yield return new WaitForSecondsRealtime(1);
+                        if (!Expect(moving.Elapsed == elapsed && day.Funds == 900, "four-patient treatment pauses without payment")) yield break;
+                        checkedTreatmentPause = true;
+                        day.TogglePause();
+                    }
                     yield return null;
                 }
-                if (!Expect(day.Complete && day.Departed == 4 && day.Income == 800 && day.Funds == 1700 && peakQueue >= 2,
+                if (!Expect(day.Complete && day.Departed == 4 && day.Income == 800 && day.Funds == 1700 && peakQueue >= 2 && checkedTreatmentPause,
                         "four departures, shared queue and 800 income")) yield break;
                 yield return new WaitForEndOfFrame();
                 WriteGameView(Path.Combine(folder, "summary.png"));
+                yield return new WaitForSecondsRealtime(1);
                 Debug.Log($"[Hospital QA] Four-patient live scene passed at 10×. Captures: {folder}");
             }
             finally
@@ -135,25 +156,54 @@ namespace SunshineHospital
 
         private void VerifySaveInEditor()
         {
-            string folder = Path.Combine(Application.temporaryCachePath, "hospital-qa-" + System.Guid.NewGuid().ToString("N"));
-            try
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/restart-qa"));
+            string processFile = Path.Combine(folder, "writer-process.txt");
+            int processId = System.Diagnostics.Process.GetCurrentProcess().Id;
+            var beforeStore = new HospitalSave(Path.Combine(folder, "before-treatment-end.bin"));
+            var afterStore = new HospitalSave(Path.Combine(folder, "after-treatment-end.bin"));
+            if (File.Exists(processFile))
             {
-                var testDay = new HospitalDay(room.UsesOriginalArt);
-                var testStore = new HospitalSave(Path.Combine(folder, "first-day.bin"));
-                for (int i = 0; i < 24; i++) testDay.Tick(1);
-                testDay.Admit(3);
-                testDay.Admit(1);
-                testDay.Tick(.25f);
-                testStore.Save(testDay);
-                bool okay = testStore.Load(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
-                    restored.Paused && restored.CtOwner == 3 && restored.Rank(1) == 1 &&
-                    restored.Patients[2].Position == testDay.Patients[2].Position && restored.Funds == 900;
-                Expect(okay, "Unity save file reproduces paused travel and FIFO in isolated editor storage");
+                if (!Expect(File.ReadAllText(processFile) != processId.ToString(), "restore runs in a different Unity editor process")) return;
+                var before = ReadBoundary(beforeStore);
+                var after = ReadBoundary(afterStore);
+                if (!Expect(before != null && after != null, "both boundary saves loaded paused")) return;
+                bool beforeReady = before.Patients[0].Stage == VisitStage.Treatment && before.Funds == 900;
+                bool afterReady = after.Patients[0].Stage == VisitStage.Leaving && after.Funds == 1100;
+                if (!Expect(beforeReady && afterReady, "pre- and post-payment snapshots restored")) return;
+                foreach (var dayToFinish in new[] { before, after })
+                {
+                    dayToFinish.TogglePause();
+                    if (!AdvanceTo(dayToFinish, VisitStage.Complete)) return;
+                }
+                Expect(before.Funds == 1100 && after.Funds == 1100 && before.Income == 200 && after.Income == 200,
+                    "both restored saves pay exactly once after departure");
+                return;
             }
-            finally
-            {
-                if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
-            }
+
+            var testDay = new HospitalDay(room.UsesOriginalArt);
+            if (!AdvanceTo(testDay, VisitStage.Reception) || !testDay.Admit(1) ||
+                !AdvanceTo(testDay, VisitStage.AwaitingPlan) || !testDay.AssignPlan(1) ||
+                !AdvanceTo(testDay, VisitStage.Treatment)) return;
+            for (int i = 0; i < 599; i++) testDay.Tick(.05f);
+            if (!Expect(testDay.Patients[0].Stage == VisitStage.Treatment && testDay.Funds == 900, "checkpoint just before treatment payment")) return;
+            beforeStore.Save(testDay);
+            testDay.Tick(.05f);
+            if (!Expect(testDay.Patients[0].Stage == VisitStage.Leaving && testDay.Funds == 1100, "checkpoint just after treatment payment")) return;
+            afterStore.Save(testDay);
+            File.WriteAllText(processFile, processId.ToString());
+            Debug.Log("[Hospital QA] Isolated restart checkpoints written; reload in a new editor process with F11.");
+        }
+
+        private HospitalDay ReadBoundary(HospitalSave store)
+        {
+            return store.Load(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded && restored.Paused
+                ? restored : null;
+        }
+
+        private static bool AdvanceTo(HospitalDay day, VisitStage target)
+        {
+            for (int i = 0; i < 1600 && day.Patients[0].Stage != target; i++) day.Tick(.05f);
+            return Expect(day.Patients[0].Stage == target, $"restart test reached {target}");
         }
 
         private IEnumerator RecordVisit(string path)

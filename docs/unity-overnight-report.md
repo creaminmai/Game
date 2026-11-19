@@ -69,3 +69,14 @@ Unity 6000.6.9f1 Apple Silicon, Metal, URP 17.6.0, 가로 화면과 고정된 �
 ### Git 후속 상태
 
 기존 `86a9afd`, `3b07508`, `43de08d`, `50dead9`에 `bcf88ad`, `e38ad43`과 이 보고서 갱신 커밋을 더했다. 모두 로컬에 있다. DNS 조건이 바뀌었다는 근거가 없어 푸시를 반복하지 않았다. 마지막으로 확인한 GitHub `main`은 `f4fe3dad`다.
+
+## Mac 재부팅 뒤 실제 에디터 검증
+
+재개 시 `HEAD`와 `origin/main`이 모두 `be85ff8`이었고 GitHub 커넥터에서도 같은 SHA를 확인했다. 이전 미푸시 7개는 이 기준에서 원격에 반영되어 있었다. 자동 직렬화 공백만 달랐던 설정 파일 두 개는 유지했다.
+
+기존 Unity 6000.6.9f1 창을 사용했다. Play 중 스크립트 재컴파일 직후 이전 장면 상태에서 HUD의 모델이 null인 예외를 발견했다. 초기화되지 않은 런타임에서 Update·OnGUI를 건너뛰도록 수정하고, Play를 종료한 후 새 실행을 확인했다.
+
+- 새 Play에서 F10 자동 시연. CT 예약 순서 3→1→4→2, 중복 접수 거부, 이동과 치료 중 일시정지, 4명 전원 귀가 및 **수입 800만·자금 1,700만**을 확인했다.
+- F11로 치료 수입 지급 전후를 전용 `artifacts/unity-overnight/restart-qa/`에 저장했다. 에디터를 종료한 뒤 Hub로 재실행했고, 다른 Unity 프로세스에서 두 파일을 모두 일시정지 상태로 복원했다. 양쪽 시나리오가 귀가 후 각각 **자금 1,100만·수입 200만**이었다. 사용자 저장 버튼은 사용하지 않았다.
+- [접수 대기](../artifacts/unity-overnight/four-patient/reception.png), [치료 일시정지](../artifacts/unity-overnight/four-patient/paused-treatment.png), [4명 귀가 요약](../artifacts/unity-overnight/four-patient/summary.png), [4명 시연 MP4](../artifacts/unity-overnight/four-patient/visit.mp4). 영상은 실제 에디터 자동 조작을 연속 녹화한 **게임 진행 10배속** 영상이다.
+- 독립 검사 116개는 별도 통과했다. 버튼의 수동 클릭, 모든 장비 동작의 시각적 간섭과 모바일 실행은 아직 확인하지 않았다.
