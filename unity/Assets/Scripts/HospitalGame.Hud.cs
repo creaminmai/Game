@@ -7,7 +7,7 @@ namespace SunshineHospital
     public sealed partial class HospitalGame
     {
         private readonly Dictionary<string, Texture2D> uiArt = new();
-        private GUIStyle frame, inset, iconButton, dockButton, dockSelected, smallText, numbers, compactTitle, dockTitle, dialogueText;
+        private GUIStyle frame, bubbleShadow, inset, iconButton, dockButton, dockSelected, smallText, numbers, compactTitle, dockTitle, dialogueText;
         private bool IsDialogueVisible => day.ActiveGuide != GuideMoment.None || replayGuide != GuideMoment.None || growthDialogue != 0;
         private bool useOldHud = false;
         private bool capturingHud = false;
@@ -17,9 +17,19 @@ namespace SunshineHospital
             if (Event.current.type == EventType.Repaint) frame.Draw(box, GUIContent.none, false, false, false, false);
         }
 
+        private void DialogueShadow(Rect rect)
+        {
+            if (Event.current.type != EventType.Repaint) return;
+            Color previous = GUI.color;
+            GUI.color = new Color(.34f, .23f, .12f, previous.a * .22f);
+            bubbleShadow.Draw(rect, GUIContent.none, false, false, false, false);
+            GUI.color = previous;
+        }
+
         private void InitializeHud(Font body, Font display)
         {
             frame = ButtonStyle(body, Paper, Paper, Ink);
+            bubbleShadow = frame;
             inset = ButtonStyle(body, new Color(.95f, .88f, .75f), new Color(.95f, .88f, .75f), Ink);
             iconButton = ButtonStyle(display, new Color(.99f, .93f, .83f), new Color(1f, .98f, .90f), Ink);
             dockButton = ButtonStyle(display, new Color(.99f, .95f, .86f), Paper, Ink);
@@ -102,7 +112,15 @@ namespace SunshineHospital
             string objective = outside ? "진료 시간은 일시정지" : day.Complete ? "오늘의 진료 마감" :
                 day.Patients.Any(p => p.Stage == VisitStage.AwaitingPlan) ? "치료 계획을 지시하세요" :
                 day.Patients.Any(p => p.Stage == VisitStage.Reception) ? "접수할 환자가 있어요" : "오늘 예약을 진행하세요";
-            GUI.Label(new Rect(56, 89, 178, 36), objective, smallText);
+            if (!guide && LiveNetwork && network.NextStory != 0)
+            {
+                if (GUI.Button(new Rect(54, 90, 179, 35), "민지의 새 이야기", patientTag) && input)
+                {
+                    network.StartStory(network.NextStory);
+                    outside = false;
+                }
+            }
+            else GUI.Label(new Rect(56, 89, 178, 36), objective, smallText);
 
             if (guide && !outside)
             {
@@ -116,7 +134,7 @@ namespace SunshineHospital
             if (Icon(Item(0), "overview", "병원", !outside, input)) { outside = false; confirmExpansion = false; }
             if (Icon(Item(1), "people", "환자", false, input)) alphaPage = AlphaPage.Patients;
             if (Icon(Item(2), "build", "증축", outside, input)) { outside = !outside; confirmExpansion = false; }
-            if (Icon(Item(3), "map", "지도", false, input)) mapOpen = true;
+            if (Icon(Item(3), "map", "지도", false, input)) { mapSelection = network.Site; mapOpen = true; }
             if (Icon(Item(4), "manage", "관리", false, input)) alphaPage = AlphaPage.Operations;
             if (LiveNetwork && network.NextStory != 0) Art(new Rect(Item(3).xMax - 18, Item(3).y + 3, 15, 15), "attention");
 

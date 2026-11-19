@@ -22,14 +22,20 @@ namespace SunshineHospital
             return (network.Decorations & ~pair) | (1 << previewDecoration);
         }
 
-        private static string GrowthStory(int moment) => moment switch
+        private static string GrowthStory(int moment, int line = 0) => (moment, line) switch
         {
-            1 => "첫 환자들이 귀가했어요. 병원 밖에 치료별관 자리가 있어요.",
-            2 => "이제 두 치료실에서 환자를 함께 돌볼 수 있어요.",
-            4 => "접수와 계획은 제게 맡기세요. 직원 화면에서 업무를 정해 주세요.",
-            8 => "윤서진 선생님이 기록을 살펴보고 있어요. 연구는 완료 다음 날부터 적용돼요.",
-            16 => "물빛 분원은 다음 운영일부터 문을 열어요.",
-            32 => "바다빛 협력병원이 다음 운영일에 환자를 맞아요.",
+            (1, 0) => "네 분 모두 오늘 일정을 마쳤어요. 아침에 켠 간판이 이제 좀 든든해 보여요.",
+            (1, _) => "다음에는 병원 밖의 별관 부지를 살펴봐요. 치료실을 하나 더 열 수 있어요.",
+            (2, 0) => "별관의 불도 켜졌어요. 이제 두 치료실에 환자를 따로 모실 수 있어요.",
+            (2, _) => "동시 치료와 누적 방문 12회를 채우면 운영 교육을 받을 수 있어요.",
+            (4, 0) => "계획 지시도 연습을 마쳤어요. 제가 맡아도 괜찮을 때 알려 주세요.",
+            (4, _) => "직원 화면에서 접수와 계획을 위임해 주세요. 두 업무를 맡긴 환자 네 분이 귀가하면 연구소를 준비할 수 있어요.",
+            (8, 0) => "윤서진 선생님이 진료 기록을 정리하고 있어요. 오래 기다리는 곳부터 살펴보면 좋겠어요.",
+            (8, _) => "연구 탭에서 개선할 업무를 골라 주세요. 효과는 완료 다음 운영일부터 적용돼요.",
+            (16, 0) => "강변 정류장에서 아침 일찍 오시는 분들이 많대요. 물빛 분원 식구들과 함께 맞아요.",
+            (16, _) => "다음 운영일부터 지도에서 분원에 갈 수 있어요. 첫 목표는 분원 환자 여덟 분의 귀가예요.",
+            (32, 0) => "바다빛에서도 함께 준비해 온 교육을 이제 써볼 수 있겠어요.",
+            (32, _) => "다음 운영일부터 바다빛으로 가 볼까요? 도착 간격과 장비 대기를 확인해 주세요.",
             _ => null
         };
 
@@ -115,7 +121,7 @@ namespace SunshineHospital
                     if ((network.AvailableStories & (1 << i)) != 0)
                         if (GUI.Button(new Rect(x + 24, y + 110 + i * 38, 700, 32), GrowthStory(1 << i), patientTag) && input)
                         {
-                            growthDialogue = 1 << i;
+                            network.StartStory(1 << i);
                             outside = false;
                             CloseAlphaPage();
                         }
@@ -157,7 +163,7 @@ namespace SunshineHospital
                 Art(new Rect(box.x + 8, box.y + 3, 29, 29), "portrait-patient-" + patient.Id);
                 Art(new Rect(box.xMax - 41, box.y + 5, 25, 25), StageIcon(patient.Stage));
             }
-            GUI.Label(new Rect(x + 24, y + 348, 700, 28), $"직전 운영일 · 귀가 {previous.Departed}명 · 수입 {previous.Income:N0}만 · 지출 {previous.Expense:N0}만", label);
+            GUI.Label(new Rect(x + 24, y + 348, 700, 28), $"직전 운영일 · 귀가 {previous.Departed}명 · 수입 {previous.Income:N0}만 · 지출 {previous.Expense:N0}만 · 공동 지출 {network.LastSharedExpense:N0}만", label);
             if (GUI.Button(new Rect(x + 24, y + 383, 162, 39), "꾸미기", primary) && input) { outside = false; alphaPage = AlphaPage.Decor; }
             if (GUI.Button(new Rect(x + 199, y + 383, 162, 39), "이야기", quiet) && input) alphaPage = AlphaPage.Stories;
             if (GUI.Button(new Rect(x + 374, y + 383, 162, 39), "직원 · 연구", quiet) && input)

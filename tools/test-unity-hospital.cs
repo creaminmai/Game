@@ -245,6 +245,29 @@ static partial class Checks
 
     static void Region()
     {
+        var ledger = new HospitalNetwork(new HospitalDay());
+        var site = HospitalSite.Main;
+        Verify(ledger.ApplyDecoration(0) && ledger.ApplyDecoration(7) && ledger.ApplyDecoration(0) &&
+            ledger.ExpenseToday(site) == 170 && ledger.SharedExpenseToday == 170 && ledger.Funds == 730,
+            "both decorations are dated, attributed and charged once");
+        FinishDay(ledger.Main);
+        Verify(ledger.SharedIncomeToday == 800 && ledger.Funds == 1530, "first-day reconciliation");
+        Verify(ledger.StartStory(1), "first-day story unlocks from the actual completed day");
+        ledger.AdvanceStory();
+        using (var data = new System.IO.MemoryStream())
+        {
+            using (var writer = new System.IO.BinaryWriter(data, System.Text.Encoding.UTF8, true))
+                ledger.WriteSave(writer);
+            data.Position = 0;
+            using var read = new System.IO.BinaryReader(data);
+            var resumed = HospitalNetwork.ReadSave(read, true, 7);
+            Verify(resumed.StoryMoment == 1 && resumed.StoryLine == 1 && resumed.Funds == 1530 &&
+                resumed.ExpenseToday(site) == 170, "story and paid amounts round-trip");
+        }
+        ledger.AdvanceStory();
+        Verify(ledger.NextStory == 0 && ledger.StartNextDay(4) && ledger.LastDay.Expense == 170 &&
+            ledger.LastSharedExpense == 170 && ledger.ExpenseToday(site) == 0 && ledger.Funds == 1530,
+            "dated expense rolls to last-day journal without charging again");
         var hq = new HospitalDay();
         var network = new HospitalNetwork(hq);
         Verify(!network.CanOpenBranch && !network.OpenBranch() && !network.Switch(true), "locked branch");
@@ -265,7 +288,7 @@ static partial class Checks
         }
         int before = network.Funds;
         Verify(network.CanOpenBranch && network.OpenBranch() && !network.OpenBranch() && !network.Switch(true) &&
-            network.Funds == before - HospitalNetwork.BranchCost, "branch establishment charge once, opens at next rollover");
+            network.Funds == before - HospitalNetwork.BranchCost && network.ExpenseToday(HospitalSite.Main) >= HospitalNetwork.BranchCost, "branch establishment charge once, opens at next rollover");
 
         string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hospital-region-" + Guid.NewGuid().ToString("N"));
         try

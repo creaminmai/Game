@@ -12,7 +12,7 @@ namespace SunshineHospital
     {
         private const int Magic = 0x484F5350;
         private const int Version = 4;
-        private const int NetworkVersion = 6;
+        private const int NetworkVersion = 7;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;

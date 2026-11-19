@@ -111,6 +111,8 @@ namespace SunshineHospital
                 mapOpen = false;
 
                 var main = network.Main;
+                int capturedStories = 0;
+                StartCoroutine(RecordVisit(Path.Combine(folder, "growth-review.mp4")));
                 for (int date = 1; date < 80; date++)
                 {
                     for (int step = 0; step < 12000 && !network.Complete; step++)
@@ -126,6 +128,7 @@ namespace SunshineHospital
                     if (date == 1)
                     {
                         yield return HudCapture(folder, "day-result");
+                        yield return new WaitForSecondsRealtime(2.5f);
                         main.PurchaseExpansion();
                     }
                     if (main.ChapterTwo && main.TrainingDay == 0)
@@ -137,6 +140,17 @@ namespace SunshineHospital
                     for (int study = 4; study <= 6; study++)
                         if (main.StartResearch((HospitalResearch)study)) break;
                     if (network.CanOpenBranch) network.OpenBranch();
+                    foreach (int moment in new[] { 1, 2, 4, 8, 16 })
+                    {
+                        if ((capturedStories & moment) != 0 || !network.StartStory(moment)) continue;
+                        capturedStories |= moment;
+                        yield return new WaitForSecondsRealtime(2.2f);
+                        yield return HudCapture(folder, $"growth-{moment}-first");
+                        network.AdvanceStory();
+                        yield return new WaitForSecondsRealtime(3.1f);
+                        yield return HudCapture(folder, $"growth-{moment}-next");
+                        network.AdvanceStory();
+                    }
                     if (network.CanOpenCoast)
                     {
                         if (!network.OpenCoast() || !network.StartNextDay(6)) yield break;
@@ -157,6 +171,10 @@ namespace SunshineHospital
                 staffOpen = false;
                 mapOpen = true;
                 yield return HudCapture(folder, "three-hospital-map");
+                yield return new WaitForSecondsRealtime(2.5f);
+                mapSelection = HospitalSite.Coast;
+                yield return HudCapture(folder, "coast-map-detail");
+                yield return new WaitForSecondsRealtime(2.5f);
                 mapOpen = false;
                 outside = true;
                 yield return HudCapture(folder, "main-exterior");
@@ -735,7 +753,8 @@ namespace SunshineHospital
                     if (elapsed < next) continue;
                     next = elapsed + 1000 / rate;
                     ScreenCapture.CaptureScreenshotIntoRenderTexture(full);
-                    Graphics.Blit(full, small);
+                    // MediaEncoder interprets the first texture row as the top of the frame.
+                    Graphics.Blit(full, small, new Vector2(1, -1), new Vector2(0, 1));
                     var previous = RenderTexture.active;
                     try
                     {

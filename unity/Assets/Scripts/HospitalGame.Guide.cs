@@ -8,7 +8,7 @@ namespace SunshineHospital
         private int replayLine;
         private float dialogueVisibleAt;
         private GuideMoment previousDialogue;
-        private int growthDialogue;
+        private int growthDialogue => network.StoryMoment;
 
         private void DrawGuide(float width, float footer, bool acceptInput)
         {
@@ -42,22 +42,23 @@ namespace SunshineHospital
             float appear = Mathf.SmoothStep(0, 1, (Time.unscaledTime - dialogueVisibleAt) / .18f);
             Color previous = GUI.color;
             GUI.color = new Color(1, 1, 1, appear);
-            float panelWidth = Mathf.Min(665, width * .65f);
+            float panelWidth = Mathf.Min(665, width * .64f);
             float dialogueY = footer - 48 + (1 - appear) * 10;
             float panelLeft = width - panelWidth - 24;
-            float portraitWidth = Mathf.Min(388f, width * .39f);
-            float portraitHeight = 420f;
-            float portraitBottom = footer + 127;
+            float portraitWidth = Mathf.Min(442f, width * .43f);
+            float portraitHeight = 505f;
+            float portraitBottom = footer + 198;
             Panel(new Rect(0, 0, width, footer + 126), new Color(.20f, .18f, .12f, .12f));
             Art(new Rect(18, portraitBottom - portraitHeight + (1 - appear) * 8, portraitWidth, portraitHeight),
-                script.Expression == "greeting" ? "minji-greeting" : "minji-explaining");
+                (growthDialogue == 0 ? script.Expression == "greeting" : network.StoryLine == 0) ? "minji-greeting" : "minji-explaining");
+            DialogueShadow(new Rect(panelLeft - 2, dialogueY + 4, panelWidth + 4, 140));
             Art(new Rect(panelLeft - 31, dialogueY + 23, 47, 41), "bubble-tail");
             AlphaFrame(new Rect(panelLeft, dialogueY, panelWidth, 137));
             GUI.Box(new Rect(panelLeft + 28, dialogueY - 20, 95, 37), "민지", quiet);
             GUI.Box(new Rect(panelLeft + 118, dialogueY - 17, 113, 32), "접수 담당", dockSelected);
-            Art(new Rect(panelLeft + panelWidth - 61, dialogueY - 23, 58, 58), "sun");
+            Art(new Rect(panelLeft + panelWidth - 61, dialogueY - 23, 58, 58), "dialogue-sunflower");
             GUI.Label(new Rect(panelLeft + 29, dialogueY + 23, panelWidth - 58, 52),
-                growthDialogue == 0 ? script.Text : GrowthStory(growthDialogue), dialogueText);
+                growthDialogue == 0 ? script.Text : GrowthStory(growthDialogue, network.StoryLine), dialogueText);
 
             if (GUI.Button(new Rect(panelLeft + 29, dialogueY + 89, 100, 38), "건너뛰기", patientTag) && acceptInput)
             {
@@ -77,13 +78,12 @@ namespace SunshineHospital
 
         private void CloseGrowthDialogue()
         {
-            if (network.NextStory == growthDialogue) network.DismissStory(false);
-            growthDialogue = 0;
+            network.AdvanceStory(skip: true);
         }
 
         private void AdvanceVisibleDialogue()
         {
-            if (growthDialogue != 0) CloseGrowthDialogue();
+            if (growthDialogue != 0) network.AdvanceStory();
             else if (replayGuide != GuideMoment.None)
             {
                 if (replayGuide != GuideMoment.Welcome || ++replayLine >= HospitalDay.WelcomeLineCount)

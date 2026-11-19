@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="555" height="320" viewBox="0 0 555 320">
+<defs><linearGradient id="sea" x2="0" y2="1"><stop stop-color="#a1d9da"/><stop offset="1" stop-color="#62afc1"/></linearGradient><linearGradient id="land" x2="0" y2="1"><stop stop-color="#e4edbc"/><stop offset="1" stop-color="#b9d09a"/></linearGradient></defs>
+<rect x="1" y="1" width="553" height="318" rx="24" fill="url(#sea)" stroke="#c79f66" stroke-width="2"/>
+<path d="M2 24Q4 5 25 3h471l-16 31 18 31-25 32 12 37-37 39-5 45-55 27-11 37-50 36H23Q2 315 2 292Z" fill="url(#land)" stroke="#f6dfa0" stroke-width="4"/>
+<path d="M177 4q60 24 43 59t48 58q45 17 24 50t28 46q20 9 25 36t35 31" fill="none" stroke="#e8efbd" stroke-width="27"/>
+<path d="M177 4q60 24 43 59t48 58q45 17 24 50t28 46q20 9 25 36t35 31" fill="none" stroke="#84c9cd" stroke-width="17"/>
+<path d="M78 216q58-106 168-108 89 0 150 101" fill="none" stroke="#fdf0c0" stroke-width="13" stroke-linecap="round"/>
+<path d="M78 216q58-106 168-108 89 0 150 101" fill="none" stroke="#c79d67" stroke-width="3" stroke-dasharray="5 8"/>
+<g fill="#7ea675" stroke="#628d66" stroke-width="2"><path d="m30 93 33-48 33 48Z"/><path d="m80 87 23-35 23 35Z"/><path d="m337 72 26-41 25 41Z"/><path d="m360 76 32-50 33 50Z"/><path d="m33 290 25-37 25 37Z"/><path d="m152 261 25-42 24 42Z"/><path d="m165 274 37-56 37 56Z"/></g>
+<g fill="#fff0bf" stroke="#a97d53" stroke-width="3" stroke-linejoin="round">
+<path d="M46 193v-33h69v33Z"/><path d="m35 161 44-33 47 33Z" fill="#62ae95"/><path d="M73 193v-19h16v19" fill="#c88c63"/>
+<path d="M219 94V64h58v30Z"/><path d="m212 64 35-24 38 24Z" fill="#5d9fac"/><path d="M239 94V79h15v15" fill="#d99f74"/>
+<path d="M363 205v-27h66v27Z"/><path d="m355 178 33-24h21l28 24Z" fill="#d6836a"/><path d="M388 205v-16h15v16" fill="#d49673"/>
+<path d="m439 185 3-41h11l4 41Z"/><path d="m438 144 10-12 10 12Z" fill="#d6836a"/>
+</g>
+<g fill="none" stroke="#dbf3eb" stroke-width="3" stroke-linecap="round"><path d="M461 232q8-5 16 0t16 0m4 31q8-5 16 0t16 0m-80 23q8-5 16 0t16 0m24-132q8-5 16 0t16 0"/></g>
+</svg>

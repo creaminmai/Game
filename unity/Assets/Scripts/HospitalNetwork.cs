@@ -28,7 +28,7 @@ namespace SunshineHospital
         public bool Complete => Main.Complete && (!Available(HospitalSite.Riverside) || Branch.Complete) && (!Available(HospitalSite.Coast) || Coast.Complete);
         public double Time => Math.Max(Main.Time, Math.Max(Branch?.Time ?? 0, Coast?.Time ?? 0));
         public int BranchOpeningDay { get; private set; }
-        public int Funds => Main.Funds + (Branch == null ? 0 : Branch.Funds - HospitalDay.StartingFunds - BranchCost) + (Coast == null ? 0 : Coast.Funds - HospitalDay.StartingFunds - AlphaCatalog.CoastCost) - DecorationExpense;
+        public int Funds => Main.Funds + (Branch == null ? 0 : Branch.Funds - HospitalDay.StartingFunds) + (Coast == null ? 0 : Coast.Funds - HospitalDay.StartingFunds) - PurchasesOn(0, null);
         public int Reputation => Math.Min(100, InitialReputation + Main.DayNumber - 1 + (Main.Complete ? 1 : 0)
             + (Main.ChapterOne ? 3 : 0) + (Main.ChapterTwo ? 3 : 0) + (Main.ChapterThree ? 3 : 0) + (Main.ChapterFour ? 3 : 0));
         public bool BranchChapterComplete => Branch != null && Branch.LifetimeDeparted >= 8;
@@ -39,22 +39,49 @@ namespace SunshineHospital
             Reputation >= AlphaCatalog.CoastReputation && Funds >= AlphaCatalog.CoastCost && Main.ResearchActive(HospitalResearch.EducationIII);
 
         private int storySeen;
+        public int StoryMoment { get; private set; }
+        public int StoryLine { get; private set; }
+        public bool StartStory(int moment)
+        {
+            if (moment <= 0 || (moment & (moment - 1)) != 0 || (AvailableStories & moment) == 0) return false;
+            StoryMoment = moment;
+            StoryLine = 0;
+            return true;
+        }
+        public void AdvanceStory(bool skip = false)
+        {
+            if (StoryMoment == 0) return;
+            if (!skip && StoryLine == 0) { StoryLine = 1; return; }
+            storySeen |= StoryMoment;
+            StoryMoment = StoryLine = 0;
+        }
         private readonly int[] owned = new int[3];
         private readonly int[] displayed = new int[3];
         private readonly int[] lastIncome = new int[3];
         private readonly int[] lastExpense = new int[3];
         private readonly int[] lastDeparted = new int[3];
-        private int DecorationExpense
+        // A fixed slot is a purchase identity. Date zero is an undated legacy purchase.
+        private readonly (int Amount, int Date)[] purchases = new (int, int)[26];
+        private const int RiversidePurchase = 24;
+        private const int CoastPurchase = 25;
+        private static readonly int[] LegacyDecorationPrices = { 80, 80, 100, 100, 120, 120, 90, 90 };
+
+        private int PurchasesOn(int date, HospitalSite? site)
         {
-            get
+            int total = 0;
+            for (int i = 0; i < purchases.Length; i++)
             {
-                int total = 0;
-                for (int site = 0; site < owned.Length; site++)
-                    for (int item = 0; item < AlphaCatalog.Decorations.Count; item++)
-                        if ((owned[site] & (1 << item)) != 0) total += AlphaCatalog.Decorations[item].Cost;
-                return total;
+                var owner = i < RiversidePurchase ? (HospitalSite)(i / 8) : HospitalSite.Main;
+                if ((date == 0 || purchases[i].Date == date) && (site == null || site == owner))
+                    total += purchases[i].Amount;
             }
+            return total;
         }
+
+        public int ExpenseToday(HospitalSite site) => (HospitalAt(site)?.TotalExpense ?? 0) + PurchasesOn(Main.DayNumber, site);
+        public int SharedExpenseToday => ExpenseToday(HospitalSite.Main) + ExpenseToday(HospitalSite.Riverside) + ExpenseToday(HospitalSite.Coast);
+        public int SharedIncomeToday => Main.Income + (Branch?.Income ?? 0) + (Coast?.Income ?? 0);
+        public int LastSharedExpense => lastExpense[0] + lastExpense[1] + lastExpense[2];
 
         public bool Owns(int item) => ValidItem(item) && (owned[(int)Site] & (1 << item)) != 0;
         public int Decorations => displayed[(int)Site];
@@ -62,6 +89,7 @@ namespace SunshineHospital
         public bool ApplyDecoration(int item)
         {
             if (!ValidItem(item) || (!Owns(item) && Funds < AlphaCatalog.Decorations[item].Cost)) return false;
+            if (!Owns(item)) purchases[(int)Site * 8 + item] = (AlphaCatalog.Decorations[item].Cost, Main.DayNumber);
             owned[(int)Site] |= 1 << item;
             int pair = 3 << (AlphaCatalog.Decorations[item].Slot * 2);
             displayed[(int)Site] = (displayed[(int)Site] & ~pair) | (1 << item);
@@ -78,6 +106,7 @@ namespace SunshineHospital
         public bool OpenBranch()
         {
             if (!CanOpenBranch) return false;
+            purchases[RiversidePurchase] = (BranchCost, Main.DayNumber);
             BranchOpeningDay = Main.DayNumber + 1;
             AttachBranch(new HospitalDay(Main.OriginalArt, regional: true));
             return true;
@@ -86,6 +115,7 @@ namespace SunshineHospital
         public bool OpenCoast()
         {
             if (!CanOpenCoast) return false;
+            purchases[CoastPurchase] = (AlphaCatalog.CoastCost, Main.DayNumber);
             CoastOpeningDay = Main.DayNumber + 1;
             Coast = new HospitalDay(Main.OriginalArt, site: HospitalSite.Coast);
             ConfigureSatellite(Coast);
@@ -134,7 +164,7 @@ namespace SunshineHospital
         {
             if (!Complete) return false;
             int date = Main.DayNumber;
-            var mainResult = (Main.Income, Main.TotalExpense, Main.Departed);
+            var mainResult = (Main.Income, ExpenseToday(HospitalSite.Main), Main.Departed);
             if (!Main.StartNextDay(mainBookings)) return false;
             (lastIncome[0], lastExpense[0], lastDeparted[0]) = mainResult;
             CloseSatellite(Branch, BranchOpeningDay, date);
@@ -146,7 +176,7 @@ namespace SunshineHospital
         {
             if (satellite == null || date < opening) return;
             int i = (int)satellite.Site;
-            (lastIncome[i], lastExpense[i], lastDeparted[i]) = (satellite.Income, satellite.TotalExpense, satellite.Departed);
+            (lastIncome[i], lastExpense[i], lastDeparted[i]) = (satellite.Income, satellite.TotalExpense + PurchasesOn(date, satellite.Site), satellite.Departed);
             satellite.StartNextDay(satellite.Site == HospitalSite.Coast && satellite.Expanded
                 ? HospitalDay.AnnexBookingCount : HospitalDay.BookingCount);
         }
@@ -186,6 +216,13 @@ namespace SunshineHospital
                 writer.Write(lastExpense[i]);
                 writer.Write(lastDeparted[i]);
             }
+            foreach (var purchase in purchases)
+            {
+                writer.Write(purchase.Amount);
+                writer.Write(purchase.Date);
+            }
+            writer.Write(StoryMoment);
+            writer.Write(StoryLine);
         }
 
         internal static HospitalNetwork ReadSave(BinaryReader reader, bool originalArt, int version)
@@ -239,8 +276,36 @@ namespace SunshineHospital
                         expense < 0 || (network.HospitalAt((HospitalSite)i) == null && (owned != 0 || departed != 0 || expense != 0)))
                         throw new InvalidDataException("Invalid hospital records or decor.");
                 }
-                if (network.Funds < 0) throw new InvalidDataException("Invalid shared funds.");
+
             }
+            if (version >= 7)
+            {
+                for (int i = 0; i < network.purchases.Length; i++)
+                {
+                    int amount = reader.ReadInt32(), date = reader.ReadInt32();
+                    bool exists = i == CoastPurchase ? network.Coast != null : i == RiversidePurchase ? network.Branch != null :
+                        (network.owned[i / 8] & (1 << (i % 8))) != 0;
+                    int openingDate = i == CoastPurchase ? network.CoastOpeningDay : network.BranchOpeningDay;
+                    if ((amount > 0) != exists || amount < 0 || amount > 1000000 || date < 0 || date > main.DayNumber ||
+                        (amount == 0 && date != 0) || (exists && i >= RiversidePurchase && date != openingDate - 1))
+                        throw new InvalidDataException("Invalid purchase ledger.");
+                    network.purchases[i] = (amount, date);
+                }
+                int moment = reader.ReadInt32(), line = reader.ReadInt32();
+                if (line < 0 || line > 1 || (moment == 0 ? line != 0 : !network.StartStory(moment)))
+                    throw new InvalidDataException("Invalid growth dialogue.");
+                network.StoryLine = line;
+            }
+            else
+            {
+                for (int i = 0; i < RiversidePurchase; i++)
+                    if ((network.owned[i / 8] & (1 << (i % 8))) != 0)
+                        network.purchases[i] = (LegacyDecorationPrices[i % 8], 0);
+                if (network.Branch != null) network.purchases[RiversidePurchase] = (9000, opening - 1);
+                if (network.Coast != null) network.purchases[CoastPurchase] = (20000, network.CoastOpeningDay - 1);
+                if (main.DayNumber > 1) network.lastExpense[0] += network.PurchasesOn(main.DayNumber - 1, HospitalSite.Main);
+            }
+            if (network.Funds < 0) throw new InvalidDataException("Invalid shared funds.");
             return network;
         }
     }

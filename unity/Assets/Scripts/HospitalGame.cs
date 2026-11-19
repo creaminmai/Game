@@ -413,7 +413,7 @@ namespace SunshineHospital
                 : $"2장 · 누적 방문 {day.LifetimeDeparted}/12";
             string title = outside ? (day.Expanded ? "병원과 치료별관" : "병원과 별관 예정지") : $"{CurrentDate}일차 운영 완료";
             string detail = outside ? (day.ExpansionReason.Length == 0 ? "치료기 1대 추가 · 600만" : day.ExpansionReason)
-                : $"귀가 {day.Departed}/{day.Patients.Count}명 · 수입 {day.Income:N0}만 · 지출 {day.TotalExpense:N0}만";
+                : $"귀가 {day.Departed}/{day.Patients.Count}명 · 수입 {day.Income:N0}만 · 지출 {(LiveNetwork ? network.ExpenseToday(network.Site) : day.TotalExpense):N0}만";
             GUI.Label(new Rect(34, footer + 7, 210, 36), title, heading);
             GUI.Label(new Rect(248, footer + 7, width - 535, 36), goal, label);
             GUI.Label(new Rect(34, footer + 42, width - 295, 34), Time.unscaledTime < saveNoticeUntil ? saveNotice : detail, label);
@@ -477,7 +477,6 @@ namespace SunshineHospital
                 confirmExpansion = false;
                 mapOpen = false;
                 replayGuide = GuideMoment.None;
-                growthDialogue = 0;
                 confirmSite = null;
                 network = restored;
                 SetDay(network.Active);

@@ -7,6 +7,7 @@ namespace SunshineHospital
     {
         private HospitalNetwork network;
         private bool mapOpen;
+        private HospitalSite mapSelection;
         private HospitalSite? confirmSite;
         private bool LiveNetwork => network != null && ReferenceEquals(day, network.Active);
         private int CurrentDate => LiveNetwork ? network.Main.DayNumber : day.DayNumber;
@@ -35,25 +36,40 @@ namespace SunshineHospital
                 confirmSite = null;
             }
 
-            DrawLocation(left + 18, top + 84, cardWidth, HospitalSite.Main, acceptInput);
-            DrawLocation(left + 306, top + 84, cardWidth, HospitalSite.Riverside, acceptInput);
-            DrawLocation(left + 594, top + 84, cardWidth, HospitalSite.Coast, acceptInput);
+            Art(new Rect(left + 18, top + 80, 555, 320), "region-map");
+            DrawMapNode(left + 35, top + 278, HospitalSite.Main, acceptInput);
+            DrawMapNode(left + 200, top + 173, HospitalSite.Riverside, acceptInput);
+            DrawMapNode(left + 344, top + 289, HospitalSite.Coast, acceptInput);
 
+            DrawLocation(left + 594, top + 80, cardWidth, mapSelection, acceptInput);
             string message = GrowthStory(network.NextStory);
             if (message != null)
             {
-                GUI.Label(new Rect(left + 25, top + 330, 650, 33), $"민지 · {message}", label);
-                if (GUI.Button(new Rect(left + 25, top + 369, 105, 39), "대화 보기", primary) && acceptInput)
+                GUI.Label(new Rect(left + 599, top + 313, 272, 45), "민지에게 새 이야기가 있어요", smallText);
+                if (GUI.Button(new Rect(left + 599, top + 366, 105, 39), "대화 보기", primary) && acceptInput)
                 {
-                    growthDialogue = network.NextStory;
+                    network.StartStory(network.NextStory);
                     outside = false;
                     mapOpen = false;
                 }
-                if (GUI.Button(new Rect(left + 140, top + 369, 143, 39), "안내 건너뛰기", quiet) && acceptInput)
+                if (GUI.Button(new Rect(left + 711, top + 366, 143, 39), "안내 건너뛰기", quiet) && acceptInput)
                     network.DismissStory(true);
             }
             GUI.Label(new Rect(left + 25, top + 412, 650, 26),
                 Time.unscaledTime < saveNoticeUntil ? saveNotice : "병원별 예약과 시설 · 공동 자금과 연구 · 같은 운영일", label);
+        }
+
+        private void DrawMapNode(float x, float y, HospitalSite site, bool input)
+        {
+            string state = network.Site == site ? "현재 병원" : network.Available(site) ? "운영 중" : "설립 조건";
+            var box = new Rect(x, y, 128, 45);
+            if (GUI.Button(box, SiteName(site), mapSelection == site ? primary : patientTag) && input)
+            {
+                mapSelection = site;
+                confirmSite = null;
+            }
+            AlphaFrame(new Rect(x + 22, y + 38, 85, 21));
+            GUI.Label(new Rect(x + 28, y + 38, 79, 21), state, smallText);
         }
 
         private void DrawLocation(float left, float top, float width, HospitalSite site, bool acceptInput)
