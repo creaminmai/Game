@@ -1,0 +1,51 @@
+{
+  "date_kst": "2026-11-20",
+  "kind": "generated_3d_style_concept_images_not_meshes_or_game_captures",
+  "files": [
+    {
+      "file": "01-minji-character.png",
+      "sha256": "73582d5e4b4145d59a3ddb5931dec5814601d7e99beeab1b7650b6a969d66b33",
+      "bytes": 1895503,
+      "width": 1672,
+      "height": 941,
+      "source": "OpenAI image generation; original PNG",
+      "reference_character": null
+    },
+    {
+      "file": "02-hospital-interior.png",
+      "sha256": "86d6040d0098fe845761a5c9f716402ee1260ebb72458454c2e538d7414e35bd",
+      "bytes": 2509640,
+      "width": 1672,
+      "height": 941,
+      "source": "OpenAI image generation; original PNG",
+      "reference_character": "01-minji-character.png"
+    },
+    {
+      "file": "03-minji-dialogue.png",
+      "sha256": "e46b51f6949f850b3cf3cd03e579eaa1e7556989669f40a57bd6a88de23ca52b",
+      "bytes": 2188854,
+      "width": 1672,
+      "height": 941,
+      "source": "OpenAI image generation; original PNG",
+      "reference_character": "01-minji-character.png"
+    },
+    {
+      "file": "04-hospital-exterior.png",
+      "sha256": "ae3b5a6a8c820596fae1c77365129b516d889b2773beb9c28faa7927311deb8f",
+      "bytes": 2846148,
+      "width": 1672,
+      "height": 941,
+      "source": "OpenAI image generation; original PNG",
+      "reference_character": "01-minji-character.png"
+    },
+    {
+      "file": "05-regional-map.png",
+      "sha256": "003ccad9287e8c154e1bfd5b29fe60c028db47fe5c810c3a79ba40286316a4ac",
+      "bytes": 2902303,
+      "width": 1672,
+      "height": 941,
+      "source": "OpenAI image generation; original PNG",
+      "reference_character": "01-minji-character.png"
+    }
+  ]
+}
