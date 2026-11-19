@@ -263,6 +263,21 @@ static partial class Checks
             var resumed = HospitalNetwork.ReadSave(read, true, 7);
             Verify(resumed.StoryMoment == 1 && resumed.StoryLine == 1 && resumed.Funds == 1530 &&
                 resumed.ExpenseToday(site) == 170, "story and paid amounts round-trip");
+            var bytes = data.ToArray();
+            int ledgerOffset = bytes.Length - (26 * sizeof(int) * 2 + sizeof(int) * 2);
+            using var oldFormat = new System.IO.MemoryStream(bytes, 0, ledgerOffset);
+            using var oldReader = new System.IO.BinaryReader(oldFormat);
+            var legacyDecorations = HospitalNetwork.ReadSave(oldReader, true, 6);
+            Verify(legacyDecorations.Funds == 1530 && legacyDecorations.ExpenseToday(site) == 0,
+                "legacy decor keeps its funds without inventing an operating date");
+            data.Position = ledgerOffset;
+            using (var writer = new System.IO.BinaryWriter(data, System.Text.Encoding.UTF8, true))
+                writer.Write(73);
+            data.Position = 0;
+            var priceChanged = HospitalNetwork.ReadSave(read, true, 7);
+            Verify(priceChanged.Funds == 1537 && priceChanged.ExpenseToday(site) == 163 &&
+                priceChanged.ApplyDecoration(0) && priceChanged.Funds == 1537,
+                "a recorded purchase price different from the catalog survives load and reapplying the item");
         }
         ledger.AdvanceStory();
         Verify(ledger.NextStory == 0 && ledger.StartNextDay(4) && ledger.LastDay.Expense == 170 &&
