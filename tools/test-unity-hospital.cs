@@ -270,6 +270,28 @@ static partial class Checks
         string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hospital-region-" + Guid.NewGuid().ToString("N"));
         try
         {
+            System.IO.Directory.CreateDirectory(folder);
+            string legacyPath = System.IO.Path.Combine(folder, "legacy-v5.bin");
+            using (var payload = new System.IO.MemoryStream())
+            {
+                using (var writer = new System.IO.BinaryWriter(payload, System.Text.Encoding.UTF8, true))
+                {
+                    writer.Write(0x484F5350);
+                    writer.Write(5);
+                    network.Main.WriteSave(writer);
+                    writer.Write(network.BranchOpeningDay);
+                    writer.Write(false);
+                    writer.Write(0);
+                    network.Branch.WriteSave(writer);
+                }
+                byte[] bytes = payload.ToArray();
+                using var digest = System.Security.Cryptography.SHA256.Create();
+                System.IO.File.WriteAllBytes(legacyPath, bytes.Concat(digest.ComputeHash(bytes)).ToArray());
+            }
+            var legacy = new HospitalSave(legacyPath);
+            Verify(legacy.LoadNetwork(true, out var migrated) == HospitalLoadResult.Loaded && migrated.Branch != null &&
+                migrated.Coast == null && migrated.Funds == network.Funds && migrated.BranchOpeningDay == network.BranchOpeningDay,
+                "v5 two-hospital file migrates without changing finances or opening date");
             var store = new HospitalSave(System.IO.Path.Combine(folder, "region.bin"));
             network.DismissStory(true);
             store.SaveNetwork(network);
@@ -325,6 +347,42 @@ static partial class Checks
             settled.TogglePause();
             for (int i = 0; i < 12000 && !settled.Complete; i++) settled.Tick(.05f);
             Verify(settled.Complete && settled.BranchChapterComplete && settled.Branch.DualTreatment, "branch reaches eight departures and uses both rooms");
+            Verify(!settled.CanOpenCoast && !settled.OpenCoast() && !settled.Main.StartResearch(HospitalResearch.EducationIII),
+                "coast and education prerequisites enforced");
+            int headquartersBefore = settled.Funds;
+            Verify(settled.ApplyDecoration(0) && settled.ApplyDecoration(0) && settled.Funds == headquartersBefore - 80,
+                "repeat decoration selection only bills once");
+            Verify(settled.Switch(HospitalSite.Main) && !settled.Owns(0) && settled.Decorations == 0,
+                "branch decorations never leak into headquarters");
+            for (int i = 0; i < 65 && !settled.CanOpenCoast; i++)
+            {
+                foreach (var study in new[] { HospitalResearch.EducationI, HospitalResearch.EducationII, HospitalResearch.EducationIII })
+                    if (settled.Main.CanStartResearch(study))
+                    {
+                        settled.Main.StartResearch(study);
+                        break;
+                    }
+                if (settled.CanOpenCoast) break;
+                if (!settled.StartNextDay(6)) throw new InvalidOperationException("Expected synchronized rollover");
+                for (int step = 0; step < 12000 && !settled.Complete; step++) settled.Tick(.05f);
+            }
+            int coastBefore = settled.Funds;
+            Verify(settled.Main.ResearchActive(HospitalResearch.EducationIII) && settled.Branch.IntakeDelay == 1 &&
+                settled.CanOpenCoast && settled.OpenCoast() && !settled.OpenCoast() && settled.Funds == coastBefore - AlphaCatalog.CoastCost,
+                "full education chain applies network-wide and coastal purchase charges once");
+            Verify(!settled.Switch(HospitalSite.Coast) && settled.StartNextDay(6) && settled.Switch(HospitalSite.Coast),
+                "coastal hospital is available from next operating day");
+            for (int step = 0; step < 220; step++) settled.Tick(.05f);
+            Verify(settled.Branch.Patients[3].Stage != VisitStage.NotArrived && settled.Coast.Patients[3].Stage == VisitStage.NotArrived &&
+                settled.Coast.Time == settled.Branch.Time && settled.Coast.Site == HospitalSite.Coast,
+                "third hospital ticks once and has a different booking pattern");
+            store.SaveNetwork(settled);
+            Verify(store.LoadNetwork(true, out var alpha) == HospitalLoadResult.Loaded && alpha.Site == HospitalSite.Coast &&
+                alpha.Funds == settled.Funds && alpha.Coast.Time == settled.Coast.Time &&
+                alpha.Switch(HospitalSite.Riverside) && alpha.Owns(0) && alpha.Decorations == 1 && alpha.LastDay.Departed == 4,
+                "third hospital, site-specific decor and previous results restore");
+            store.Archive();
+            Verify(System.IO.Directory.GetFiles(folder, "region.bin.previous-*").Length == 2, "new game archives primary and backup");
             var file = System.IO.Path.Combine(folder, "region.bin");
             byte[] corrupt = { 1, 2, 3 };
             System.IO.File.WriteAllBytes(file, corrupt);

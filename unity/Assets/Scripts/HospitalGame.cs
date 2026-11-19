@@ -50,7 +50,6 @@ namespace SunshineHospital
             save = new HospitalSave(Path.Combine(Application.persistentDataPath, "UnitySaves", "first-day.bin"));
             network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
             SetDay(network.Active);
-            LoadDay(reportMissing: false);
         }
 
         private void SetDay(HospitalDay next)
@@ -73,12 +72,20 @@ namespace SunshineHospital
             if (day == null || room == null) return;
             UpdateCameraViewport(room.Camera);
             if (Portrait) return;
+            if (Input.GetKeyDown(KeyCode.Escape) && !titleOpen)
+            {
+                if (alphaPage != AlphaPage.None) CloseAlphaPage();
+                else { mapOpen = false; staffOpen = false; titleOpen = true; }
+            }
+
             float speed = 1f;
             bool interactive = true;
 #if UNITY_EDITOR
             if (capturing) return;
             if (!qaRunning && room.UsesOriginalArt)
             {
+                if (Input.GetKeyDown(KeyCode.F2)) ToggleDialogueRecording();
+                if (Input.GetKeyDown(KeyCode.F3)) StartCoroutine(VerifyHud());
                 if (Input.GetKeyDown(KeyCode.F4)) StartCoroutine(VerifyNetwork());
                 if (Input.GetKeyDown(KeyCode.F9)) StartCoroutine(VerifyVisit());
                 if (Input.GetKeyDown(KeyCode.F10)) StartCoroutine(VerifyDay());
@@ -95,8 +102,28 @@ namespace SunshineHospital
             speed = qaSpeed;
             interactive = !qaRunning;
 #endif
-            if (interactive && !outside && !staffOpen && !mapOpen) day.UpdateGuide(selectedId == 1);
-            bool guideOpen = interactive && day.ActiveGuide != GuideMoment.None;
+            if (interactive && (titleOpen || alphaPage != AlphaPage.None))
+            {
+                RefreshActors();
+                return;
+            }
+            if (interactive && !outside && !staffOpen && !mapOpen && replayGuide == GuideMoment.None && growthDialogue == 0) day.UpdateGuide(selectedId == 1);
+            bool guideOpen = interactive && IsDialogueVisible;
+            if (interactive && !outside && !staffOpen && !mapOpen)
+            {
+                bool confirm = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
+                if (guideOpen && confirm)
+                {
+                    AdvanceVisibleDialogue();
+                    return;
+                }
+                if (!guideOpen)
+                {
+                    for (int id = 1; id <= day.Patients.Count; id++)
+                        if (Input.GetKeyDown(KeyCode.Alpha0 + id) && day.Patients[id - 1].Stage != VisitStage.NotArrived) Select(id);
+                    if (confirm) ConfirmSelectedPatient();
+                }
+            }
             if (!outside && !staffOpen && !mapOpen && !guideOpen)
             {
                 if (interactive) PickPatient();
@@ -106,11 +133,25 @@ namespace SunshineHospital
             RefreshActors();
         }
 
+        private void ConfirmSelectedPatient()
+        {
+            var patient = Selection;
+            if (patient == null || day.Paused) return;
+            bool advanced = patient.Stage == VisitStage.Reception ? day.Admit(patient.Id)
+                : patient.Stage == VisitStage.AwaitingPlan && day.AssignPlan(patient.Id);
+#if UNITY_EDITOR
+            if (advanced && recordingInput) Debug.Log($"[Hospital QA] Input action confirmed for patient {patient.Id}: {patient.Stage}");
+#endif
+        }
+
         private void PickPatient()
         {
             if (!Input.GetMouseButtonDown(0)) return;
             Vector3 mouse = Input.mousePosition;
             if (!room.Camera.pixelRect.Contains(mouse)) return;
+            Rect safe = SafeArea;
+            if (PointerInHud(new Vector2((mouse.x - safe.x) / Scale, (safe.yMax - mouse.y) / Scale),
+                safe.width / Scale, safe.height / Scale)) return;
             Physics.SyncTransforms();
             if (!Physics.Raycast(room.Camera.ScreenPointToRay(mouse), out RaycastHit hit)) return;
             for (int i = 0; i < actors.Length; i++)
@@ -126,7 +167,8 @@ namespace SunshineHospital
 
         private void RefreshActors()
         {
-            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0, LiveNetwork && network.ViewingBranch);
+            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0, day.Site);
+            room.ApplyDecorations(LiveNetwork ? (previewDecoration < 0 ? network.Decorations : PreviewDecorations()) : 0);
             float annexLift = 0;
             float lift = 0;
             foreach (var patient in day.Patients)
@@ -183,8 +225,10 @@ namespace SunshineHospital
         private void UpdateCameraViewport(Camera camera)
         {
             Rect safe = SafeArea;
-            float viewportHeight = safe.height - (Header + Footer) * Scale;
-            camera.rect = new Rect(safe.x / Screen.width, (safe.y + Footer * Scale) / Screen.height,
+            float bottom = useOldHud ? Footer : 52f;
+            float top = useOldHud ? Header : 49f;
+            float viewportHeight = safe.height - (top + bottom) * Scale;
+            camera.rect = new Rect(safe.x / Screen.width, (safe.y + bottom * Scale) / Screen.height,
                 safe.width / Screen.width, viewportHeight / Screen.height);
             camera.aspect = safe.width / viewportHeight;
         }
@@ -193,6 +237,7 @@ namespace SunshineHospital
         {
             if (day == null || room == null) return;
             InitializeStyles();
+            GUI.color = Color.white;
             Rect safe = SafeArea;
             float scale = Portrait ? safe.width / 520f : Scale;
             Matrix4x4 previous = GUI.matrix;
@@ -211,6 +256,12 @@ namespace SunshineHospital
             }
             else
             {
+                if (!useOldHud)
+                {
+                    var sky = room.Camera.backgroundColor;
+                    Panel(new Rect(0, 0, width, 50), sky);
+                    Panel(new Rect(0, height - 53, width, 53), sky);
+                }
                 DrawHud(width, height, scale);
             }
             GUI.matrix = previous;
@@ -219,11 +270,16 @@ namespace SunshineHospital
         private void DrawHud(float width, float height, float scale)
         {
             bool acceptInput = true;
-            bool showGuide = day.ActiveGuide != GuideMoment.None;
+            bool showGuide = IsDialogueVisible;
 #if UNITY_EDITOR
             acceptInput = !capturing && !qaRunning;
-            if (qaRunning) showGuide = false;
+            if (qaRunning && !capturingHud) showGuide = false;
 #endif
+            if ((titleOpen || alphaPage != AlphaPage.None) && (acceptInput || capturingHud))
+            {
+                DrawAlphaPage(width, height, acceptInput);
+                return;
+            }
             if (mapOpen)
             {
                 DrawNetwork(width, height, acceptInput);
@@ -234,9 +290,15 @@ namespace SunshineHospital
                 DrawStaffAndResearch(width, height, acceptInput);
                 return;
             }
+            if (!useOldHud)
+            {
+                DrawPlayHud(width, height, acceptInput, showGuide);
+                return;
+            }
             Panel(new Rect(0, 0, width, Header), Paper);
             Panel(new Rect(0, Header - 1, width, 1), new Color(.84f, .80f, .70f));
-            GUI.Label(new Rect(20, 0, 230, 56), $"{ActiveHospitalName} · {CurrentDate}일차", heading);
+            if (GUI.Button(new Rect(20, 8, 215, 40), $"{ActiveHospitalName} · {CurrentDate}일차", heading) && acceptInput)
+                alphaPage = AlphaPage.Operations;
             if (!outside)
             {
                 float slot = (width - 40) / day.Patients.Count;
@@ -341,7 +403,7 @@ namespace SunshineHospital
 
         private void DrawGrowth(float width, float footer, bool acceptInput)
         {
-            string goal = LiveNetwork && network.ViewingBranch ? $"5장 · 분원 귀가 {Math.Min(day.LifetimeDeparted, 8)}/8"
+            string goal = LiveNetwork && network.Site != HospitalSite.Main ? $"5장 · 분원 귀가 {Math.Min(day.LifetimeDeparted, 8)}/8"
                 : day.ChapterFour ? "5장 · 지도에서 물빛 분원 확인"
                 : day.ChapterThree ? "4장 · 연구소와 진료 개선"
                 : day.ChapterTwo ? $"3장 · 위임 방문 {day.DelegatedDepartures}/4"
@@ -376,7 +438,7 @@ namespace SunshineHospital
                 GUI.Label(new Rect(width - 290, footer + 22, 270, 42), "다른 병원의 진료가 진행 중이에요", label);
                 return;
             }
-            bool viewingBranch = LiveNetwork && network.ViewingBranch;
+            bool viewingBranch = LiveNetwork && network.Site != HospitalSite.Main;
             if (GUI.Button(new Rect(width - 265, footer + 19, 118, 50),
                 viewingBranch ? "다음 날" : "다음 날 · 4명", primary) && acceptInput)
                 StartDay(viewingBranch ? network.Main.Patients.Count : HospitalDay.BookingCount);
@@ -414,7 +476,9 @@ namespace SunshineHospital
                 staffOpen = false;
                 confirmExpansion = false;
                 mapOpen = false;
-                confirmBranch = false;
+                replayGuide = GuideMoment.None;
+                growthDialogue = 0;
+                confirmSite = null;
                 network = restored;
                 SetDay(network.Active);
             }
@@ -514,16 +578,24 @@ namespace SunshineHospital
         {
             if (heading != null) return;
             Font font = Resources.Load<Font>("SunshineHangul");
+            Font display = useOldHud ? font : Resources.Load<Font>("Jua-Regular") ?? font;
             heading = new GUIStyle(GUI.skin.label)
             {
-                font = font, fontSize = 24, alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Bold
+                font = display, fontSize = 24, alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Bold
             };
-            label = new GUIStyle(heading) { fontSize = 18, fontStyle = FontStyle.Normal };
-            heading.normal.textColor = label.normal.textColor = Ink;
-            primary = ButtonStyle(font, Mint, new Color(.15f, .48f, .38f), Color.white);
+            label = new GUIStyle(heading) { font = font, fontSize = 18, fontStyle = FontStyle.Normal };
+            foreach (var style in new[] { heading, label })
+            {
+                style.normal.textColor = Ink;
+                style.hover.textColor = Ink;
+                style.active.textColor = Ink;
+                style.focused.textColor = Ink;
+            }
+            primary = ButtonStyle(display, Mint, new Color(.15f, .48f, .38f), Color.white);
             quiet = ButtonStyle(font, Coral, new Color(1f, .82f, .74f), Ink);
             patientTag = ButtonStyle(font, Paper, new Color(.88f, .95f, .89f), Ink);
             patientTag.fontSize = 15;
+            InitializeHud(font, display);
         }
 
         private GUIStyle ButtonStyle(Font font, Color surface, Color hover, Color text)
@@ -552,8 +624,11 @@ namespace SunshineHospital
             {
                 float dx = x - Mathf.Clamp(x, 10, size - 11);
                 float dy = y - Mathf.Clamp(y, 10, size - 11);
-                Color pixel = surface;
-                pixel.a = Mathf.Clamp01(10.5f - Mathf.Sqrt(dx * dx + dy * dy));
+                float edge = Mathf.Min(Mathf.Min(x, size - 1 - x), Mathf.Min(y, size - 1 - y));
+                float curve = 10.5f - Mathf.Sqrt(dx * dx + dy * dy);
+                float distance = Mathf.Min(edge, curve);
+                Color pixel = useOldHud ? surface : distance < 1.8f ? new Color(.75f, .57f, .33f) : Color.Lerp(surface, Color.white, y / 160f);
+                pixel.a = Mathf.Clamp01(.5f + curve) * (y == 0 ? .54f : 1f);
                 texture.SetPixel(x, y, pixel);
             }
             texture.Apply(false, true);

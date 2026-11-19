@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 824b8ebcc06e43a3b31a4d73a898c520
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 20
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Jua
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 24f9ac2d13734a069177c5e9f557eadd, type: 3}
+  customCharacters:
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1

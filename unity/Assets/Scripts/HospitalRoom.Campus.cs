@@ -8,6 +8,7 @@ namespace SunshineHospital
         private Transform exteriorAnnex;
         private Transform expansionPlot;
         private Transform riverbank;
+        private Transform seafront;
         private readonly System.Collections.Generic.List<Renderer> roofPanels = new();
         private Transform researchLab;
         private Transform annex;
@@ -15,8 +16,9 @@ namespace SunshineHospital
         private Vector3 annexHeadRest;
         private Renderer annexLamp;
 
-        internal void ApplyCampus(bool outside, bool expanded, bool hasLab, bool regional = false)
+        internal void ApplyCampus(bool outside, bool expanded, bool hasLab, HospitalSite site = HospitalSite.Main)
         {
+            bool regional = site != HospitalSite.Main;
             if (expanded && annex == null) BuildAnnex();
             if (outside && exterior == null) BuildExterior();
             root.gameObject.SetActive(!outside);
@@ -26,11 +28,12 @@ namespace SunshineHospital
                 exterior.gameObject.SetActive(outside);
                 exteriorAnnex.gameObject.SetActive(expanded);
                 expansionPlot.gameObject.SetActive(!expanded);
-                riverbank.gameObject.SetActive(regional);
-                if (regional != branchRoof)
+                riverbank.gameObject.SetActive(site == HospitalSite.Riverside);
+                seafront.gameObject.SetActive(site == HospitalSite.Coast);
+                if (site != roofSite)
                 {
-                    branchRoof = regional;
-                    var color = regional ? new Color(.27f, .62f, .68f) : Mint;
+                    roofSite = site;
+                    var color = site == HospitalSite.Coast ? Coral : regional ? new Color(.27f, .62f, .68f) : Mint;
                     foreach (var roof in roofPanels) roof.material.color = color;
                 }
                 if (hasLab && researchLab == null) BuildResearchLab();
@@ -73,7 +76,7 @@ namespace SunshineHospital
             annexLamp = Lamp(annex, new Vector3(11.25f, 1.8f, 3.05f));
         }
 
-        private bool branchRoof;
+        private HospitalSite roofSite;
 
         private void BuildExterior()
         {
@@ -112,6 +115,13 @@ namespace SunshineHospital
             Box(riverbank, "정류장 기둥", new Vector3(-5.1f, 1.05f, 4.66f), new Vector3(.13f, 2.1f, .13f), Cream);
             Box(riverbank, "정류장 표지", new Vector3(-5.1f, 2.06f, 4.66f), new Vector3(.7f, .45f, .19f), Coral);
             Box(riverbank, "정류장 벤치", new Vector3(-4.5f, .47f, 5.3f), new Vector3(1.7f, .19f, .51f), Wood);
+
+            seafront = Group(exterior, "해안 산책로", Vector3.zero);
+            Box(seafront, "수평선", new Vector3(-7.8f, -.05f, -3.9f), new Vector3(8.4f, .11f, 6f), new Color(.34f, .65f, .76f));
+            Box(seafront, "모래 언덕", new Vector3(-8f, .01f, -.8f), new Vector3(8f, .12f, 1.7f), new Color(.92f, .79f, .55f));
+            Shape(seafront, "등대 몸체", PrimitiveType.Cylinder, new Vector3(-7.7f, 1.4f, -.9f), new Vector3(1.05f, 1.4f, 1.05f), Cream);
+            Shape(seafront, "등대 전망층", PrimitiveType.Cylinder, new Vector3(-7.7f, 2.9f, -.9f), new Vector3(1.25f, .18f, 1.25f), Coral);
+            Shape(seafront, "등대 등불", PrimitiveType.Sphere, new Vector3(-7.7f, 3.28f, -.9f), new Vector3(.66f, .67f, .66f), Wood);
 
             exteriorAnnex = Group(exterior, "치료별관 외부", new Vector3(7f, 0, 0));
             Box(exteriorAnnex, "별관 벽", new Vector3(0, 1.45f, 0), new Vector3(4, 2.9f, 5), Cream);

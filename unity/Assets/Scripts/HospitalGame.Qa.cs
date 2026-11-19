@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEditor.Media;
 
@@ -10,6 +11,189 @@ namespace SunshineHospital
     {
         private bool qaRunning;
         private float qaSpeed = 1f;
+
+        private bool recordingInput;
+        private HospitalSave inputPreviousSave;
+        private HospitalNetwork inputPreviousNetwork;
+        private bool inputPreviousTitle;
+        private void ToggleDialogueRecording()
+        {
+            if (recordingInput)
+            {
+                recordingInput = false;
+                save = inputPreviousSave;
+                network = inputPreviousNetwork;
+                titleOpen = inputPreviousTitle;
+                SetDay(network.Active);
+                return;
+            }
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/minji-dialogue"));
+            Directory.CreateDirectory(folder);
+            recordingInput = true;
+            inputPreviousSave = save;
+            inputPreviousNetwork = network;
+            inputPreviousTitle = titleOpen;
+            save = new HospitalSave(Path.Combine(folder, "isolated.bin"));
+            network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
+            titleOpen = mapOpen = staffOpen = outside = false;
+            CloseAlphaPage();
+            SetDay(network.Active);
+            StartCoroutine(RecordVisit(Path.Combine(folder, "input.mp4")));
+        }
+
+        private IEnumerator VerifyHud()
+        {
+            var oldNetwork = network;
+            var oldPage = alphaPage;
+            bool oldTitle = titleOpen, oldOutside = outside, oldMap = mapOpen, oldStaff = staffOpen;
+            int oldId = selectedId;
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/alpha-ui"));
+            qaRunning = capturingHud = true;
+            qaSpeed = 0;
+            try
+            {
+                Directory.CreateDirectory(folder);
+                titleOpen = outside = mapOpen = staffOpen = false;
+                alphaPage = AlphaPage.None;
+                network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
+                SetDay(network.Active);
+                day.UpdateGuide(false);
+                useOldHud = true;
+                heading = null;
+                yield return HudCapture(folder, "welcome-before");
+                useOldHud = false;
+                heading = null;
+                yield return new WaitForSecondsRealtime(.3f);
+                yield return HudCapture(folder, "welcome");
+                var display = Resources.Load<Font>("Jua-Regular");
+                if (!Expect(display != null && "햇살병원민지설정접수하기계획지시900만1,1000/600:30".All(display.HasCharacter),
+                    "Jua covers representative Hangul, numbers and punctuation")) yield break;
+                if (!Expect(new[] { "coin", "portrait-minji", "map", "pause", "minji-greeting", "minji-explaining" }.All(name =>
+                    Resources.Load<Texture2D>("HospitalUI/" + name) is Texture2D asset && asset.width > 8),
+                    "HUD icons and portraits are available")) yield break;
+                AdvanceVisibleDialogue();
+                yield return new WaitForSecondsRealtime(.15f);
+                yield return HudCapture(folder, "welcome-next");
+                var dialogueSlot = new HospitalSave(Path.Combine(folder, "isolated-dialogue.bin"));
+                dialogueSlot.SaveNetwork(network);
+                if (!Expect(dialogueSlot.LoadNetwork(room.UsesOriginalArt, out var dialogRestored) == HospitalLoadResult.Loaded &&
+                    dialogRestored.Main.ActiveGuide == GuideMoment.Welcome && dialogRestored.Main.GuideLine == 1,
+                    "second greeting line restores from isolated save")) yield break;
+                AdvanceVisibleDialogue();
+                if (!Expect(day.ActiveGuide == GuideMoment.None && !day.Paused, "welcome finishes without changing pause")) yield break;
+                day.SkipGuide();
+                yield return HudCapture(folder, "interior");
+                AdvanceTo(day, VisitStage.Reception);
+                Select(1);
+                yield return HudCapture(folder, "selected");
+                alphaPage = AlphaPage.Patients;
+                yield return HudCapture(folder, "patients");
+                CloseAlphaPage();
+                day.Admit(1);
+                AdvanceTo(day, VisitStage.AwaitingPlan);
+                yield return HudCapture(folder, "plan");
+                day.AssignPlan(1);
+                AdvanceTo(day, VisitStage.Treatment);
+                yield return HudCapture(folder, "treatment");
+                alphaPage = AlphaPage.Help;
+                yield return HudCapture(folder, "settings");
+                CloseAlphaPage();
+                outside = true;
+                yield return HudCapture(folder, "expansion");
+                outside = false;
+                network.ApplyDecoration(0);
+                network.ApplyDecoration(7);
+                alphaPage = AlphaPage.Decor;
+                yield return HudCapture(folder, "decor");
+                CloseAlphaPage();
+                mapOpen = true;
+                yield return HudCapture(folder, "locked-map");
+                mapOpen = false;
+
+                var main = network.Main;
+                for (int date = 1; date < 80; date++)
+                {
+                    for (int step = 0; step < 12000 && !network.Complete; step++)
+                    {
+                        foreach (var patient in main.Patients)
+                        {
+                            if (!main.AutoAdmission && patient.Stage == VisitStage.Reception) main.Admit(patient.Id);
+                            if (!main.AutoPlanning && patient.Stage == VisitStage.AwaitingPlan) main.AssignPlan(patient.Id);
+                        }
+                        network.Tick(.05f);
+                    }
+                    if (!Expect(network.Complete, "alpha operating day closed")) yield break;
+                    if (date == 1)
+                    {
+                        yield return HudCapture(folder, "day-result");
+                        main.PurchaseExpansion();
+                    }
+                    if (main.ChapterTwo && main.TrainingDay == 0)
+                    {
+                        main.PurchaseTraining();
+                        main.SetAutoPlanning(true);
+                    }
+                    if (main.ChapterThree && main.LabDay == 0) main.PurchaseLab();
+                    for (int study = 4; study <= 6; study++)
+                        if (main.StartResearch((HospitalResearch)study)) break;
+                    if (network.CanOpenBranch) network.OpenBranch();
+                    if (network.CanOpenCoast)
+                    {
+                        if (!network.OpenCoast() || !network.StartNextDay(6)) yield break;
+                        break;
+                    }
+                    network.StartNextDay(6);
+                    main.SetAutoAdmission(true);
+                    // The HUD still refers to the same day; actor slots are rebuilt after booking changes.
+                    SetDay(main);
+                }
+                SetDay(main);
+                if (!Expect(network.Available(HospitalSite.Coast), "third hospital unlocked with ordinary operating rules")) yield break;
+                staffOpen = true;
+                researchTab = false;
+                yield return HudCapture(folder, "staff");
+                researchTab = true;
+                yield return HudCapture(folder, "research");
+                staffOpen = false;
+                mapOpen = true;
+                yield return HudCapture(folder, "three-hospital-map");
+                mapOpen = false;
+                outside = true;
+                yield return HudCapture(folder, "main-exterior");
+                network.Switch(HospitalSite.Riverside);
+                SetDay(network.Active);
+                yield return HudCapture(folder, "riverside-exterior");
+                network.Switch(HospitalSite.Coast);
+                SetDay(network.Active);
+                yield return HudCapture(folder, "coast-exterior");
+                outside = false;
+                yield return HudCapture(folder, "coast-interior");
+                var slot = new HospitalSave(Path.Combine(folder, "isolated.bin"));
+                slot.SaveNetwork(network);
+                if (!Expect(slot.LoadNetwork(room.UsesOriginalArt, out var restored) == HospitalLoadResult.Loaded &&
+                    restored.Site == HospitalSite.Coast && restored.Branch != null, "three hospital isolated save restores")) yield break;
+                Debug.Log($"[Hospital QA] Alpha HUD and three hospitals captured: {folder}");
+            }
+            finally
+            {
+                useOldHud = capturingHud = qaRunning = false;
+                qaSpeed = 1;
+                network = oldNetwork;
+                titleOpen = oldTitle;
+                outside = oldOutside;
+                mapOpen = oldMap;
+                staffOpen = oldStaff;
+                alphaPage = oldPage;
+                SetDay(network.Active);
+                Select(oldId);
+            }
+        }
+
+        private IEnumerator HudCapture(string folder, string name)
+        {
+            yield return new WaitForEndOfFrame();
+            WriteGameView(Path.Combine(folder, name + ".png"));
+        }
 
         private IEnumerator VerifyNetwork()
         {
@@ -543,10 +727,10 @@ namespace SunshineHospital
             var endOfFrame = new WaitForEndOfFrame();
             try
             {
-                while (qaRunning)
+                while (qaRunning || recordingInput)
                 {
                     yield return endOfFrame;
-                    if (!qaRunning) break;
+                    if (!qaRunning && !recordingInput) break;
                     long elapsed = (long)((Time.realtimeSinceStartupAsDouble - start) * 1000);
                     if (elapsed < next) continue;
                     next = elapsed + 1000 / rate;

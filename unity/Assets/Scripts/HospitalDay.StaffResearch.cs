@@ -4,7 +4,7 @@ using System.IO;
 
 namespace SunshineHospital
 {
-    public enum HospitalResearch { Ct, Planning }
+    public enum HospitalResearch { Ct, Planning, CtII, PlanningII, EducationI, EducationII, EducationIII }
 
     public sealed partial class HospitalDay
     {
@@ -15,9 +15,9 @@ namespace SunshineHospital
         private const float DutyDelay = 3f;
         private const int ResearchPointCap = 200;
 
-        private readonly int[] researchStarted = new int[2];
-        private readonly int[] researchCompleted = new int[2];
-        private readonly int[] researchApplied = new int[2];
+        private readonly int[] researchStarted = new int[AlphaCatalog.Studies.Count];
+        private readonly int[] researchCompleted = new int[AlphaCatalog.Studies.Count];
+        private readonly int[] researchApplied = new int[AlphaCatalog.Studies.Count];
         private int lastResearchClose;
         private int admissionCandidate;
         private int planCandidate;
@@ -36,7 +36,7 @@ namespace SunshineHospital
         public int TotalExpense => ExpansionExpense + TrainingExpense + LabExpense + ResearchExpense;
         public bool ChapterThree => DelegatedDepartures >= BookingCount;
         public bool ChapterFour => researchApplied.Any(value => value != 0);
-        public bool ResearchSlotBusy => Enumerable.Range(0, 2).Any(i => researchStarted[i] != 0 && researchApplied[i] == 0);
+        public bool ResearchSlotBusy => Enumerable.Range(0, researchStarted.Length).Any(i => researchStarted[i] != 0 && researchApplied[i] == 0);
 
         public bool SetAutoAdmission(bool enabled)
         {
@@ -72,13 +72,25 @@ namespace SunshineHospital
             return true;
         }
 
-        public bool StartResearch(HospitalResearch project)
+        public bool ResearchActive(HospitalResearch project) => (ResearchSource ?? this).researchApplied[(int)project] > 0;
+
+        public bool CanStartResearch(HospitalResearch project)
         {
             int slot = (int)project;
-            if (slot < 0 || slot >= researchStarted.Length || LabDay == 0 || researchStarted[slot] != 0 ||
-                ResearchSlotBusy || !CanSpend(ResearchCost) || ResearchPoints < ResearchPointCost) return false;
-            ResearchExpense += ResearchCost;
-            ResearchPoints -= ResearchPointCost;
+            if (slot < 0 || slot >= researchStarted.Length || LabDay == 0 || ResearchSource != null ||
+                researchStarted[slot] != 0 || ResearchSlotBusy) return false;
+            var study = AlphaCatalog.Studies[slot];
+            return (study.Prerequisite < 0 || researchApplied[study.Prerequisite] > 0) &&
+                CanSpend(study.Cost) && ResearchPoints >= study.Points;
+        }
+
+        public bool StartResearch(HospitalResearch project)
+        {
+            if (!CanStartResearch(project)) return false;
+            int slot = (int)project;
+            var study = AlphaCatalog.Studies[slot];
+            ResearchExpense += study.Cost;
+            ResearchPoints -= study.Points;
             researchStarted[slot] = DayNumber;
             return true;
         }
@@ -88,7 +100,7 @@ namespace SunshineHospital
             int slot = (int)project;
             if (researchApplied[slot] > 0) return $"{researchApplied[slot]}일차부터 적용";
             if (researchCompleted[slot] > 0) return "연구 완료 · 다음 날 적용";
-            return researchStarted[slot] > 0 ? $"{researchStarted[slot] + 1}일차 마감 예정" : "미시작";
+            return researchStarted[slot] > 0 ? $"{researchStarted[slot] + AlphaCatalog.Studies[slot].Days}일차 마감 예정" : "미시작";
         }
 
         private void UpdateDuties(float seconds)
@@ -114,9 +126,19 @@ namespace SunshineHospital
             }
             if (id == 0) return;
             elapsed += seconds;
-            if (elapsed + .00001 < DutyDelay) return;
+            if (elapsed + .00001 < DutyTime(ready)) return;
             Request(id, ready, queue, delegated: true);
             ResetDuty(ref candidate, ref elapsed);
+        }
+
+        public float IntakeDelay => DutyTime(VisitStage.Reception);
+        public float PlanningDelay => DutyTime(VisitStage.AwaitingPlan);
+
+        private float DutyTime(VisitStage stage)
+        {
+            if (ResearchActive(HospitalResearch.EducationIII)) return 1f;
+            return ResearchActive(stage == VisitStage.Reception ? HospitalResearch.EducationI : HospitalResearch.EducationII)
+                ? 2f : DutyDelay;
         }
 
         private static void ResetDuty(ref int candidate, ref double elapsed)
@@ -132,7 +154,7 @@ namespace SunshineHospital
             if (LabDay == 0) return;
             ResearchPoints = Math.Min(ResearchPointCap, ResearchPoints + 4);
             for (int i = 0; i < researchStarted.Length; i++)
-                if (researchStarted[i] > 0 && researchStarted[i] < DayNumber && researchCompleted[i] == 0)
+                if (researchStarted[i] > 0 && researchStarted[i] + AlphaCatalog.Studies[i].Days <= DayNumber && researchCompleted[i] == 0)
                     researchCompleted[i] = DayNumber;
         }
 
@@ -145,7 +167,7 @@ namespace SunshineHospital
                 if (researchCompleted[i] > 0 && researchApplied[i] == 0) researchApplied[i] = DayNumber;
         }
 
-        private void WriteStaffResearch(BinaryWriter writer)
+        private void WriteStaffResearch(BinaryWriter writer, int version)
         {
             writer.Write(AutoAdmission);
             writer.Write(AutoPlanning);
@@ -161,7 +183,7 @@ namespace SunshineHospital
             writer.Write(admissionElapsed);
             writer.Write(planCandidate);
             writer.Write(planElapsed);
-            for (int i = 0; i < researchStarted.Length; i++)
+            for (int i = 0; i < (version >= 6 ? researchStarted.Length : 2); i++)
             {
                 writer.Write(researchStarted[i]);
                 writer.Write(researchCompleted[i]);
@@ -169,7 +191,7 @@ namespace SunshineHospital
             }
         }
 
-        private void ReadStaffResearch(BinaryReader reader)
+        private void ReadStaffResearch(BinaryReader reader, int version)
         {
             AutoAdmission = reader.ReadBoolean();
             AutoPlanning = reader.ReadBoolean();
@@ -186,13 +208,13 @@ namespace SunshineHospital
             planCandidate = reader.ReadInt32();
             planElapsed = reader.ReadDouble();
 
-            for (int i = 0; i < researchStarted.Length; i++)
+            for (int i = 0; i < (version >= 6 ? researchStarted.Length : 2); i++)
             {
                 int started = researchStarted[i] = reader.ReadInt32();
                 int completed = researchCompleted[i] = reader.ReadInt32();
                 int applied = researchApplied[i] = reader.ReadInt32();
                 if (started < 0 || started > DayNumber || (started > 0 && (LabDay == 0 || started < LabDay)) ||
-                    completed < 0 || completed > DayNumber || (completed > 0 && (started == 0 || completed <= started)) ||
+                    completed < 0 || completed > DayNumber || (completed > 0 && (started == 0 || completed != started + AlphaCatalog.Studies[i].Days)) ||
                     applied < 0 || applied > DayNumber || (applied > 0 && (completed == 0 || applied != completed + 1)))
                     throw new InvalidDataException("Invalid research dates.");
             }
@@ -207,8 +229,8 @@ namespace SunshineHospital
                 ResearchPoints < 0 || ResearchPoints > ResearchPointCap || (LabDay == 0 && ResearchPoints != 0) ||
                 TrainingExpense != (TrainingDay == DayNumber ? TrainingCost : 0) ||
                 LabExpense != (LabDay == DayNumber ? LabCost : 0) ||
-                ResearchExpense != researchStarted.Count(date => date == DayNumber) * ResearchCost ||
-                Enumerable.Range(0, 2).Count(i => researchStarted[i] != 0 && researchApplied[i] == 0) > 1 ||
+                ResearchExpense != ResearchCostFor(date => date == DayNumber) ||
+                Enumerable.Range(0, researchStarted.Length).Count(i => researchStarted[i] != 0 && researchApplied[i] == 0) > 1 ||
                 lastResearchClose < DayNumber - 1 || lastResearchClose > DayNumber ||
                 (lastResearchClose == DayNumber) != Complete ||
                 !ValidDuty(AutoAdmission || regional, admissionCandidate, admissionElapsed) ||
@@ -223,10 +245,15 @@ namespace SunshineHospital
         private int PastStaffResearchExpense =>
             (TrainingDay > 0 && TrainingDay < DayNumber ? TrainingCost : 0) +
             (LabDay > 0 && LabDay < DayNumber ? LabCost : 0) +
-            researchStarted.Count(date => date > 0 && date < DayNumber) * ResearchCost;
+            ResearchCostFor(date => date > 0 && date < DayNumber);
+
+        private int ResearchCostFor(Func<int, bool> include) => Enumerable.Range(0, researchStarted.Length)
+            .Where(i => include(researchStarted[i])).Sum(i => AlphaCatalog.Studies[i].Cost);
 
         private float ActiveServiceDuration(VisitStage stage)
         {
+            if (stage == VisitStage.Ct && ResearchActive(HospitalResearch.CtII)) return 3f;
+            if (stage == VisitStage.Planning && ResearchActive(HospitalResearch.PlanningII)) return 3f;
             if (stage == VisitStage.Ct && (ResearchSource ?? this).researchApplied[(int)HospitalResearch.Ct] > 0) return 4f;
             if (stage == VisitStage.Planning && (ResearchSource ?? this).researchApplied[(int)HospitalResearch.Planning] > 0) return 4f;
             return PatientVisit.DurationOf(stage);

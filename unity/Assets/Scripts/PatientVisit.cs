@@ -59,11 +59,12 @@ namespace SunshineHospital
         private readonly DayRoutes routes;
         private int serial;
         private double time;
-        private readonly bool regional;
+        private bool regional => Site != HospitalSite.Main;
+        public HospitalSite Site { get; }
         internal HospitalDay ResearchSource { get; set; }
         internal Func<int> SpendingLimit { get; set; }
         public bool CanSpend(int amount) => Funds >= amount && (SpendingLimit?.Invoke() ?? Funds) >= amount;
-        private double ArrivalAt(int id) => (id - 1) * (regional ? 3f : ArrivalInterval);
+        private double ArrivalAt(int id) => (id - 1) * (Site == HospitalSite.Coast ? AlphaCatalog.CoastFirstDayInterval : regional ? AlphaCatalog.RiversideArrivalInterval : ArrivalInterval);
         public IReadOnlyList<PatientVisit> Patients { get; private set; }
         public bool Paused { get; private set; }
         public int Departed { get; private set; }
@@ -92,11 +93,11 @@ namespace SunshineHospital
         }
         public double Time => time;
 
-        public HospitalDay(bool originalArt = true, int bookingCount = BookingCount, bool regional = false)
+        public HospitalDay(bool originalArt = true, int bookingCount = BookingCount, bool regional = false, HospitalSite site = HospitalSite.Main)
         {
             if (bookingCount != BookingCount && bookingCount != 1) throw new ArgumentOutOfRangeException(nameof(bookingCount));
             OriginalArt = originalArt;
-            this.regional = regional;
+            Site = regional ? HospitalSite.Riverside : site;
             routes = new DayRoutes(originalArt, bookingCount == 1);
             ResetPatients(bookingCount);
         }

@@ -12,14 +12,22 @@ namespace SunshineHospital
     {
         private const int Magic = 0x484F5350;
         private const int Version = 4;
-        private const int NetworkVersion = 5;
+        private const int NetworkVersion = 6;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;
 
         public HospitalSave(string path) => this.path = Path.GetFullPath(path);
 
-        public void Save(HospitalDay day) => Write(Version, day.OriginalArt, day.WriteSave);
+        public void Archive()
+        {
+            if (!File.Exists(path) && !File.Exists(path + ".bak")) return;
+            string archive = path + ".previous-" + Guid.NewGuid().ToString("N");
+            if (File.Exists(path)) File.Copy(path, archive);
+            if (File.Exists(path + ".bak")) File.Copy(path + ".bak", archive + ".bak");
+        }
+
+        public void Save(HospitalDay day) => Write(Version, day.OriginalArt, writer => day.WriteSave(writer));
 
         public void SaveNetwork(HospitalNetwork network) => Write(NetworkVersion, network.Main.OriginalArt, network.WriteSave);
 
@@ -108,7 +116,7 @@ namespace SunshineHospital
                 if (data.ReadInt32() != Magic) return false;
                 int version = data.ReadInt32();
                 if (version < 1 || version > NetworkVersion) return false;
-                var restored = version == NetworkVersion ? HospitalNetwork.ReadSave(data, originalArt)
+                var restored = version >= 5 ? HospitalNetwork.ReadSave(data, originalArt, version)
                     : new HospitalNetwork(HospitalDay.ReadSave(data, originalArt, version));
                 if (payload.Position != payload.Length) return false;
                 day = restored;
@@ -131,7 +139,7 @@ namespace SunshineHospital
     {
         internal bool OriginalArt { get; }
 
-        internal void WriteSave(BinaryWriter writer)
+        internal void WriteSave(BinaryWriter writer, int version = 4)
         {
             if (patients.Length == 1) throw new InvalidOperationException("A one-patient QA run cannot be saved.");
             writer.Write(OriginalArt);
@@ -142,8 +150,8 @@ namespace SunshineHospital
             writer.Write(LifetimePaid);
             writer.Write(Expanded);
             writer.Write(DualTreatment);
-            WriteStaffResearch(writer);
-            WriteGuide(writer);
+            WriteStaffResearch(writer, version);
+            WriteGuide(writer, version);
             writer.Write(time);
             writer.Write(serial);
             writer.Write(Income);
@@ -165,10 +173,10 @@ namespace SunshineHospital
             }
         }
 
-        internal static HospitalDay ReadSave(BinaryReader reader, bool originalArt, int version, HospitalDay researchSource = null)
+        internal static HospitalDay ReadSave(BinaryReader reader, bool originalArt, int version, HospitalDay researchSource = null, HospitalSite site = HospitalSite.Main)
         {
             if (reader.ReadBoolean() != originalArt) throw new InvalidDataException("Different route layout.");
-            var day = new HospitalDay(originalArt, regional: researchSource != null) { ResearchSource = researchSource };
+            var day = new HospitalDay(originalArt, site: researchSource != null && site == HospitalSite.Main ? HospitalSite.Riverside : site) { ResearchSource = researchSource };
             if (version >= 2)
             {
                 day.DayNumber = reader.ReadInt32();
@@ -185,8 +193,8 @@ namespace SunshineHospital
                     throw new InvalidDataException("Inconsistent hospital growth state.");
                 day.ResetPatients(count);
             }
-            if (version >= 3) day.ReadStaffResearch(reader);
-            if (version >= 4) day.ReadGuide(reader);
+            if (version >= 3) day.ReadStaffResearch(reader, version);
+            if (version >= 4) day.ReadGuide(reader, version);
             else day.SkipGuide();
             day.time = reader.ReadDouble();
             day.serial = reader.ReadInt32();
