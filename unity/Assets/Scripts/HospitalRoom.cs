@@ -114,6 +114,7 @@ namespace SunshineHospital
 
                 var nurse = PlacePerson(nurseModel, root, new Vector3(-2.85f, .055f, 4.35f), false, mirrorX);
                 nurse.rotation = Quaternion.Euler(0, 29, 0);
+                ConfigureNurse(nurse);
                 CtLamp = Lamp(root, new Vector3(-4f, 2.7f, -3.17f));
                 TreatmentLamp = Lamp(root, new Vector3(5.25f, 1.8f, 3.05f));
             }

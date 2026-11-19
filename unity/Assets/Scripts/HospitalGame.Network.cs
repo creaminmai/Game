@@ -36,10 +36,15 @@ namespace SunshineHospital
                 confirmSite = null;
             }
 
-            Art(new Rect(left + 18, top + 80, 555, 320), "region-map");
-            DrawMapNode(left + 35, top + 278, HospitalSite.Main, acceptInput);
-            DrawMapNode(left + 200, top + 173, HospitalSite.Riverside, acceptInput);
-            DrawMapNode(left + 344, top + 289, HospitalSite.Coast, acceptInput);
+            var map = new Rect(left + 18, top + 80, 555, 320);
+            if (room.MapTexture != null) GUI.DrawTexture(map, room.MapTexture, ScaleMode.StretchToFill, false);
+            else Art(map, "region-map");
+            for (int i = 0; i < 3; i++)
+            {
+                var site = (HospitalSite)i;
+                var anchor = room.MapAnchor(site);
+                DrawMapNode(map.x + anchor.x * map.width - 64, map.y + anchor.y * map.height + 21, site, acceptInput);
+            }
 
             DrawLocation(left + 594, top + 80, cardWidth, mapSelection, acceptInput);
             string message = GrowthStory(network.NextStory);

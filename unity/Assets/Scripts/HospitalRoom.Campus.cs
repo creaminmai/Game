@@ -7,6 +7,7 @@ namespace SunshineHospital
         private Transform exterior;
         private Transform exteriorAnnex;
         private Transform expansionPlot;
+        private Transform expansionPreview;
         private Transform riverbank;
         private Transform seafront;
         private readonly System.Collections.Generic.List<Renderer> roofPanels = new();
@@ -16,7 +17,7 @@ namespace SunshineHospital
         private Vector3 annexHeadRest;
         private Renderer annexLamp;
 
-        internal void ApplyCampus(bool outside, bool expanded, bool hasLab, HospitalSite site = HospitalSite.Main)
+        internal void ApplyCampus(bool outside, bool expanded, bool hasLab, HospitalSite site = HospitalSite.Main, bool preview = false)
         {
             bool regional = site != HospitalSite.Main;
             if (expanded && annex == null) BuildAnnex();
@@ -28,6 +29,7 @@ namespace SunshineHospital
                 exterior.gameObject.SetActive(outside);
                 exteriorAnnex.gameObject.SetActive(expanded);
                 expansionPlot.gameObject.SetActive(!expanded);
+                expansionPreview.gameObject.SetActive(!expanded && preview);
                 riverbank.gameObject.SetActive(site == HospitalSite.Riverside);
                 seafront.gameObject.SetActive(site == HospitalSite.Coast);
                 if (site != roofSite)
@@ -99,7 +101,22 @@ namespace SunshineHospital
             Box(exterior, "입구 유리문", new Vector3(0, 1.06f, 3.11f), new Vector3(1.68f, 2.12f, .2f), Mint);
             Box(exterior, "입구 차양", new Vector3(0, 2.39f, 3.54f), new Vector3(2.65f, .23f, 1.38f), Mint);
             Box(exterior, "입구 계단", new Vector3(0, .08f, 3.75f), new Vector3(2.42f, .14f, 1.05f), White);
-            Box(exterior, "간판", new Vector3(0, 3.38f, 3.18f), new Vector3(1.48f, .66f, .23f), Coral);
+            var sign = Shape(exterior, "해바라기 입구 간판", PrimitiveType.Sphere, new Vector3(0, 3.43f, 3.21f),
+                new Vector3(2.35f, 1.48f, .27f), Cream);
+            var badge = Group(sign.transform.parent, "입구 해바라기", new Vector3(0, 3.48f, 3.39f));
+            for (int i = 0; i < 8; i++)
+            {
+                float angle = i * Mathf.PI / 4;
+                Shape(badge, "골드 꽃잎", PrimitiveType.Sphere, new Vector3(Mathf.Cos(angle) * .32f, Mathf.Sin(angle) * .32f, 0),
+                    new Vector3(.26f, .26f, .1f), new Color(.98f, .70f, .26f));
+            }
+            Shape(badge, "꽃 중심", PrimitiveType.Sphere, Vector3.forward * .05f, new Vector3(.39f, .39f, .15f), Wood);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                Box(exterior, "현관 난간", new Vector3(side * 1.26f, .58f, 4.31f), new Vector3(.07f, .1f, 1.2f), Wood);
+                Box(exterior, "현관 기둥", new Vector3(side * 1.26f, .3f, 4.76f), new Vector3(.09f, .61f, .09f), Wood);
+                Box(exterior, "대기 벤치", new Vector3(side * 3.08f, .46f, 4.46f), new Vector3(1.45f, .26f, .53f), Coral);
+            }
 
             expansionPlot = Group(exterior, "치료별관 예정지", new Vector3(7f, 0, 0));
             Box(expansionPlot, "별관 부지", new Vector3(0, -.04f, 0), new Vector3(4.4f, .12f, 5.4f), Wood);
@@ -107,6 +124,18 @@ namespace SunshineHospital
             {
                 Box(expansionPlot, "부지 표시", new Vector3(side * 2.1f, .05f, 0), new Vector3(.16f, .12f, 5.3f), Coral);
                 Box(expansionPlot, "부지 표시", new Vector3(0, .05f, side * 2.57f), new Vector3(4.3f, .12f, .16f), Coral);
+            }
+
+            expansionPreview = Group(expansionPlot, "별관 3D 골조 미리보기", Vector3.zero);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                for (int end = -1; end <= 1; end += 2)
+                    Box(expansionPreview, "예상 벽 모서리", new Vector3(side * 1.95f, 1.45f, end * 2.45f),
+                        new Vector3(.13f, 2.9f, .13f), Mint);
+                Box(expansionPreview, "예상 지붕 경계", new Vector3(side * 2.03f, 2.97f, 0),
+                    new Vector3(.15f, .15f, 5.05f), Mint);
+                Box(expansionPreview, "예상 지붕 경계", new Vector3(0, 2.97f, side * 2.45f),
+                    new Vector3(4.08f, .15f, .15f), Mint);
             }
 
             riverbank = Group(exterior, "물빛 분원 강변과 정류장", Vector3.zero);

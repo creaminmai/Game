@@ -8,6 +8,17 @@ namespace SunshineHospital
         private int replayLine;
         private float dialogueVisibleAt;
         private GuideMoment previousDialogue;
+        private GuideMoment GuideOnScreen => replayGuide != GuideMoment.None ? replayGuide : day.ActiveGuide;
+        private string DialoguePose
+        {
+            get
+            {
+                if (growthDialogue == 64 || GuideOnScreen is GuideMoment.CloseDay or GuideMoment.FirstTreatment) return "joyful";
+                if (growthDialogue == 8 && network.StoryLine == 0) return "worried";
+                if (growthDialogue != 0) return network.StoryLine == 0 ? "greeting" : "explaining";
+                return HospitalDay.Dialogue(GuideOnScreen, replayGuide != GuideMoment.None ? replayLine : day.GuideLine).Expression;
+            }
+        }
         private int growthDialogue => network.StoryMoment;
 
         private void DrawGuide(float width, float footer, bool acceptInput)
@@ -49,8 +60,12 @@ namespace SunshineHospital
             float portraitHeight = 505f;
             float portraitBottom = footer + 198;
             Panel(new Rect(0, 0, width, footer + 126), new Color(.20f, .18f, .12f, .12f));
-            Art(new Rect(18, portraitBottom - portraitHeight + (1 - appear) * 8, portraitWidth, portraitHeight),
-                (growthDialogue == 0 ? script.Expression == "greeting" : network.StoryLine == 0) ? "minji-greeting" : "minji-explaining");
+            if (room.PortraitTexture != null)
+                GUI.DrawTexture(new Rect(4, footer - 294 + (1 - appear) * 5, portraitWidth, 446f),
+                    room.PortraitTexture, ScaleMode.ScaleToFit, true);
+            else
+                Art(new Rect(18, portraitBottom - portraitHeight, portraitWidth, portraitHeight),
+                    DialoguePose == "greeting" ? "minji-greeting" : "minji-explaining");
             DialogueShadow(new Rect(panelLeft - 2, dialogueY + 4, panelWidth + 4, 140));
             Art(new Rect(panelLeft - 31, dialogueY + 23, 47, 41), "bubble-tail");
             AlphaFrame(new Rect(panelLeft, dialogueY, panelWidth, 137));

@@ -71,6 +71,9 @@ namespace SunshineHospital
         {
             if (day == null || room == null) return;
             UpdateCameraViewport(room.Camera);
+            bool showingPortrait = !titleOpen && !outside && !staffOpen && !mapOpen && alphaPage == AlphaPage.None &&
+                IsDialogueVisible && (growthDialogue != 0 || GuideOnScreen is not (GuideMoment.SelectPatient or GuideMoment.ReviewPlan));
+            room.UpdatePresentation(showingPortrait, DialoguePose, mapOpen, mapSelection, !day.Paused && !IsDialogueVisible);
             if (Portrait) return;
             if (Input.GetKeyDown(KeyCode.Escape) && !titleOpen)
             {
@@ -167,7 +170,7 @@ namespace SunshineHospital
 
         private void RefreshActors()
         {
-            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0, day.Site);
+            room.ApplyCampus(outside, day.Expanded, day.LabDay > 0, day.Site, confirmExpansion);
             room.ApplyDecorations(LiveNetwork ? (previewDecoration < 0 ? network.Decorations : PreviewDecorations()) : 0);
             float annexLift = 0;
             float lift = 0;
@@ -420,7 +423,7 @@ namespace SunshineHospital
             if (outside)
             {
                 if (!day.Expanded && GUI.Button(new Rect(width - 195, footer + 19, 175, 50),
-                    confirmExpansion ? "치료실 추가 · 600만" : "별관 증축", primary) && acceptInput)
+                    confirmExpansion ? "확정 · 600만" : "별관 미리보기", primary) && acceptInput)
                 {
                     if (confirmExpansion)
                     {
@@ -431,6 +434,8 @@ namespace SunshineHospital
                     else if (day.ExpansionReason.Length == 0) confirmExpansion = true;
                     else SetSaveNotice(day.ExpansionReason);
                 }
+                if (confirmExpansion && GUI.Button(new Rect(width - 300, footer + 19, 96, 50), "취소", quiet) && acceptInput)
+                    confirmExpansion = false;
                 return;
             }
             if (LiveNetwork && !network.Complete)
@@ -638,6 +643,7 @@ namespace SunshineHospital
 
         private void OnDestroy()
         {
+            room?.ReleasePresentation();
             foreach (var texture in hudTextures) Destroy(texture);
         }
 
