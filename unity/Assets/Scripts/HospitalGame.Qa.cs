@@ -227,6 +227,27 @@ namespace SunshineHospital
             }
         }
 
+        private IEnumerator CaptureGuide()
+        {
+            if (day.ActiveGuide == GuideMoment.None) yield break;
+            capturing = true;
+            try
+            {
+                string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/guide"));
+                Directory.CreateDirectory(folder);
+                yield return new WaitForEndOfFrame();
+                WriteGameView(Path.Combine(folder, "welcome.png"));
+                var testStore = new HospitalSave(Path.Combine(folder, "guide-test.bin"));
+                testStore.Save(day);
+                Expect(testStore.Load(room.UsesOriginalArt, out var loaded) == HospitalLoadResult.Loaded &&
+                    loaded.Paused && loaded.ActiveGuide == day.ActiveGuide, "open guide restores from isolated editor save");
+            }
+            finally
+            {
+                capturing = false;
+            }
+        }
+
         private IEnumerator VerifyResearch()
         {
             var previous = day;

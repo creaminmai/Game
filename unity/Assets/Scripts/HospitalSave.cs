@@ -11,7 +11,7 @@ namespace SunshineHospital
     public sealed class HospitalSave
     {
         private const int Magic = 0x484F5350;
-        private const int Version = 3;
+        private const int Version = 4;
         private const int DigestSize = 32;
         private const int MaxSaveSize = 4096;
         private readonly string path;
@@ -129,6 +129,7 @@ namespace SunshineHospital
             writer.Write(Expanded);
             writer.Write(DualTreatment);
             WriteStaffResearch(writer);
+            WriteGuide(writer);
             writer.Write(time);
             writer.Write(serial);
             writer.Write(Income);
@@ -171,6 +172,8 @@ namespace SunshineHospital
                 day.ResetPatients(count);
             }
             if (version >= 3) day.ReadStaffResearch(reader);
+            if (version >= 4) day.ReadGuide(reader);
+            else day.SkipGuide();
             day.time = reader.ReadDouble();
             day.serial = reader.ReadInt32();
             day.Income = reader.ReadInt32();

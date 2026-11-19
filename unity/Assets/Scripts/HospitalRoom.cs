@@ -7,7 +7,7 @@ namespace SunshineHospital
     internal sealed partial class HospitalRoom
     {
         private readonly Dictionary<Color, Material> materials = new();
-        private readonly Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        private readonly Shader shader = Resources.Load<Material>("HospitalArt/DefaultSurface")?.shader ?? Shader.Find("Universal Render Pipeline/Lit");
 
         private static readonly Color Cream = new(1f, .94f, .82f);
         private static readonly Color Mint = new(.54f, .79f, .69f);
@@ -25,12 +25,39 @@ namespace SunshineHospital
             public Transform Root { get; }
             public Transform Body { get; }
             public Transform Selection { get; }
+            private readonly Transform[] limbs = new Transform[4];
+            private readonly Quaternion[] poseRest = new Quaternion[4];
+            private float stride;
+            private bool positioned;
+            private Vector3 lastPosition;
 
             public Actor(Transform root, Transform body, Transform selection)
             {
                 Root = root;
                 Body = body;
                 Selection = selection;
+                foreach (Transform part in body.GetComponentsInChildren<Transform>(true))
+                {
+                    int slot = part.name switch { "Leg_L" => 0, "Leg_R" => 1, "Arm_L" => 2, "Arm_R" => 3, _ => -1 };
+                    if (slot < 0) continue;
+                    limbs[slot] = part;
+                    poseRest[slot] = part.localRotation;
+                }
+            }
+
+            public void PoseWalk(Vector3 position, bool walking)
+            {
+                float distance = positioned ? Vector3.Distance(position, lastPosition) : 0;
+                lastPosition = position;
+                positioned = true;
+                if (walking && distance < 1f) stride = (stride + distance) % 1.12f;
+                float swing = walking ? Mathf.Sin(stride / 1.12f * 2 * Mathf.PI) : 0;
+                for (int i = 0; i < limbs.Length; i++)
+                {
+                    if (limbs[i] == null) continue;
+                    float angle = swing * (i < 2 ? 17f : -12f) * (i % 2 == 0 ? 1 : -1);
+                    limbs[i].localRotation = poseRest[i] * Quaternion.Euler(angle, 0, 0);
+                }
             }
         }
         public Renderer CtLamp { get; }
@@ -107,11 +134,37 @@ namespace SunshineHospital
             var body = UsesOriginalArt
                 ? PlacePerson(patientModel, actor, Vector3.zero, visit.Id <= 2, originalArtMirrorsX)
                 : Person(actor, "환자 캐릭터", Vector3.zero, Coral);
+            if (UsesOriginalArt && visit.Id > 1) TintPatient(body, visit.Id);
             var collider = actor.gameObject.AddComponent<CapsuleCollider>();
             collider.height = UsesOriginalArt ? 2f : 1.65f;
             collider.center = Vector3.up * collider.height / 2;
             collider.radius = .40f;
             return new Actor(actor, body, selection);
+        }
+
+        private static void TintPatient(Transform body, int id)
+        {
+            Color outfit = id switch
+            {
+                2 => new Color(.60f, .76f, .86f),
+                3 => new Color(.76f, .64f, .81f),
+                4 => new Color(.66f, .77f, .56f),
+                5 => new Color(.42f, .63f, .77f),
+                _ => new Color(.91f, .73f, .43f)
+            };
+            var properties = new MaterialPropertyBlock();
+            foreach (var renderer in body.GetComponentsInChildren<Renderer>())
+            {
+                var materials = renderer.sharedMaterials;
+                for (int slot = 0; slot < materials.Length; slot++)
+                {
+                    if (materials[slot] == null || materials[slot].name != "outfit") continue;
+                    renderer.GetPropertyBlock(properties, slot);
+                    if (materials[slot].HasProperty("_BaseColor")) properties.SetColor("_BaseColor", outfit);
+                    if (materials[slot].HasProperty("baseColorFactor")) properties.SetColor("baseColorFactor", outfit);
+                    renderer.SetPropertyBlock(properties, slot);
+                }
+            }
         }
 
         public void SetTreatmentHeadLift(float fraction)

@@ -120,6 +120,7 @@ namespace SunshineHospital
             time = 0;
             serial = 0;
             DayNumber++;
+            DismissGuide();
             AdvanceStaffAndResearchDay();
             ResetPatients(bookings);
             return true;

@@ -28,6 +28,7 @@ static partial class Checks
         AdditionalChecks();
         Growth();
         StaffAndResearch();
+        Guide();
         Console.WriteLine($"{count} hospital checks passed.");
     }
 
@@ -239,6 +240,54 @@ static partial class Checks
             day.Tick(.05f);
         }
         Verify(day.Complete, $"duties completed day {day.DayNumber}");
+    }
+
+    static void Guide()
+    {
+        var day = new HospitalDay();
+        day.UpdateGuide(false);
+        Verify(day.ActiveGuide == GuideMoment.Welcome, "first-day welcome");
+        string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hospital-guide-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new HospitalSave(System.IO.Path.Combine(folder, "day.bin"));
+            store.Save(day);
+            Verify(store.Load(true, out var restored) == HospitalLoadResult.Loaded && restored.ActiveGuide == GuideMoment.Welcome,
+                "restore the currently open guide");
+            restored.DismissGuide();
+            restored.UpdateGuide(false);
+            Verify(restored.ActiveGuide == GuideMoment.None, "completed welcome does not repeat");
+            restored.TogglePause();
+            Until(restored, () => restored.Patients[0].Stage == VisitStage.Reception, "guide selection arrival");
+            restored.UpdateGuide(false);
+            Verify(restored.ActiveGuide == GuideMoment.SelectPatient, "first selection prompts separately from admission");
+            restored.DismissGuide();
+            restored.UpdateGuide(true);
+            Verify(restored.ActiveGuide == GuideMoment.None && restored.Admit(1), "guide selection does not admit the patient");
+            Until(restored, () => restored.Patients[0].Stage == VisitStage.AwaitingPlan, "guide planning arrival");
+            restored.UpdateGuide(true);
+            Verify(restored.ActiveGuide == GuideMoment.ReviewPlan, "planning cue at correct state");
+            restored.DismissGuide();
+            restored.AssignPlan(1);
+            Until(restored, () => restored.Patients[0].Paid, "guide first treatment");
+            restored.UpdateGuide(true);
+            Verify(restored.ActiveGuide == GuideMoment.FirstTreatment, "first treatment message once payment occurred");
+            restored.DismissGuide();
+            restored.UpdateGuide(true);
+            Verify(restored.ActiveGuide == GuideMoment.Expansion, "growth prompt follows first treatment");
+            Verify(restored.PurchaseExpansion(), "purchase while the expansion guide is open");
+            restored.UpdateGuide(false);
+            Verify(restored.ActiveGuide == GuideMoment.None, "completed purchase retires the open expansion guide");
+            restored.SkipGuide();
+            store.Save(restored);
+            Verify(store.Load(true, out var skipped) == HospitalLoadResult.Loaded, "guide opt-out saved");
+            skipped.UpdateGuide(false);
+            Verify(skipped.ActiveGuide == GuideMoment.None, "guide opt-out survives restart");
+        }
+        finally
+        {
+            if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
+        }
     }
 
     static void OnePatient()

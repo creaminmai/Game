@@ -25,7 +25,7 @@ namespace SunshineHospital
 #if UNITY_EDITOR
         private bool capturing;
 #endif
-        private const float Header = 102f;
+        private const float Header = 108f;
         private const float Footer = 88f;
         private static readonly Color Paper = new(1f, .965f, .898f);
         private static readonly Color Ink = new(.15f, .22f, .19f);
@@ -37,7 +37,9 @@ namespace SunshineHospital
         private GUIStyle quiet;
         private GUIStyle patientTag;
         private readonly System.Collections.Generic.List<Texture2D> hudTextures = new();
-        private float Scale => Mathf.Min(Screen.width / 960f, Screen.height / 540f);
+        private Rect SafeArea => Screen.safeArea.width > 0 && Screen.safeArea.height > 0
+            ? Screen.safeArea : new Rect(0, 0, Screen.width, Screen.height);
+        private float Scale => Mathf.Min(SafeArea.width / 960f, SafeArea.height / 540f);
         private bool Portrait => Screen.height > Screen.width;
 
         private void Awake()
@@ -71,6 +73,7 @@ namespace SunshineHospital
             UpdateCameraViewport(room.Camera);
             if (Portrait) return;
             float speed = 1f;
+            bool interactive = true;
 #if UNITY_EDITOR
             if (capturing) return;
             if (!qaRunning && room.UsesOriginalArt)
@@ -80,6 +83,7 @@ namespace SunshineHospital
                 if (Input.GetKeyDown(KeyCode.F11)) VerifySaveInEditor();
                 if (Input.GetKeyDown(KeyCode.F7)) StartCoroutine(VerifyCampus());
                 if (Input.GetKeyDown(KeyCode.F6)) StartCoroutine(VerifyResearch());
+                if (Input.GetKeyDown(KeyCode.F12)) StartCoroutine(CaptureGuide());
                 if (Input.GetKeyDown(KeyCode.F8) && day.Patients[0].Stage == VisitStage.Reception)
                 {
                     StartCoroutine(CaptureComparison());
@@ -87,10 +91,15 @@ namespace SunshineHospital
                 }
             }
             speed = qaSpeed;
-            if (!qaRunning)
+            interactive = !qaRunning;
 #endif
-                if (!outside && !staffOpen) PickPatient();
-            if (!outside && !staffOpen) day.Tick(Time.deltaTime * speed);
+            if (interactive && !outside && !staffOpen) day.UpdateGuide(selectedId == 1);
+            bool guideOpen = interactive && day.ActiveGuide != GuideMoment.None;
+            if (!outside && !staffOpen && !guideOpen)
+            {
+                if (interactive) PickPatient();
+                day.Tick(Time.deltaTime * speed);
+            }
             RefreshActors();
         }
 
@@ -98,7 +107,7 @@ namespace SunshineHospital
         {
             if (!Input.GetMouseButtonDown(0)) return;
             Vector3 mouse = Input.mousePosition;
-            if (mouse.y >= Screen.height - Header * Scale || mouse.y <= Footer * Scale) return;
+            if (!room.Camera.pixelRect.Contains(mouse)) return;
             Physics.SyncTransforms();
             if (!Physics.Raycast(room.Camera.ScreenPointToRay(mouse), out RaycastHit hit)) return;
             for (int i = 0; i < actors.Length; i++)
@@ -135,7 +144,10 @@ namespace SunshineHospital
             bool visible = patient.Stage is not (VisitStage.NotArrived or VisitStage.Complete);
             actor.Root.gameObject.SetActive(visible);
             if (!visible) return 0;
-            actor.Root.SetPositionAndRotation(World(patient.Position), Quaternion.LookRotation(World(patient.Heading)));
+            var position = World(patient.Position);
+            actor.Root.SetPositionAndRotation(position, Quaternion.LookRotation(World(patient.Heading)));
+            actor.PoseWalk(position, patient.Stage is VisitStage.Entering or VisitStage.WalkingToCt or
+                VisitStage.WalkingToPlanning or VisitStage.WalkingToTreatment or VisitStage.Leaving);
             bool inService = patient.Stage is VisitStage.Ct or VisitStage.Treatment;
             actor.Selection.gameObject.SetActive(selectedId == patient.Id && !inService);
             if (inService && room.UsesOriginalArt)
@@ -167,21 +179,28 @@ namespace SunshineHospital
 
         private void UpdateCameraViewport(Camera camera)
         {
-            float bottom = Footer * Scale / Screen.height;
-            float top = Header * Scale / Screen.height;
-            camera.rect = new Rect(0, bottom, 1, 1 - bottom - top);
-            camera.aspect = Screen.width / (Screen.height * camera.rect.height);
+            Rect safe = SafeArea;
+            float viewportHeight = safe.height - (Header + Footer) * Scale;
+            camera.rect = new Rect(safe.x / Screen.width, (safe.y + Footer * Scale) / Screen.height,
+                safe.width / Screen.width, viewportHeight / Screen.height);
+            camera.aspect = safe.width / viewportHeight;
         }
 
         private void OnGUI()
         {
             if (day == null || room == null) return;
             InitializeStyles();
-            float scale = Portrait ? Screen.width / 520f : Scale;
+            Rect safe = SafeArea;
+            float scale = Portrait ? safe.width / 520f : Scale;
             Matrix4x4 previous = GUI.matrix;
-            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1));
-            float width = Screen.width / scale;
-            float height = Screen.height / scale;
+            float top = Screen.height - safe.yMax;
+            Panel(new Rect(0, 0, Screen.width, top), Paper);
+            Panel(new Rect(0, top + safe.height, Screen.width, safe.y), Paper);
+            Panel(new Rect(0, top, safe.x, safe.height), Paper);
+            Panel(new Rect(safe.xMax, top, Screen.width - safe.xMax, safe.height), Paper);
+            GUI.matrix = Matrix4x4.TRS(new Vector3(safe.x, top, 0), Quaternion.identity, new Vector3(scale, scale, 1));
+            float width = safe.width / scale;
+            float height = safe.height / scale;
             if (Portrait)
             {
                 Panel(new Rect(0, 0, width, height), Paper);
@@ -197,8 +216,10 @@ namespace SunshineHospital
         private void DrawHud(float width, float height, float scale)
         {
             bool acceptInput = true;
+            bool showGuide = day.ActiveGuide != GuideMoment.None;
 #if UNITY_EDITOR
             acceptInput = !capturing && !qaRunning;
+            if (qaRunning) showGuide = false;
 #endif
             if (staffOpen)
             {
@@ -214,7 +235,7 @@ namespace SunshineHospital
                 foreach (var patient in day.Patients)
                 {
                     bool enabled = GUI.enabled;
-                    GUI.enabled = enabled && patient.Stage != VisitStage.NotArrived;
+                    GUI.enabled = enabled && !showGuide && patient.Stage != VisitStage.NotArrived;
                     string state = patient.Stage switch
                     {
                         VisitStage.NotArrived => "도착 예정",
@@ -233,7 +254,7 @@ namespace SunshineHospital
                         VisitStage.Complete => "귀가 완료",
                         _ => "입장 중"
                     };
-                    if (GUI.Button(new Rect(20 + (patient.Id - 1) * slot, 58, slot - 6, 36),
+                    if (GUI.Button(new Rect(20 + (patient.Id - 1) * slot, 56, slot - 6, 44),
                             $"{patient.Name} · {state}", selectedId == patient.Id ? primary : patientTag) && acceptInput)
                         Select(patient.Id);
                     GUI.enabled = enabled;
@@ -264,6 +285,11 @@ namespace SunshineHospital
             Panel(new Rect(0, footer, width, Footer), Paper);
             Panel(new Rect(0, footer, width, 1), new Color(.84f, .80f, .70f));
             Panel(new Rect(20, footer + 15, 4, 23), day.Paused ? Coral : Mint);
+            if (showGuide && !outside)
+            {
+                DrawGuide(width, footer, acceptInput);
+                return;
+            }
             if (outside || day.Complete)
             {
                 DrawGrowth(width, footer, acceptInput);
@@ -298,7 +324,7 @@ namespace SunshineHospital
             if (selection != null && selection.Stage is VisitStage.Reception or VisitStage.AwaitingPlan)
             {
                 var marker = room.Camera.WorldToScreenPoint(World(selection.Position) + Vector3.up * 2.13f);
-                var rect = new Rect(marker.x / scale - 43, (Screen.height - marker.y) / scale - 30, 86, 28);
+                var rect = new Rect((marker.x - SafeArea.x) / scale - 43, (SafeArea.yMax - marker.y) / scale - 30, 86, 28);
                 GUI.Label(rect, selection.Name, primary);
             }
         }
