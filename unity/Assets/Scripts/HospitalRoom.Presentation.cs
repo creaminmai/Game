@@ -60,8 +60,8 @@ namespace SunshineHospital
                     MinjiDetail(lids, "닫힌 눈선", new Vector3(side * .126f, .068f, .307f),
                         new Vector3(.09f, .009f, .012f), new Color(.31f, .17f, .12f));
                     var lockShape = MinjiDetail(head, "앞머리 결",
-                        new Vector3(side * .151f, .273f, .198f), new Vector3(.25f, .19f, .10f),
-                        new Color(.32f, .18f, .11f));
+                        new Vector3(side * .145f, .254f, .185f), new Vector3(.33f, .21f, .105f),
+                        new Color(.48f, .32f, .24f));
                     lockShape.transform.localRotation = Quaternion.Euler(-9f, side * 30f, side * -24f);
                 }
             }
