@@ -122,6 +122,38 @@ namespace SunshineHospital
 #if UNITY_EDITOR
         internal bool ProfileSkipPortraitCamera { get; set; }
         private readonly System.Collections.Generic.Dictionary<Renderer, Material[]> portraitOriginalMaterials = new();
+        private Transform faceStudyActor;
+
+        internal bool PreviewFaceStudy(bool revised)
+        {
+            const string path = "Assets/Editor/HospitalArt/minji-v3-face-study.glb";
+            if (portraitCamera == null) BuildPortrait();
+            if (portraitCamera == null) return false;
+            if (faceStudyActor == null)
+            {
+                var study = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (study == null) return false;
+                faceStudyActor = PlacePerson(study, Camera.transform.parent, PortraitOrigin, false, false);
+                faceStudyActor.localRotation = Quaternion.Euler(0, 12, 0);
+                SetLayer(faceStudyActor, PortraitLayer);
+            }
+            portraitActor.gameObject.SetActive(!revised);
+            faceStudyActor.gameObject.SetActive(revised);
+            portraitActor.localRotation = faceStudyActor.localRotation;
+            var target = PortraitOrigin + new Vector3(0, 1.56f, 0);
+            portraitCamera.transform.position = target + new Vector3(0, .12f, 4);
+            portraitCamera.transform.LookAt(target);
+            portraitCamera.orthographicSize = .54f;
+            return true;
+        }
+
+        internal void ResetFaceStudyPreview()
+        {
+            if (faceStudyActor == null) return;
+            faceStudyActor.gameObject.SetActive(false);
+            portraitActor.gameObject.SetActive(true);
+            FramePortraitForReview(9f, false, false);
+        }
 
         internal void FramePortraitForReview(float yaw, bool fullBody, bool neutral)
         {

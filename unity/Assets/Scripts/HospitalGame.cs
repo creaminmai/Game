@@ -87,7 +87,12 @@ namespace SunshineHospital
             if (capturing) return;
             if (!qaRunning && room.UsesOriginalArt)
             {
-                if (Input.GetKeyDown(KeyCode.F1)) StartCoroutine(ReviewMinji());
+                if (Input.GetKeyDown(KeyCode.F1))
+                {
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                        StartCoroutine(ReviewMinjiFaceStudy());
+                    else StartCoroutine(ReviewMinji());
+                }
                 if (Input.GetKeyDown(KeyCode.F2))
                     ToggleDialogueRecording(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
                 if (Input.GetKeyDown(KeyCode.F3)) StartCoroutine(VerifyHud());

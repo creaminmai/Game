@@ -279,6 +279,58 @@ namespace SunshineHospital
         private static string GraphicsReviewFolder() =>
             Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/graphics-v2"));
 
+        private IEnumerator ReviewMinjiFaceStudy()
+        {
+            var previousNetwork = network;
+            var previousPage = alphaPage;
+            var previousReplay = replayGuide;
+            int previousLine = replayLine, previousSelection = selectedId;
+            bool previousTitle = titleOpen, previousOutside = outside, previousMap = mapOpen, previousStaff = staffOpen;
+            if (!room.PreviewFaceStudy(false))
+            {
+                Debug.LogError("[Hospital QA] Minji v3 face study could not be imported.");
+                yield break;
+            }
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/minji-face-study"));
+            qaRunning = capturingHud = true;
+            qaSpeed = 0;
+            try
+            {
+                Directory.CreateDirectory(folder);
+                titleOpen = outside = mapOpen = staffOpen = false;
+                alphaPage = AlphaPage.None;
+                replayGuide = GuideMoment.None;
+                network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
+                SetDay(network.Active);
+                day.UpdateGuide(false);
+                reviewExpression = "idle";
+                yield return new WaitForSecondsRealtime(.5f);
+                yield return HudCapture(folder, "unity-v2");
+                room.PreviewFaceStudy(true);
+                yield return new WaitForSecondsRealtime(.25f);
+                yield return HudCapture(folder, "unity-v3");
+                Debug.Log($"[Hospital QA] Minji face study captured in the live dialogue: {folder}");
+                yield return new WaitForSecondsRealtime(3f);
+            }
+            finally
+            {
+                room.ResetFaceStudyPreview();
+                reviewExpression = null;
+                qaSpeed = 1;
+                qaRunning = capturingHud = false;
+                network = previousNetwork;
+                titleOpen = previousTitle;
+                outside = previousOutside;
+                mapOpen = previousMap;
+                staffOpen = previousStaff;
+                alphaPage = previousPage;
+                replayGuide = previousReplay;
+                replayLine = previousLine;
+                SetDay(network.Active);
+                Select(previousSelection);
+            }
+        }
+
         private IEnumerator ReviewMinji()
         {
             var previousNetwork = network;
