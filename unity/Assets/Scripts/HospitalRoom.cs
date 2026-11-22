@@ -9,10 +9,10 @@ namespace SunshineHospital
         private readonly Dictionary<Color, Material> materials = new();
         private readonly Shader shader = Resources.Load<Material>("HospitalArt/DefaultSurface")?.shader ?? Shader.Find("Universal Render Pipeline/Lit");
 
-        private static readonly Color Cream = new(1f, .94f, .82f);
-        private static readonly Color Mint = new(.54f, .79f, .69f);
-        private static readonly Color Coral = new(.93f, .57f, .49f);
-        private static readonly Color Wood = new(.76f, .54f, .32f);
+        private static readonly Color Cream = new(1f, .965f, .891f);
+        private static readonly Color Mint = new(.396f, .725f, .647f);
+        private static readonly Color Coral = new(.949f, .604f, .529f);
+        private static readonly Color Wood = new(.80f, .59f, .37f);
         private static readonly Color Ink = new(.27f, .31f, .29f);
         private static readonly Color White = new(.98f, .97f, .93f);
 
@@ -72,12 +72,13 @@ namespace SunshineHospital
             var interior = preferOriginalArt ? LoadArt("hospital-interior") : null;
             this.root = Group(root, "진료실", Vector3.zero);
             patientModel = interior != null ? LoadArt("patient") : null;
-            var nurseModel = interior != null ? LoadArt("nurse") : null;
+            var minjiModel = interior != null ? LoadArt("minji-v2") : null;
+            var nurseModel = minjiModel != null ? minjiModel : interior != null ? LoadArt("nurse") : null;
             UsesOriginalArt = interior != null && patientModel != null && nurseModel != null;
             if (preferOriginalArt && !UsesOriginalArt)
                 Debug.LogWarning("Hospital GLBs are unavailable. Check the glTFast import in Package Manager.");
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = UsesOriginalArt ? new Color(.60f, .58f, .54f) : new Color(.71f, .69f, .64f);
+            RenderSettings.ambientLight = UsesOriginalArt ? new Color(.55f, .56f, .54f) : new Color(.71f, .69f, .64f);
             Camera = Group(root, "고정 카메라", new Vector3(11, 18, 20)).gameObject.AddComponent<Camera>();
             Camera.transform.LookAt(new Vector3(0, 0, .1f));
             Camera.orthographic = true;
@@ -87,16 +88,17 @@ namespace SunshineHospital
 
             var light = Group(root, "햇빛", Vector3.zero).gameObject.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(1f, .95f, .87f);
-            light.intensity = UsesOriginalArt ? 1.02f : 1.65f;
+            light.color = new Color(1f, .974f, .929f);
+            light.intensity = UsesOriginalArt ? 1.18f : 1.65f;
             light.shadowStrength = UsesOriginalArt ? .74f : 1f;
             light.shadows = LightShadows.Soft;
-            light.transform.rotation = Quaternion.Euler(49, -38, 0);
+            light.transform.rotation = Quaternion.Euler(46, -47, 0);
 
             root = this.root;
             if (UsesOriginalArt)
             {
                 var model = PlaceArt(interior, root, Vector3.zero, mirrorX: false);
+                DressInterior(model);
                 bool mirrorX = false;
                 foreach (Transform part in model.GetComponentsInChildren<Transform>(true))
                 {
@@ -114,7 +116,7 @@ namespace SunshineHospital
 
                 var nurse = PlacePerson(nurseModel, root, new Vector3(-2.85f, .055f, 4.35f), false, mirrorX);
                 nurse.rotation = Quaternion.Euler(0, 29, 0);
-                ConfigureNurse(nurse);
+                ConfigureNurse(nurse, minjiModel != null);
                 CtLamp = Lamp(root, new Vector3(-4f, 2.7f, -3.17f));
                 TreatmentLamp = Lamp(root, new Vector3(5.25f, 1.8f, 3.05f));
             }
@@ -135,7 +137,7 @@ namespace SunshineHospital
             var body = UsesOriginalArt
                 ? PlacePerson(patientModel, actor, Vector3.zero, visit.Id <= 2, originalArtMirrorsX)
                 : Person(actor, "환자 캐릭터", Vector3.zero, Coral);
-            if (UsesOriginalArt && visit.Id > 1) TintPatient(body, visit.Id);
+            if (UsesOriginalArt) TintPatient(body, visit.Id);
             var collider = actor.gameObject.AddComponent<CapsuleCollider>();
             collider.height = UsesOriginalArt ? 2f : 1.65f;
             collider.center = Vector3.up * collider.height / 2;
@@ -147,22 +149,49 @@ namespace SunshineHospital
         {
             Color outfit = id switch
             {
-                2 => new Color(.60f, .76f, .86f),
-                3 => new Color(.76f, .64f, .81f),
-                4 => new Color(.66f, .77f, .56f),
-                5 => new Color(.42f, .63f, .77f),
-                _ => new Color(.91f, .73f, .43f)
+                1 => Coral,
+                2 => new Color(.42f, .68f, .79f),
+                3 => new Color(.65f, .53f, .73f),
+                4 => new Color(.57f, .70f, .40f),
+                5 => new Color(.33f, .57f, .71f),
+                _ => new Color(.87f, .67f, .34f)
             };
+            Color hair = id switch
+            {
+                1 => new(.56f, .51f, .45f),
+                3 or 5 => new(.30f, .209f, .169f),
+                _ => new(.41f, .277f, .207f)
+            };
+            ApplyTints(body, new Dictionary<string, Color>
+            {
+                ["outfit"] = outfit, ["hair"] = hair,
+                ["sole"] = new(.40f, .35f, .29f)
+            });
+        }
+
+        private static void DressInterior(Transform model)
+        {
+            ApplyTints(model, new Dictionary<string, Color>
+            {
+                ["mint"] = new(.57f, .775f, .69f),
+                ["darkmint"] = new(.235f, .51f, .442f),
+                ["grout"] = new(.81f, .76f, .69f),
+                ["cream"] = new(.97f, .915f, .813f)
+            });
+        }
+
+        private static void ApplyTints(Transform body, Dictionary<string, Color> palette)
+        {
             var properties = new MaterialPropertyBlock();
             foreach (var renderer in body.GetComponentsInChildren<Renderer>())
             {
                 var materials = renderer.sharedMaterials;
                 for (int slot = 0; slot < materials.Length; slot++)
                 {
-                    if (materials[slot] == null || materials[slot].name != "outfit") continue;
+                    if (materials[slot] == null || !palette.TryGetValue(materials[slot].name, out Color color)) continue;
                     renderer.GetPropertyBlock(properties, slot);
-                    if (materials[slot].HasProperty("_BaseColor")) properties.SetColor("_BaseColor", outfit);
-                    if (materials[slot].HasProperty("baseColorFactor")) properties.SetColor("baseColorFactor", outfit);
+                    if (materials[slot].HasProperty("_BaseColor")) properties.SetColor("_BaseColor", color);
+                    if (materials[slot].HasProperty("baseColorFactor")) properties.SetColor("baseColorFactor", color);
                     renderer.SetPropertyBlock(properties, slot);
                 }
             }

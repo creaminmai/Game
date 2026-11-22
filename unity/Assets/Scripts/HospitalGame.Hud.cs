@@ -7,7 +7,8 @@ namespace SunshineHospital
     public sealed partial class HospitalGame
     {
         private readonly Dictionary<string, Texture2D> uiArt = new();
-        private GUIStyle frame, bubbleShadow, inset, iconButton, dockButton, dockSelected, smallText, numbers, compactTitle, dockTitle, dialogueText;
+        private Material cameraComposite;
+        private GUIStyle frame, bubble, bubbleShadow, minjiBadge, nextCapsule, inset, iconButton, dockButton, dockSelected, smallText, numbers, compactTitle, dockTitle, dialogueText;
         private bool IsDialogueVisible => day.ActiveGuide != GuideMoment.None || replayGuide != GuideMoment.None || growthDialogue != 0;
         private bool useOldHud = false;
         private bool capturingHud = false;
@@ -28,8 +29,12 @@ namespace SunshineHospital
 
         private void InitializeHud(Font body, Font display)
         {
-            frame = ButtonStyle(body, Paper, Paper, Ink);
-            bubbleShadow = frame;
+            frame = useOldHud ? ButtonStyle(body, Paper, Paper, Ink) : EnamelStyle(body, Paper, Ink, 16);
+            bubble = EnamelStyle(body, new Color(1f, .965f, .898f), Ink, 24);
+            bubbleShadow = EnamelStyle(body, Color.white, Ink, 24);
+            minjiBadge = EnamelStyle(display, new Color(.84f, .40f, .32f), Color.white, 20);
+            nextCapsule = EnamelStyle(display, new Color(.22f, .58f, .49f), Color.white, 23);
+            nextCapsule.fontSize = 20;
             inset = ButtonStyle(body, new Color(.95f, .88f, .75f), new Color(.95f, .88f, .75f), Ink);
             iconButton = ButtonStyle(display, new Color(.99f, .93f, .83f), new Color(1f, .98f, .90f), Ink);
             dockButton = ButtonStyle(display, new Color(.99f, .95f, .86f), Paper, Ink);
@@ -37,10 +42,49 @@ namespace SunshineHospital
             smallText = new GUIStyle(label) { fontSize = 15, wordWrap = true };
             numbers = new GUIStyle(heading) { fontSize = 21, alignment = TextAnchor.MiddleRight };
             compactTitle = new GUIStyle(heading) { fontSize = 20 };
-            dialogueText = new GUIStyle(label) { fontSize = 23, wordWrap = true, alignment = TextAnchor.MiddleLeft };
+            dialogueText = new GUIStyle(label) { fontSize = 22, wordWrap = true, alignment = TextAnchor.MiddleLeft };
             dialogueText.normal.textColor = new Color(.045f, .115f, .09f);
             dialogueText.hover.textColor = dialogueText.normal.textColor;
             dockTitle = new GUIStyle(compactTitle) { fontSize = 17, alignment = TextAnchor.MiddleCenter };
+        }
+
+        private GUIStyle EnamelStyle(Font font, Color face, Color ink, int radius)
+        {
+            var style = new GUIStyle { font = font, fontSize = 18, alignment = TextAnchor.MiddleCenter,
+                border = new RectOffset(radius + 1, radius + 1, radius + 1, radius + 1) };
+            FillEnamel(style.normal, face, ink, radius, false);
+            FillEnamel(style.hover, Color.Lerp(face, Color.white, .07f), ink, radius, false);
+            FillEnamel(style.active, Color.Lerp(face, Ink, .11f), ink, radius, true);
+            FillEnamel(style.focused, face, ink, radius, false);
+            return style;
+        }
+
+        private void FillEnamel(GUIStyleState state, Color fill, Color ink, int radius, bool pressed)
+        {
+            const int size = 72;
+            Color goldEdge = new(.64f, .40f, .19f);
+            Color gold = new(.88f, .70f, .39f);
+            Color ivory = new(1f, .96f, .81f);
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float dx = x - Mathf.Clamp(x, radius, size - 1 - radius);
+                float dy = y - Mathf.Clamp(y, radius, size - 1 - radius);
+                float depth = radius - Mathf.Sqrt(dx * dx + dy * dy);
+                float height = Mathf.Clamp01((float)y / (size - 1));
+                Color color = depth < 1.2f ? goldEdge :
+                    depth < 3.4f ? Color.Lerp(goldEdge, gold, .4f + height * .6f) :
+                    depth < 4.7f ? ivory : Color.Lerp(fill * .91f, Color.Lerp(fill, Color.white, .12f), pressed ? 1 - height : height);
+                color.a = Mathf.Clamp01(depth + .5f);
+                pixels[y * size + x] = color;
+            }
+            texture.SetPixels(pixels);
+            texture.Apply(false, true);
+            hudTextures.Add(texture);
+            state.background = texture;
+            state.textColor = ink;
         }
 
         private void Art(Rect box, string name)
@@ -53,6 +97,35 @@ namespace SunshineHospital
                 uiArt[name] = texture;
             }
             if (texture != null) GUI.DrawTexture(box, texture, ScaleMode.ScaleToFit, true);
+        }
+
+        private void CameraArt(Rect box, RenderTexture texture, bool fit)
+        {
+            if (Event.current.type != EventType.Repaint) return;
+            if (cameraComposite == null)
+            {
+                var shader = Resources.Load<Shader>("HospitalUI/PresentationGui");
+                if (shader != null && shader.isSupported) cameraComposite = new Material(shader);
+            }
+            if (cameraComposite == null)
+            {
+                GUI.DrawTexture(box, texture, fit ? ScaleMode.ScaleToFit : ScaleMode.StretchToFill, true);
+                return;
+            }
+
+            if (fit)
+            {
+                float scale = Mathf.Min(box.width / texture.width, box.height / texture.height);
+                box = new Rect(box.center.x - texture.width * scale / 2, box.center.y - texture.height * scale / 2,
+                    texture.width * scale, texture.height * scale);
+            }
+            var matrix = GUI.matrix;
+            Vector3 topLeft = matrix.MultiplyPoint3x4(box.min);
+            Vector3 bottomRight = matrix.MultiplyPoint3x4(box.max);
+            GUI.matrix = Matrix4x4.identity;
+            cameraComposite.SetFloat("_Opacity", GUI.color.a);
+            Graphics.DrawTexture(Rect.MinMaxRect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y), texture, cameraComposite);
+            GUI.matrix = matrix;
         }
 
         private Rect Dock(float width, float height) => new Rect(width / 2 - 235, height - 76, 470, 65);
@@ -82,7 +155,7 @@ namespace SunshineHospital
         {
             var site = new Rect(15, 12, 232, 62);
             AlphaFrame(site);
-            Art(new Rect(22, 18, 49, 49), "portrait-minji");
+            Art(new Rect(22, 18, 49, 49), "dialogue-sunflower");
             GUI.Label(new Rect(78, 19, 158, 28), ActiveHospitalName, compactTitle);
             GUI.Label(new Rect(79, 46, 156, 20), day.Site switch
             {
@@ -90,11 +163,11 @@ namespace SunshineHospital
                 HospitalSite.Coast => "협력 지역 · 해안",
                 _ => "본원 · 동네 병원"
             }, smallText);
-            var money = new Rect(width / 2 - 163, 15, 166, 51);
+            var money = new Rect(width / 2 - 83, 15, 166, 51);
             AlphaFrame(money);
             Art(new Rect(money.x + 9, money.y + 7, 36, 36), "coin");
             GUI.Label(new Rect(money.x + 43, money.y, 109, 50), $"{(LiveNetwork ? network.Funds : day.Funds):N0}만", numbers);
-            var dayBox = new Rect(width / 2 + 12, 15, 164, 51);
+            var dayBox = new Rect(width - 289, 15, 164, 51);
             AlphaFrame(dayBox);
             GUI.Label(new Rect(dayBox.x + 13, dayBox.y + 2, 142, 45), $"{CurrentDate}일 · 완료 {day.Departed}/{day.Patients.Count}", label);
             if (!outside && Icon(new Rect(width - 112, 14, 44, 44), day.Paused ? "play" : "pause", null, day.Paused, input && !guide))

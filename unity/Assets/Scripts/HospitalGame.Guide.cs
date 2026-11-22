@@ -13,8 +13,11 @@ namespace SunshineHospital
         {
             get
             {
+#if UNITY_EDITOR
+                if (reviewExpression != null) return reviewExpression;
+#endif
                 if (growthDialogue == 64 || GuideOnScreen is GuideMoment.CloseDay or GuideMoment.FirstTreatment) return "joyful";
-                if (growthDialogue == 8 && network.StoryLine == 0) return "worried";
+                if (growthDialogue == 8) return network.StoryLine == 0 ? "worried" : "relief";
                 if (growthDialogue != 0) return network.StoryLine == 0 ? "greeting" : "explaining";
                 return HospitalDay.Dialogue(GuideOnScreen, replayGuide != GuideMoment.None ? replayLine : day.GuideLine).Expression;
             }
@@ -44,7 +47,7 @@ namespace SunshineHospital
             {
                 float x = width - 505;
                 AlphaFrame(new Rect(x, footer, 482, 96));
-                Art(new Rect(x + 10, footer + 11, 55, 55), "portrait-minji");
+                Art(new Rect(x + 10, footer + 11, 55, 55), "portrait-minji-v2");
                 GUI.Label(new Rect(x + 73, footer + 12, 386, 33), script.Text, smallText);
                 if (GUI.Button(new Rect(x + 350, footer + 49, 112, 35), "확인", primary) && acceptInput)
                     AdvanceVisibleDialogue();
@@ -53,41 +56,40 @@ namespace SunshineHospital
             float appear = Mathf.SmoothStep(0, 1, (Time.unscaledTime - dialogueVisibleAt) / .18f);
             Color previous = GUI.color;
             GUI.color = new Color(1, 1, 1, appear);
-            float panelWidth = Mathf.Min(665, width * .64f);
-            float dialogueY = footer - 48 + (1 - appear) * 10;
+            float panelWidth = Mathf.Min(790, width * .647f);
+            float dialogueY = footer - 89 + (1 - appear) * 10;
             float panelLeft = width - panelWidth - 24;
-            float portraitWidth = Mathf.Min(442f, width * .43f);
+            float portraitWidth = Mathf.Min(478f, width * .398f);
             float portraitHeight = 505f;
             float portraitBottom = footer + 198;
             Panel(new Rect(0, 0, width, footer + 126), new Color(.20f, .18f, .12f, .12f));
             if (room.PortraitTexture != null)
-                GUI.DrawTexture(new Rect(4, footer - 294 + (1 - appear) * 5, portraitWidth, 446f),
-                    room.PortraitTexture, ScaleMode.ScaleToFit, true);
+                CameraArt(new Rect(4, footer - 294 + (1 - appear) * 5, portraitWidth, 446f), room.PortraitTexture, true);
             else
                 Art(new Rect(18, portraitBottom - portraitHeight, portraitWidth, portraitHeight),
                     DialoguePose == "greeting" ? "minji-greeting" : "minji-explaining");
-            DialogueShadow(new Rect(panelLeft - 2, dialogueY + 4, panelWidth + 4, 140));
+            DialogueShadow(new Rect(panelLeft - 2, dialogueY + 8, panelWidth + 4, 177));
             Art(new Rect(panelLeft - 31, dialogueY + 23, 47, 41), "bubble-tail");
-            AlphaFrame(new Rect(panelLeft, dialogueY, panelWidth, 137));
-            GUI.Box(new Rect(panelLeft + 28, dialogueY - 20, 95, 37), "민지", quiet);
+            if (Event.current.type == EventType.Repaint) bubble.Draw(new Rect(panelLeft, dialogueY, panelWidth, 175), GUIContent.none, false, false, false, false);
+            GUI.Box(new Rect(panelLeft + 28, dialogueY - 20, 95, 37), "민지", minjiBadge);
             GUI.Box(new Rect(panelLeft + 118, dialogueY - 17, 113, 32), "접수 담당", dockSelected);
             Art(new Rect(panelLeft + panelWidth - 61, dialogueY - 23, 58, 58), "dialogue-sunflower");
-            GUI.Label(new Rect(panelLeft + 29, dialogueY + 23, panelWidth - 58, 52),
+            GUI.Label(new Rect(panelLeft + 34, dialogueY + 28, panelWidth - 72, 84),
                 growthDialogue == 0 ? script.Text : GrowthStory(growthDialogue, network.StoryLine), dialogueText);
 
-            if (GUI.Button(new Rect(panelLeft + 29, dialogueY + 89, 100, 38), "건너뛰기", patientTag) && acceptInput)
+            if (GUI.Button(new Rect(panelLeft + 34, dialogueY + 128, 100, 38), "건너뛰기", patientTag) && acceptInput)
             {
                 if (growthDialogue != 0) CloseGrowthDialogue();
                 else if (replayGuide != GuideMoment.None) replayGuide = GuideMoment.None;
                 else day.SkipGuide();
             }
             float nextX = panelLeft + panelWidth - 135;
-            if (GUI.Button(new Rect(nextX, dialogueY + 83, 113, 43), "다음    ", primary) && acceptInput)
+            if (GUI.Button(new Rect(nextX, dialogueY + 119, 113, 45), "다음    ", nextCapsule) && acceptInput)
                 AdvanceVisibleDialogue();
-            Art(new Rect(nextX + 77, dialogueY + 94, 23, 23), "next");
+            Art(new Rect(nextX + 77, dialogueY + 130, 23, 23), "next");
             if (moment == GuideMoment.Welcome && growthDialogue == 0)
                 for (int i = 0; i < HospitalDay.WelcomeLineCount; i++)
-                    Art(new Rect(panelLeft + panelWidth / 2 - 13 + i * 16, dialogueY + 107, 10, 10), i == line ? "dot-active" : "dot");
+                    Art(new Rect(panelLeft + panelWidth / 2 - 13 + i * 16, dialogueY + 143, 10, 10), i == line ? "dot-active" : "dot");
             GUI.color = previous;
         }
 

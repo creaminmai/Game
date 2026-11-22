@@ -10,6 +10,8 @@ namespace SunshineHospital
         private Transform expansionPreview;
         private Transform riverbank;
         private Transform seafront;
+        private Transform neighborhood;
+        private Transform regionalPorch;
         private readonly System.Collections.Generic.List<Renderer> roofPanels = new();
         private Transform researchLab;
         private Transform annex;
@@ -32,11 +34,15 @@ namespace SunshineHospital
                 expansionPreview.gameObject.SetActive(!expanded && preview);
                 riverbank.gameObject.SetActive(site == HospitalSite.Riverside);
                 seafront.gameObject.SetActive(site == HospitalSite.Coast);
+                neighborhood.gameObject.SetActive(site == HospitalSite.Main);
+                regionalPorch.gameObject.SetActive(regional);
                 if (site != roofSite)
                 {
                     roofSite = site;
-                    var color = site == HospitalSite.Coast ? Coral : regional ? new Color(.27f, .62f, .68f) : Mint;
-                    foreach (var roof in roofPanels) roof.material.color = color;
+                    var color = site == HospitalSite.Coast ? new Color(.81f, .43f, .34f) :
+                        regional ? new Color(.25f, .52f, .59f) : new Color(.27f, .56f, .48f);
+                    var finish = MaterialFor(color);
+                    foreach (var roof in roofPanels) roof.sharedMaterial = finish;
                 }
                 if (hasLab && researchLab == null) BuildResearchLab();
                 if (researchLab != null) researchLab.gameObject.SetActive(hasLab);
@@ -78,27 +84,42 @@ namespace SunshineHospital
             annexLamp = Lamp(annex, new Vector3(11.25f, 1.8f, 3.05f));
         }
 
-        private HospitalSite roofSite;
+        private HospitalSite? roofSite;
 
         private void BuildExterior()
         {
             exterior = Group(root.parent, "병원 외부", Vector3.zero);
             Box(exterior, "정원", new Vector3(.5f, -.3f, .5f), new Vector3(25f, .4f, 15f), new Color(.65f, .73f, .48f));
-            Box(exterior, "앞뜰 보행로", new Vector3(2, -.03f, 5.05f), new Vector3(18f, .15f, 2.5f), Wood);
+            Box(exterior, "앞뜰 보행로", new Vector3(2, -.03f, 5.05f), new Vector3(18f, .15f, 2.5f), new Color(.85f, .75f, .60f));
             Box(exterior, "본원", new Vector3(0, 2.2f, 0), new Vector3(9, 4.4f, 6), Cream);
+            Box(exterior, "크림색 층간 띠", new Vector3(0, 2.68f, 0), new Vector3(9.12f, .15f, 6.12f), White);
+            Box(exterior, "석재 기단", new Vector3(0, .29f, 0), new Vector3(9.18f, .55f, 6.16f), new Color(.82f, .70f, .54f));
+            Box(exterior, "가로 처마 아래", new Vector3(0, 4.38f, 0), new Vector3(9.58f, .22f, 6.55f), Wood);
+            Box(exterior, "지붕 용마루", new Vector3(0, 5.28f, 0), new Vector3(.25f, .20f, 6.79f), Wood);
             for (int side = -1; side <= 1; side += 2)
             {
                 var roof = Shape(exterior, "민트 지붕", PrimitiveType.Cube, new Vector3(side * 2.35f, 4.83f, 0),
                     new Vector3(4.9f, .23f, 6.65f), Mint);
                 roofPanels.Add(roof.GetComponent<Renderer>());
                 roof.transform.rotation = Quaternion.Euler(0, 0, side * -11f);
+                Color rib = new(.38f, .57f, .48f);
+                for (int bay = -2; bay <= 2; bay++)
+                {
+                    var seam = Shape(exterior, "지붕 이음", PrimitiveType.Cube,
+                        new Vector3(side * 2.32f, 4.965f, bay * 1.24f), new Vector3(4.81f, .045f, .048f), rib);
+                    seam.transform.rotation = roof.transform.rotation;
+                }
                 Window(exterior, side * 2.45f, 1.18f, 3.08f);
                 Window(exterior, side * 2.45f, 3.31f, 3.08f);
-                Plant(exterior, side * 7.8f, 5.1f);
-                Shape(exterior, "나무", PrimitiveType.Sphere, new Vector3(side * 7.8f, 2.1f, 5.1f), new Vector3(1.55f, 2.4f, 1.55f), Mint);
                 Box(exterior, "외벽 원목 기둥", new Vector3(side * 4.22f, 2.2f, 3.04f), new Vector3(.23f, 4.4f, .22f), Wood);
+                var wall = Group(exterior, "측면 창 아치", new Vector3(side * 4.57f, 0, 0));
+                wall.localRotation = Quaternion.Euler(0, side * 90, 0);
+                Window(wall, -.88f, 1.18f, 0);
+                Window(wall, 1.16f, 3.31f, 0);
             }
-            Box(exterior, "입구 유리문", new Vector3(0, 1.06f, 3.11f), new Vector3(1.68f, 2.12f, .2f), Mint);
+            Box(exterior, "입구 프레임", new Vector3(0, 1.14f, 3.09f), new Vector3(1.92f, 2.27f, .22f), Wood);
+            Box(exterior, "입구 유리문", new Vector3(0, 1.08f, 3.22f), new Vector3(1.63f, 2.04f, .15f), new Color(.42f, .68f, .64f));
+            Box(exterior, "입구 중앙 창살", new Vector3(0, 1.1f, 3.31f), new Vector3(.067f, 2.09f, .06f), Cream);
             Box(exterior, "입구 차양", new Vector3(0, 2.39f, 3.54f), new Vector3(2.65f, .23f, 1.38f), Mint);
             Box(exterior, "입구 계단", new Vector3(0, .08f, 3.75f), new Vector3(2.42f, .14f, 1.05f), White);
             var sign = Shape(exterior, "해바라기 입구 간판", PrimitiveType.Sphere, new Vector3(0, 3.43f, 3.21f),
@@ -115,8 +136,26 @@ namespace SunshineHospital
             {
                 Box(exterior, "현관 난간", new Vector3(side * 1.26f, .58f, 4.31f), new Vector3(.07f, .1f, 1.2f), Wood);
                 Box(exterior, "현관 기둥", new Vector3(side * 1.26f, .3f, 4.76f), new Vector3(.09f, .61f, .09f), Wood);
-                Box(exterior, "대기 벤치", new Vector3(side * 3.08f, .46f, 4.46f), new Vector3(1.45f, .26f, .53f), Coral);
+                GardenBench(exterior, side * 3.08f, 4.46f);
             }
+
+            neighborhood = Group(exterior, "본원 동네 화단", Vector3.zero);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var at = new Vector3(side * 5.5f, .06f, 3.45f);
+                Box(neighborhood, "원목 화단", at, new Vector3(1.52f, .26f, 1.05f), Wood);
+                for (int leaf = 0; leaf < 3; leaf++)
+                    Shape(neighborhood, "화단 잎", PrimitiveType.Sphere, at + new Vector3((leaf-1)*.37f,.21f,0),
+                        new Vector3(.51f,.44f,.61f), Mint);
+                Box(neighborhood, "동네 나무 줄기", new Vector3(side*7.82f,.62f,4.91f), new Vector3(.25f,1.26f,.25f), Wood);
+                Shape(neighborhood, "동네 나무 수관", PrimitiveType.Sphere, new Vector3(side*7.82f,1.48f,4.91f),
+                    new Vector3(1.28f,1.74f,1.34f), new Color(.53f,.67f,.37f));
+            }
+            regionalPorch = Group(exterior, "분원 측면 회랑", Vector3.zero);
+            Box(regionalPorch,"회랑 처마",new Vector3(-4.66f,2.44f,1.68f),new Vector3(1.35f,.22f,2.6f),Wood);
+            Box(regionalPorch,"회랑 디딤판",new Vector3(-4.69f,.10f,1.68f),new Vector3(1.42f,.20f,2.74f),Cream);
+            for (int end=-1;end<=1;end+=2)
+                Box(regionalPorch,"회랑 원목 기둥",new Vector3(-5.18f,1.20f,1.68f+end*1.08f),new Vector3(.17f,2.4f,.17f),Wood);
 
             expansionPlot = Group(exterior, "치료별관 예정지", new Vector3(7f, 0, 0));
             Box(expansionPlot, "별관 부지", new Vector3(0, -.04f, 0), new Vector3(4.4f, .12f, 5.4f), Wood);
@@ -144,10 +183,18 @@ namespace SunshineHospital
             Box(riverbank, "정류장 기둥", new Vector3(-5.1f, 1.05f, 4.66f), new Vector3(.13f, 2.1f, .13f), Cream);
             Box(riverbank, "정류장 표지", new Vector3(-5.1f, 2.06f, 4.66f), new Vector3(.7f, .45f, .19f), Coral);
             Box(riverbank, "정류장 벤치", new Vector3(-4.5f, .47f, 5.3f), new Vector3(1.7f, .19f, .51f), Wood);
+            for (int side = -1; side <= 1; side += 2)
+                Box(riverbank, "강변 다리 난간", new Vector3(-8.5f, .54f, 1.4f + side*.79f),
+                    new Vector3(5.15f, .13f, .12f), Cream);
 
             seafront = Group(exterior, "해안 산책로", Vector3.zero);
             Box(seafront, "수평선", new Vector3(-7.8f, -.05f, -3.9f), new Vector3(8.4f, .11f, 6f), new Color(.34f, .65f, .76f));
             Box(seafront, "모래 언덕", new Vector3(-8f, .01f, -.8f), new Vector3(8f, .12f, 1.7f), new Color(.92f, .79f, .55f));
+            Box(seafront, "해안 산책로", new Vector3(-7.35f, .08f, .13f), new Vector3(6.2f, .15f, .77f), Wood);
+            GardenBench(seafront, -8.65f, .53f);
+            for (int wave = 0; wave < 4; wave++)
+                Box(seafront, "물결", new Vector3(-10.15f + wave*.72f,.015f,-2.16f-wave*.37f),
+                    new Vector3(.72f,.016f,.06f), new Color(.61f,.85f,.83f));
             Shape(seafront, "등대 몸체", PrimitiveType.Cylinder, new Vector3(-7.7f, 1.4f, -.9f), new Vector3(1.05f, 1.4f, 1.05f), Cream);
             Shape(seafront, "등대 전망층", PrimitiveType.Cylinder, new Vector3(-7.7f, 2.9f, -.9f), new Vector3(1.25f, .18f, 1.25f), Coral);
             Shape(seafront, "등대 등불", PrimitiveType.Sphere, new Vector3(-7.7f, 3.28f, -.9f), new Vector3(.66f, .67f, .66f), Wood);
@@ -180,6 +227,16 @@ namespace SunshineHospital
             Box(parent, "원목 창틀", new Vector3(x, y, z), new Vector3(1.4f, 1.02f, .14f), Wood);
             Box(parent, "창 유리", new Vector3(x, y, z + .08f), new Vector3(1.19f, .81f, .06f), new Color(.48f, .69f, .69f));
             Box(parent, "창살", new Vector3(x, y, z + .13f), new Vector3(.08f, .88f, .04f), White);
+            Box(parent, "창턱", new Vector3(x, y - .53f, z + .14f), new Vector3(1.51f, .12f, .33f), Cream);
+            Box(parent, "창 반사광", new Vector3(x-.27f, y+.24f, z+.125f), new Vector3(.31f, .06f, .02f), new Color(.80f,.86f,.77f));
+        }
+
+        private void GardenBench(Transform parent, float x, float z)
+        {
+            Box(parent,"벤치 좌판",new Vector3(x,.47f,z),new Vector3(1.45f,.12f,.55f),Wood);
+            Box(parent,"코랄 벤치 등받이",new Vector3(x,.75f,z-.25f),new Vector3(1.45f,.22f,.115f),Coral);
+            for (int side = -1; side <= 1; side += 2)
+                Box(parent,"벤치 다리",new Vector3(x+side*.56f,.24f,z),new Vector3(.12f,.43f,.46f),new Color(.43f,.31f,.23f));
         }
     }
 }

@@ -37,7 +37,7 @@ namespace SunshineHospital
             }
 
             var map = new Rect(left + 18, top + 80, 555, 320);
-            if (room.MapTexture != null) GUI.DrawTexture(map, room.MapTexture, ScaleMode.StretchToFill, false);
+            if (room.MapTexture != null) CameraArt(map, room.MapTexture, false);
             else Art(map, "region-map");
             for (int i = 0; i < 3; i++)
             {

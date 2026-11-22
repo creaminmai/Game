@@ -11,12 +11,14 @@ namespace SunshineHospital
     {
         private bool qaRunning;
         private float qaSpeed = 1f;
+        private string reviewExpression;
 
         private bool recordingInput;
         private HospitalSave inputPreviousSave;
         private HospitalNetwork inputPreviousNetwork;
-        private bool inputPreviousTitle;
-        private void ToggleDialogueRecording()
+        private bool inputPreviousTitle, inputPreviousOutside, inputPreviousStaff, inputPreviousMap;
+        private AlphaPage inputPreviousPage;
+        private void ToggleDialogueRecording(bool regionalFixture)
         {
             if (recordingInput)
             {
@@ -24,21 +26,43 @@ namespace SunshineHospital
                 save = inputPreviousSave;
                 network = inputPreviousNetwork;
                 titleOpen = inputPreviousTitle;
+                outside = inputPreviousOutside;
+                staffOpen = inputPreviousStaff;
+                mapOpen = inputPreviousMap;
+                alphaPage = inputPreviousPage;
                 SetDay(network.Active);
                 return;
             }
-            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/minji-dialogue"));
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight",
+                regionalFixture ? "graphics-v2" : "minji-dialogue"));
             Directory.CreateDirectory(folder);
+            HospitalNetwork isolated = null;
+            if (regionalFixture)
+            {
+                var fixture = new HospitalSave(Path.Combine(folder, "isolated.bin"));
+                if (!Expect(fixture.LoadNetwork(room.UsesOriginalArt, out isolated) == HospitalLoadResult.Loaded &&
+                    isolated.Available(HospitalSite.Coast), "regional input review loaded an isolated fixture")) return;
+            }
             recordingInput = true;
             inputPreviousSave = save;
             inputPreviousNetwork = network;
             inputPreviousTitle = titleOpen;
-            save = new HospitalSave(Path.Combine(folder, "isolated.bin"));
-            network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
+            inputPreviousOutside = outside;
+            inputPreviousStaff = staffOpen;
+            inputPreviousMap = mapOpen;
+            inputPreviousPage = alphaPage;
+            save = new HospitalSave(Path.Combine(folder, "isolated-input.bin"));
+            network = isolated ?? new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
             titleOpen = mapOpen = staffOpen = outside = false;
             CloseAlphaPage();
+            if (regionalFixture)
+            {
+                network.Switch(HospitalSite.Main);
+                mapSelection = HospitalSite.Main;
+                mapOpen = true;
+            }
             SetDay(network.Active);
-            StartCoroutine(RecordVisit(Path.Combine(folder, "input.mp4")));
+            StartCoroutine(RecordVisit(Path.Combine(folder, regionalFixture ? "map-input.mp4" : "input.mp4")));
         }
 
         private IEnumerator VerifyHud()
@@ -47,7 +71,7 @@ namespace SunshineHospital
             var oldPage = alphaPage;
             bool oldTitle = titleOpen, oldOutside = outside, oldMap = mapOpen, oldStaff = staffOpen;
             int oldId = selectedId;
-            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/production-3d"));
+            string folder = GraphicsReviewFolder();
             qaRunning = capturingHud = true;
             qaSpeed = 0;
             try
@@ -58,6 +82,7 @@ namespace SunshineHospital
                 network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
                 SetDay(network.Active);
                 day.UpdateGuide(false);
+                if (!Expect(room.UsesOriginalArt, "authored hospital meshes are present")) yield break;
                 useOldHud = true;
                 heading = null;
                 yield return HudCapture(folder, "welcome-before");
@@ -65,10 +90,11 @@ namespace SunshineHospital
                 heading = null;
                 yield return new WaitForSecondsRealtime(.3f);
                 yield return HudCapture(folder, "welcome");
+                if (!Expect(room.PortraitShapeCount > 0, "Minji glTF facial morph renderers are available")) yield break;
                 var display = Resources.Load<Font>("Jua-Regular");
                 if (!Expect(display != null && "햇살병원민지설정접수하기계획지시900만1,1000/600:30".All(display.HasCharacter),
                     "Jua covers representative Hangul, numbers and punctuation")) yield break;
-                if (!Expect(new[] { "coin", "portrait-minji", "map", "pause", "minji-greeting", "minji-explaining" }.All(name =>
+                if (!Expect(new[] { "coin", "portrait-minji-v2", "map", "pause", "minji-greeting", "minji-explaining" }.All(name =>
                     Resources.Load<Texture2D>("HospitalUI/" + name) is Texture2D asset && asset.width > 8),
                     "HUD icons and portraits are available")) yield break;
                 AdvanceVisibleDialogue();
@@ -127,7 +153,13 @@ namespace SunshineHospital
                         }
                         network.Tick(.05f);
                     }
-                    if (!Expect(network.Complete, "alpha operating day closed")) yield break;
+                    if (!Expect(network.Complete, $"alpha operating day {main.DayNumber} closed"))
+                    {
+                        Debug.LogWarning($"[Hospital QA] Main clock {main.Time:F2}, paused {main.Paused}, CT {main.CtOwner}, " +
+                            $"planning {main.PlanOwner}, treatment {main.TreatmentOwnerAt(0)}/{main.TreatmentOwnerAt(1)}. " +
+                            string.Join(", ", main.Patients.Select(p => $"{p.Id}:{p.Stage}@{p.Waypoint} {p.Position}")));
+                        yield break;
+                    }
                     if (date == 1)
                     {
                         yield return HudCapture(folder, "day-result");
@@ -241,6 +273,116 @@ namespace SunshineHospital
                 alphaPage = oldPage;
                 SetDay(network.Active);
                 Select(oldId);
+            }
+        }
+
+        private static string GraphicsReviewFolder() =>
+            Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/unity-overnight/graphics-v2"));
+
+        private IEnumerator ReviewMinji()
+        {
+            var previousNetwork = network;
+            var previousPage = alphaPage;
+            bool previousTitle = titleOpen, previousOutside = outside, previousMap = mapOpen, previousStaff = staffOpen;
+            int previousSelection = selectedId;
+            qaRunning = capturingHud = true;
+            qaSpeed = 0;
+            string folder = GraphicsReviewFolder();
+            bool recordingExpressions = true;
+            try
+            {
+                Directory.CreateDirectory(folder);
+                titleOpen = outside = mapOpen = staffOpen = false;
+                alphaPage = AlphaPage.None;
+                network = new HospitalNetwork(new HospitalDay(room.UsesOriginalArt));
+                SetDay(network.Active);
+                day.UpdateGuide(false);
+                reviewExpression = "idle";
+                foreach (var angle in new[] { (0f, "front"), (45f, "45"), (90f, "side"), (180f, "back") })
+                {
+                    room.FramePortraitForReview(angle.Item1, true, true);
+                    yield return new WaitForSecondsRealtime(.30f);
+                    yield return new WaitForEndOfFrame();
+                    WritePortrait(Path.Combine(folder, $"silhouette-{angle.Item2}.png"));
+                }
+                room.FramePortraitForReview(9f, false, false);
+                StartCoroutine(RecordVisit(Path.Combine(folder, "minji-expressions.mp4"), () => recordingExpressions));
+                foreach (string expression in new[] { "greeting", "explaining", "joyful", "worried", "relief" })
+                {
+                    reviewExpression = expression;
+                    if (expression == "explaining") AdvanceVisibleDialogue();
+                    yield return new WaitForSecondsRealtime(.68f);
+                    yield return new WaitForEndOfFrame();
+                    WritePortrait(Path.Combine(folder, $"portrait-{expression}.png"));
+                    yield return HudCapture(folder, $"dialogue-{expression}");
+                    yield return new WaitForSecondsRealtime(1.35f);
+                }
+                recordingExpressions = false;
+                yield return new WaitForEndOfFrame();
+                yield return MeasurePortraitFrames(folder);
+                Debug.Log($"[Hospital QA] Isolated Minji geometry and expression review captured: {folder}");
+            }
+            finally
+            {
+                room.FramePortraitForReview(9f, false, false);
+                room.ProfileSkipPortraitCamera = false;
+                recordingExpressions = false;
+                reviewExpression = null;
+                qaSpeed = 1;
+                qaRunning = capturingHud = false;
+                network = previousNetwork;
+                titleOpen = previousTitle;
+                outside = previousOutside;
+                mapOpen = previousMap;
+                staffOpen = previousStaff;
+                alphaPage = previousPage;
+                SetDay(network.Active);
+                Select(previousSelection);
+            }
+        }
+
+        private IEnumerator MeasurePortraitFrames(string folder)
+        {
+            var timing = new System.Text.StringBuilder("portrait_renderer,median_frame_ms,p90_frame_ms\n");
+            foreach (bool enabled in new[] { false, true, false, true })
+            {
+                room.ProfileSkipPortraitCamera = !enabled;
+                yield return new WaitForSecondsRealtime(.35f);
+                var intervals = new float[90];
+                for (int i = 0; i < intervals.Length; i++)
+                {
+                    yield return null;
+                    intervals[i] = Time.unscaledDeltaTime * 1_000f;
+                }
+                System.Array.Sort(intervals);
+                timing.Append(System.FormattableString.Invariant($"{enabled},{intervals[45]:F3},{intervals[80]:F3}\n"));
+            }
+            File.WriteAllText(Path.Combine(folder, "editor-portrait-frame-time.csv"), timing.ToString());
+        }
+
+        private void WritePortrait(string path)
+        {
+            var target = room.PortraitTexture;
+            if (target == null) return;
+            var previous = RenderTexture.active;
+            var image = new Texture2D(target.width, target.height, TextureFormat.RGBA32, false, true);
+            try
+            {
+                RenderTexture.active = target;
+                image.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0, false);
+                if (QualitySettings.activeColorSpace == ColorSpace.Linear && !target.sRGB)
+                {
+                    var pixels = image.GetPixels();
+                    for (int i = 0; i < pixels.Length; i++) pixels[i] = pixels[i].gamma;
+                    image.SetPixels(pixels);
+                }
+                image.Apply(false);
+                File.WriteAllBytes(path, image.EncodeToPNG());
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                Destroy(image);
             }
         }
 
@@ -750,7 +892,7 @@ namespace SunshineHospital
             return Expect(day.Patients[0].Stage == target, $"restart test reached {target}");
         }
 
-        private IEnumerator RecordVisit(string path)
+        private IEnumerator RecordVisit(string path, System.Func<bool> keepRecording = null)
         {
             const int rate = 15;
             const int width = 960;
@@ -782,10 +924,10 @@ namespace SunshineHospital
             var endOfFrame = new WaitForEndOfFrame();
             try
             {
-                while (qaRunning || recordingInput)
+                while (keepRecording?.Invoke() ?? (qaRunning || recordingInput))
                 {
                     yield return endOfFrame;
-                    if (!qaRunning && !recordingInput) break;
+                    if (!(keepRecording?.Invoke() ?? (qaRunning || recordingInput))) break;
                     long elapsed = (long)((Time.realtimeSinceStartupAsDouble - start) * 1000);
                     if (elapsed < next) continue;
                     next = elapsed + 1000 / rate;

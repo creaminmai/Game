@@ -28,7 +28,7 @@ namespace SunshineHospital
         private const float Header = 108f;
         private const float Footer = 88f;
         private static readonly Color Paper = new(1f, .965f, .898f);
-        private static readonly Color Ink = new(.15f, .22f, .19f);
+        private static readonly Color Ink = new(.141f, .267f, .231f);
         private static readonly Color Mint = new(.10f, .40f, .32f);
         private static readonly Color Coral = new(.98f, .75f, .67f);
         private GUIStyle heading;
@@ -87,7 +87,9 @@ namespace SunshineHospital
             if (capturing) return;
             if (!qaRunning && room.UsesOriginalArt)
             {
-                if (Input.GetKeyDown(KeyCode.F2)) ToggleDialogueRecording();
+                if (Input.GetKeyDown(KeyCode.F1)) StartCoroutine(ReviewMinji());
+                if (Input.GetKeyDown(KeyCode.F2))
+                    ToggleDialogueRecording(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
                 if (Input.GetKeyDown(KeyCode.F3)) StartCoroutine(VerifyHud());
                 if (Input.GetKeyDown(KeyCode.F4)) StartCoroutine(VerifyNetwork());
                 if (Input.GetKeyDown(KeyCode.F9)) StartCoroutine(VerifyVisit());
@@ -653,6 +655,7 @@ namespace SunshineHospital
         {
             room?.ReleasePresentation();
             foreach (var texture in hudTextures) Destroy(texture);
+            if (cameraComposite != null) Destroy(cameraComposite);
         }
 
         private static void Panel(Rect position, Color color)
