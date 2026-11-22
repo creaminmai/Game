@@ -1,0 +1,5 @@
+portrait_renderer,median_frame_ms,p90_frame_ms
+False,1.322,1.614
+True,1.583,1.852
+False,1.293,1.501
+True,1.563,1.831
