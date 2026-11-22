@@ -7,13 +7,16 @@ namespace SunshineHospital
 {
     public sealed partial class HospitalGame
     {
-        private IEnumerator ReviewSimpleMinji()
+        private bool minjiTurntable;
+
+        private IEnumerator ReviewSimpleMinji(bool volume)
         {
             if (recordingInput) yield break;
-            if (!Expect(room.BeginSimpleMinjiReview(), "simple Minji prefab, facial graphics and greeting clip loaded"))
+            if (!Expect(room.BeginSimpleMinjiReview(volume), "simple Minji prefab, facial graphics and greeting clip loaded"))
                 yield break;
 
-            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts/minji-simple-v1"));
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../artifacts",
+                volume ? "minji-simple-volume" : "minji-simple-v1"));
             var previousNetwork = network;
             var previousPage = alphaPage;
             var previousReplay = replayGuide;
@@ -32,6 +35,12 @@ namespace SunshineHospital
                 SetDay(network.Active);
                 day.UpdateGuide(false);
                 reviewExpression = "idle";
+
+                if (volume)
+                {
+                    yield return CaptureVolumeReview(folder);
+                    yield break;
+                }
 
                 room.FrameSimpleMinji(0, true);
                 room.PoseSimpleMinji(0, 0);
@@ -91,6 +100,7 @@ namespace SunshineHospital
             finally
             {
                 recording = false;
+                minjiTurntable = false;
                 room.EndSimpleMinjiReview();
                 reviewExpression = null;
                 qaSpeed = 1;
@@ -106,6 +116,87 @@ namespace SunshineHospital
                 SetDay(network.Active);
                 Select(previousSelection);
             }
+        }
+
+        private IEnumerator CaptureVolumeReview(string folder)
+        {
+            room.LightVolumeReview(neutral: true);
+            room.PoseSimpleMinji(0, 0);
+            foreach (var (yaw, label) in new[] { (0f, "front"), (45f, "45"), (90f, "side"), (180f, "back") })
+            {
+                room.FrameSimpleMinji(yaw, true);
+                yield return null;
+                yield return new WaitForEndOfFrame();
+                WritePortrait(Path.Combine(folder, $"unity-{label}.png"));
+            }
+            room.FrameSimpleMinji(10, false);
+            room.PoseSimpleMinji(0, 1.10f);
+            yield return null;
+            yield return new WaitForEndOfFrame();
+            WritePortrait(Path.Combine(folder, "unity-neutral-portrait.png"));
+
+            room.FrameSimpleMinji(0, true);
+            room.PoseSimpleMinji(0, 0);
+            minjiTurntable = true;
+            bool recording = true;
+            var endOfFrame = new WaitForEndOfFrame();
+            StartCoroutine(RecordVisit(Path.Combine(folder, "minji-volume-turntable.mp4"), () => recording));
+            try
+            {
+                double start = Time.realtimeSinceStartupAsDouble;
+                float elapsed;
+                while ((elapsed = (float)(Time.realtimeSinceStartupAsDouble - start)) < 12.7f)
+                {
+                    room.RotateSimpleMinji(360 * Mathf.Clamp01((elapsed - .3f) / 12f));
+                    yield return null;
+                }
+            }
+            finally
+            {
+                recording = false;
+                minjiTurntable = false;
+            }
+            yield return endOfFrame;
+            yield return null;
+
+            room.LightVolumeReview(neutral: false);
+            room.FrameSimpleMinji(10, false);
+            room.PoseSimpleMinji(0, 1.10f);
+            yield return endOfFrame;
+            WritePortrait(Path.Combine(folder, "unity-dialogue-portrait.png"));
+            WriteGameView(Path.Combine(folder, "unity-dialogue.png"));
+
+            recording = true;
+            StartCoroutine(RecordVisit(Path.Combine(folder, "minji-volume-greeting-walk.mp4"), () => recording));
+            try
+            {
+                double start = Time.realtimeSinceStartupAsDouble;
+                float elapsed;
+                while ((elapsed = (float)(Time.realtimeSinceStartupAsDouble - start)) < 4.6f)
+                {
+                    room.PoseSimpleMinji(0, elapsed);
+                    yield return null;
+                }
+                day.SkipGuide();
+                yield return null;
+                yield return HudCapture(folder, "unity-operations");
+                room.VolumeOperationClose = true;
+                yield return null;
+                yield return HudCapture(folder, "unity-operation-close");
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    room.BeginVolumeWalk();
+                    start = Time.realtimeSinceStartupAsDouble;
+                    while (Time.realtimeSinceStartupAsDouble - start < 2.45)
+                    {
+                        room.PoseVolumeWalk();
+                        yield return null;
+                    }
+                }
+            }
+            finally { recording = false; }
+            yield return endOfFrame;
+            Debug.Log($"[Hospital QA] Minji volume, skin and motion review captured: {folder}");
         }
     }
 }

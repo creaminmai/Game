@@ -1,5 +1,7 @@
 # 단순 3D 민지 마감 검토
 
+후속 검토에서 앞뒤 부피와 피부를 조정했다. [새 입체 부피와 피부색 검토](minji-simple-volume-review.md)
+
 기준 커밋은 `e30f6c6`이다. 가이드 원본은 GitHub main의 `237ca7a`에 있다. 새 마감은 기존 단일 모델과 검토 프리팹에 적용했다. 일반 플레이와 배포 빌드에는 적용 전이며 최종 사용자 승인도 대기 중이다. [캐릭터 시트](../reference/art/minji-simple-v1/minji-character-sheet.png) · [제작 지시](minji-simple-character-direction.md)
 
 ## 비교와 실제 캡처

@@ -89,9 +89,10 @@ namespace SunshineHospital
             {
                 if (Input.GetKeyDown(KeyCode.F1))
                 {
+                    bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
                     if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
-                        StartCoroutine(ReviewSimpleMinji());
-                    else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                        StartCoroutine(ReviewSimpleMinji(volume: shift));
+                    else if (shift)
                         StartCoroutine(ReviewMinjiFaceStudy());
                     else StartCoroutine(ReviewMinji());
                 }
@@ -281,6 +282,15 @@ namespace SunshineHospital
 
         private void DrawHud(float width, float height, float scale)
         {
+#if UNITY_EDITOR
+            if (minjiTurntable)
+            {
+                Panel(new Rect(0, 0, width, height), new Color(.86f, .87f, .86f));
+                var stage = new Rect(0, 12, width, height - 24);
+                CameraArt(stage, room.PortraitTexture, true);
+                return;
+            }
+#endif
             bool acceptInput = true;
             bool showGuide = IsDialogueVisible;
 #if UNITY_EDITOR

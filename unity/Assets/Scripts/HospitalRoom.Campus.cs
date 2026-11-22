@@ -50,6 +50,9 @@ namespace SunshineHospital
             var shift = new Vector3(outside ? (hasLab || regional ? 0f : 2f) : expanded ? 2.65f : 0f, 0, 0);
             Camera.transform.position = new Vector3(11, 18, 20) + shift;
             Camera.orthographicSize = outside ? (hasLab || regional ? 11.1f : 9.8f) : expanded ? 10f : 8.6f;
+#if UNITY_EDITOR
+            if (VolumeOperationClose) FrameVolumeOperation();
+#endif
         }
 
         internal void SetAnnexActivity(float lift, bool active)
