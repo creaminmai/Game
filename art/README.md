@@ -9,6 +9,7 @@
 | 병원 내부 | [hospital-interior.blend](source/hospital-interior.blend) | [GLB](../godot/assets/models/hospital-interior.glb) |
 | 치료 별관 | [treatment-annex.blend](source/treatment-annex.blend) | [GLB](../godot/assets/models/treatment-annex.glb) |
 | 민지 | [nurse.blend](source/nurse.blend) | [GLB](../godot/assets/models/nurse.glb) |
+| Unity 민지 v2 | [minji-v2.blend](source/minji-v2.blend) | [Unity GLB](../unity/Assets/Resources/HospitalArt/minji-v2.glb) |
 | 환자 | [patient.blend](source/patient.blend) | [GLB](../godot/assets/models/patient.glb) |
 
 ## 재생성
