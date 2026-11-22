@@ -1,0 +1,13 @@
+{
+  "created_date_kst": "2026-11-23",
+  "file": "minji-12-view-sheet.png",
+  "sha256": "f3ba164a71575e8deee71f98f9e76e09a078116dfdf2a1cc3cf151a7dcd5575d",
+  "size_bytes": 1696962,
+  "dimensions": [
+    1448,
+    1086
+  ],
+  "source": "image_gen; repository-saving recreation referencing the preceding conversation 12-view sheet",
+  "status": "generated modeling reference, not actual Blender/Unity renders or an exact orthographic blueprint",
+  "original_generated_file": "/workspace/generated_images/exec-0ca29f70-5c96-4109-b081-9fc13e77f50d.png"
+}
