@@ -1,0 +1,13 @@
+{
+  "created_date_kst": "2026-11-22",
+  "status": "generated concept for review; not approved final character, not a Blender model or Unity screenshot",
+  "file": "minji-character-sheet.png",
+  "sha256": "121027e23a0c27bf45af4e6163068a25be600e2b37efea19739d7aee232bc161",
+  "size_bytes": 1776277,
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "source": "image_gen; original retained at /workspace/generated_images/exec-f50692ee-2ef4-42a3-9772-93c88d27a828.png",
+  "direction": "Simple cozy 3D human character; round large head, short body, flat oval eyes and curved mouth, brown bob, mint uniform, sunflower badge."
+}
