@@ -12,6 +12,7 @@ namespace SunshineHospital
         private Animation simpleMotion;
         private Vector3 originalFillPosition;
         private Quaternion originalFillRotation;
+        private Color originalFillColor;
         private float originalFillIntensity, originalFillAngle, originalKeyIntensity;
 
         internal bool BeginSimpleMinjiReview()
@@ -41,25 +42,34 @@ namespace SunshineHospital
             portraitActor.gameObject.SetActive(false);
             originalFillPosition = portraitFill.transform.position;
             originalFillRotation = portraitFill.transform.rotation;
+            originalFillColor = portraitFill.color;
             originalFillIntensity = portraitFill.intensity;
             originalFillAngle = portraitFill.spotAngle;
             originalKeyIntensity = portraitKey.intensity;
-            portraitFill.transform.position = PortraitOrigin + new Vector3(-1.35f, 1.05f, 2.45f);
-            portraitFill.transform.LookAt(PortraitOrigin + new Vector3(0, 1.23f, 0));
-            portraitFill.spotAngle = 64f;
-            portraitFill.intensity = 4.3f;
-            portraitKey.intensity = 5.2f;
+            LightSimpleMinji();
             simplePortrait.SetActive(true);
             return true;
         }
 
+        internal void LightSimpleMinji(bool previousFill = false)
+        {
+            var fillPosition = previousFill ? new Vector3(-1.35f, 1.05f, 2.45f) : new Vector3(-.95f, .62f, 2.37f);
+            var target = new Vector3(0, previousFill ? 1.23f : 1.11f, 0);
+            portraitFill.transform.position = PortraitOrigin + fillPosition;
+            portraitFill.transform.LookAt(PortraitOrigin + target);
+            portraitFill.color = previousFill ? originalFillColor : new Color(1f, .971f, .933f);
+            portraitFill.spotAngle = previousFill ? 64f : 72f;
+            portraitFill.intensity = previousFill ? 4.3f : 5.1f;
+            portraitKey.intensity = 5.2f;
+        }
+
         internal void FrameSimpleMinji(float yaw, bool fullBody)
         {
-            var focus = PortraitOrigin + (fullBody ? new Vector3(0, 1.035f, 0) : new Vector3(-.125f, 1.36f, 0));
+            var focus = PortraitOrigin + (fullBody ? new Vector3(0, 1.035f, 0) : new Vector3(-.150f, 1.36f, 0));
             simplePortrait.transform.localRotation = Quaternion.Euler(0, yaw, 0);
             portraitCamera.transform.position = focus + new Vector3(0, .105f, 4);
             portraitCamera.transform.LookAt(focus);
-            portraitCamera.orthographicSize = fullBody ? 1.14f : .82f;
+            portraitCamera.orthographicSize = fullBody ? 1.14f : .855f;
         }
 
         internal void PoseSimpleMinji(int face, float seconds)
@@ -78,6 +88,7 @@ namespace SunshineHospital
                 Object.Destroy(simpleOperation);
                 nurseActor.GetChild(0).gameObject.SetActive(true);
                 portraitFill.transform.SetPositionAndRotation(originalFillPosition, originalFillRotation);
+                portraitFill.color = originalFillColor;
                 portraitFill.intensity = originalFillIntensity;
                 portraitFill.spotAngle = originalFillAngle;
                 portraitKey.intensity = originalKeyIntensity;

@@ -3,7 +3,7 @@
 Run the module's build("draft") or build("final") from an application timer.
 The draft only renders. Final generates a separate .blend and GLB once.
 """
-from math import cos, sin, pi, tau, sqrt
+from math import cos, exp, sin, pi, tau, sqrt
 from pathlib import Path
 
 import bpy
@@ -15,23 +15,24 @@ EXPORT = ROOT / "unity/Assets/Editor/HospitalArt/minji-simple-v1.glb"
 ARTIFACTS = ROOT / "artifacts/minji-simple-v1"
 
 FACE = (
-    (1.012,.003,.003,.084), (1.035,.186,.133,.059), (1.074,.301,.212,.028),
-    (1.136,.391,.286,.013), (1.247,.451,.327,.002), (1.404,.462,.347,-.006),
+    (1.010,.003,.003,.090), (1.027,.118,.090,.076), (1.052,.218,.162,.052),
+    (1.090,.310,.230,.027), (1.140,.389,.286,.013), (1.193,.427,.312,.005),
+    (1.247,.451,.327,.002), (1.404,.462,.347,-.006),
     (1.552,.449,.341,-.015), (1.713,.407,.303,-.032), (1.845,.320,.240,-.040),
     (1.946,.206,.144,-.048), (1.995,.004,.003,-.049),
 )
 HAIR = (
-    (.970,.322,.255,-.035), (1.010,.440,.304,-.042), (1.073,.531,.345,-.048),
-    (1.171,.565,.367,-.047), (1.309,.557,.367,-.048), (1.465,.521,.367,-.033),
-    (1.625,.486,.362,-.040), (1.782,.417,.322,-.052), (1.925,.306,.245,-.056),
-    (2.009,.173,.141,-.055), (2.029,.101,.082,-.054),
+    (.970,.275,.226,-.040), (1.010,.385,.275,-.046), (1.073,.502,.326,-.049),
+    (1.171,.565,.360,-.047), (1.309,.557,.367,-.048), (1.465,.529,.367,-.033),
+    (1.625,.521,.365,-.040), (1.782,.471,.342,-.052), (1.925,.357,.275,-.056),
+    (2.009,.197,.162,-.055), (2.029,.111,.097,-.054),
     (2.038,.039,.034,-.054), (2.040,.003,.003,-.054),
 )
 HAIRLINE = (
-    (-180,.994), (-117,1.000), (-87,1.015), (-70,1.055), (-58,1.262),
+    (-180,1.003), (-132,1.002), (-103,1.023), (-83,1.049), (-70,1.074), (-58,1.262),
     (-50,1.499), (-42,1.541), (-29,1.573), (-14,1.590), (2,1.646),
     (16,1.739), (24,1.846), (32,1.773), (43,1.596), (54,1.315),
-    (67,1.073), (89,1.008), (132,.990), (180,.994),
+    (66,1.093), (82,1.050), (103,1.024), (132,1.002), (180,1.003),
 )
 
 
@@ -217,19 +218,55 @@ def bob(parent, hair, lining):
             # Broad swept panels share the same smooth cap and turned lower edge.
             side = angle+.105*sin(u*pi)*max(0,cos(angle))
             sweep = -.39+.82*(1-u)
-            crest = .041*pow(2.71828,-((angle-sweep)/.44)**2)*sin(pi*u*.70)
-            part = .015*pow(2.71828,-((degree-25)/9)**2)*sin(pi*u*.68)
+            crest = .041*exp(-((angle-sweep)/.44)**2)*sin(pi*u*.70)
+            part = .015*exp(-((degree-25)/9)**2)*sin(pi*u*.68)
             shape = crest-part
-            coords.append(at(.036*(1-u)**2+(w+shape)*sin(side),z,c+(d+shape)*cos(side)))
+            low = min(1,max(0,(1.22-z)/.19))
+            tuck = .026*low*low*exp(-((abs(degree)-77)/37)**2)
+            coords.append(at(.036*(1-u)**2+(w+shape-tuck)*sin(side),z,c+(d+shape-tuck)*cos(side)))
+
+    def inner(point):
+        x,y,z = point
+        bottom = min(1,max(0,(1.22-z)/.19))
+        return Vector((x*(.950-.036*bottom),y*(.924-.020*bottom),z-.018+.056*bottom))
+
+    # Two connecting rings roll the brown outer surface underneath before the
+    # dark lining starts. This keeps the underside from reading as a flat shelf.
+    for bend in (.33,.67):
+        for col in range(count):
+            rim = coords[(rows-1)*count+col]
+            rolled = rim.lerp(inner(rim),bend)
+            rolled.z -= min(.021,.075*max(0,1.32-rim.z))*sin(pi*bend)
+            coords.append(rolled)
     for row in range(rows-1,-1,-1):
         for col in range(count):
-            x,y,z = coords[row*count+col]
-            coords.append(Vector((x*.953,y*.924,z-.018)))
-    faces = rings(rows*2,count,reverse=True)
+            coords.append(inner(coords[row*count+col]))
+    faces = rings(rows*2+2,count,reverse=True)
     cap = mesh("Rounded bob with swept fringe",coords,faces,hair,parent)
     cap.data.materials.append(lining)
-    for face in cap.data.polygons[(rows-1)*count:-2]:
+    for face in cap.data.polygons[(rows+1)*count:-2]:
         face.material_index = 1
+
+
+def joy_smile(parent, material):
+    columns, rows = 41, 7
+    coords = []
+    for col in range(columns):
+        unit = 2*col/(columns-1)-1
+        x = .099*unit
+        upper = 1.242+.023*unit**2
+        lower = 1.159+.101*unit**2
+        mid = (upper+lower)/2
+        radius = (upper-lower)/2*sqrt(max(.0001,1-unit**10))
+        for row in range(rows):
+            z = mid+radius*(2*row/(rows-1)-1)
+            coords.append(at(x,z,front_surface(FACE,x,z)+.0025))
+    faces = []
+    for col in range(columns-1):
+        for row in range(rows-1):
+            a = col*rows+row
+            faces.append((a,a+rows,a+rows+1,a+1))
+    mesh("Joy mouth",coords,faces,material,parent)
 
 
 def face_parts(head, mat):
@@ -247,8 +284,7 @@ def face_parts(head, mat):
     line("Small smile",0,1.201,.084,.044,.012,mat["ink"],normal)
     line("Explain smile",0,1.211,.074,.031,.011,mat["ink"],explain)
     line("Raised brow",.204,1.583,.047,-.017,.008,mat["ink"],explain)
-    decal("Joy mouth",0,1.213,.092,.051,mat["mouth"],joy)
-    decal("Joy soft coral accent",0,1.189,.057,.021,mat["tongue"],joy,.003)
+    joy_smile(joy,mat["mouth"])
     for expression in (joy,explain):
         expression.hide_set(True)
 
@@ -317,9 +353,10 @@ def arms(root, mat):
         tube("Rounded mint sleeve",[(shoulder_pos,.064),(at(side*.252,.856,-.002),.094),
              (at(side*.288,.796,.001),.089),(at(side*.303,.767,.002),.079),
              (at(side*.305,.759,.002),.073)],mat["mint"],shoulder)
-        tube("Rounded short forearm",[(at(side*.300,.781,.004),.025),
-             (at(side*.310,.755,.004),.055),(elbow_pos,.066),
-             (at(side*.351,.676,.009),.064),(wrist_pos,.053)],mat["skin"],elbow)
+        tube("Rounded short forearm",[(at(side*.293,.795,.003),.012),
+             (at(side*.303,.777,.004),.043),(at(side*.311,.755,.004),.057),(elbow_pos,.066),
+             (at(side*.351,.676,.009),.064),(wrist_pos,.049),
+             (at(side*.390,.589,.024),.034),(at(side*.398,.578,.026),.009)],mat["skin"],elbow)
         bulb("Mitten palm",(side*.394,.565,.035),(.089,.086,.065),mat["skin"],wrist)
         bulb("Rounded mitten thumb",(side*.345,.588,.060),(.034,.041,.033),mat["skin"],wrist)
 
@@ -327,23 +364,22 @@ def arms(root, mat):
 def author():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     p = {
-        "skin":paint("Warm soft peach","FFC493"), "nose":paint("Peach orange nose","F39B64"),
+        "skin":paint("Warm soft peach","FFC89D"), "nose":paint("Peach orange nose","F39B64"),
         "hair":paint("Matte warm chestnut","6B422D"), "lining":paint("Shadow inside bob","69422E",.88),
         "ink":paint("Graphic dark umber","382217",unlit=True),
         "light":paint("One eye highlight","FFF6E8",unlit=True),
         "blush":paint("Soft apricot cheeks","FFA36E",unlit=True),
-        "mouth":paint("Joy warm coral","A84C37",unlit=True),
-        "tongue":paint("Joy coral accent","DD765B",unlit=True),
+        "mouth":paint("Joy warm auburn","9D4836",unlit=True),
         "mint":paint("Mint fabric","9DC7A4"), "seam":paint("Pocket mint","93BC9D"),
         "ivory":paint("Warm white collar and buttons","FFF3D8"),
-        "linen":paint("Cream trousers","F7E7C5"),
+        "linen":paint("Cream trousers","FFF1D4"),
         "teal":paint("Muted teal shoes","376B63"), "sole":paint("Soft teal soles","325C55"),
         "yellow":paint("Golden sunflower","F9B940"), "seed":paint("Sunflower centre","7C4B2B"),
         "badge":paint("Light linen card","DCD1BA"),
     }
     root = node("MinjiSimple")
     head = node("HeadPivot",root,at(0,1.046,0))
-    profile("Round head",FACE,p["skin"],head,rows=55,count=84)
+    profile("Round head",FACE,p["skin"],head,rows=64,count=84)
     for side in (-1,1):
         bulb("Small round ear",(side*.431,1.274,.116),(.042,.066,.051),p["skin"],head)
     bob(head,p["hair"],p["lining"])
@@ -363,19 +399,20 @@ def expression(scene_face):
 
 
 def animation(scene):
-    # Shoulder, elbow and wrist are independent editable pivots. The bow settles to rest.
+    # The shoulder settles outside the cheek while the wrist makes two sweeps.
+    # Angles are shoulder Y/X/Z, elbow Y, wrist Y, and head Y.
     keyframes = (
-        (1,0,0,0,0,0), (10,0,0,0,0,0), (26,-88,-39,-19,-4,-5),
-        (34,-88,-43,-25,-22,-6), (42,-89,-38,-19,19,-5),
-        (50,-89,-43,-25,-22,-6), (58,-88,-38,-19,19,-4),
-        (68,-86,-41,-21,-4,-4), (78,-82,-35,-18,1,-3),
-        (101,0,0,0,0,0), (121,0,0,0,0,0),
+        (1,0,0,0,0,0,0), (10,0,0,0,0,0,0), (26,-74,-30,16,-16,0,-4),
+        (34,-76,-31,17,-17,-21,-5), (42,-75,-31,17,-15,21,-5),
+        (50,-76,-31,17,-17,-21,-5), (58,-75,-31,17,-15,21,-4),
+        (68,-73,-30,16,-16,0,-4), (78,-70,-28,15,-14,0,-3),
+        (101,0,0,0,0,0,0), (121,0,0,0,0,0,0),
     )
     scene.render.fps = 30
     scene.frame_start = 1
     scene.frame_end = 121
     parts = [(bpy.data.objects[name],axis) for name,axis in
-             (("ShoulderR",1),("ShoulderR",0),("ElbowR",1),("WristR",1),("HeadPivot",1))]
+             (("ShoulderR",1),("ShoulderR",0),("ShoulderR",2),("ElbowR",1),("WristR",1),("HeadPivot",1))]
     for frame,*angles in keyframes:
         for (part,axis),angle in zip(parts,angles):
             part.rotation_euler[axis] = angle*pi/180
@@ -393,7 +430,7 @@ def view_camera(camera, focus, yaw, scale):
     camera.data.ortho_scale = scale
 
 
-def renders(prefix, second_pass=False):
+def renders(prefix, second_pass=False, clay=False):
     scene = bpy.context.scene
     scene.world = bpy.data.worlds.new("Warm cream studio")
     scene.world.use_nodes = True
@@ -411,6 +448,8 @@ def renders(prefix, second_pass=False):
     scene.render.image_settings.file_format = "PNG"
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Medium High Contrast"
+    if clay:
+        scene.view_layers[0].material_override = paint("Neutral clay", "D5C6B4")
     data = bpy.data.cameras.new("Orthographic review")
     data.type = "ORTHO"
     camera = bpy.data.objects.new(data.name,data)
@@ -433,7 +472,7 @@ def renders(prefix, second_pass=False):
     views = [
         ("front",0,(0,0,1.025),2.24), ("face-45",45,(0,-.025,1.51),1.28),
     ]
-    if second_pass:
+    if second_pass or clay:
         views.extend((("45",45,(0,0,1.025),2.24),("back",180,(0,0,1.025),2.24)))
     for label,yaw,target,scale in views:
         view_camera(camera,target,yaw,scale)
@@ -441,7 +480,11 @@ def renders(prefix, second_pass=False):
         bpy.ops.render.render(write_still=True)
     if not second_pass:
         return
-    for label,face,frame in (("greet","FaceSmile",34),("joy","FaceJoy",1),("explain","FaceExplain",1)):
+    samples = (
+        ("greet","FaceSmile",34), ("wave-out","FaceSmile",42),
+        ("settle","FaceSmile",88), ("joy","FaceJoy",1), ("explain","FaceExplain",1),
+    )
+    for label,face,frame in samples:
         scene.frame_set(frame)
         expression(face)
         view_camera(camera,(.065,0,1.427),11,1.42)

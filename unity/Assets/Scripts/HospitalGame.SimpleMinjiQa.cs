@@ -33,6 +33,14 @@ namespace SunshineHospital
                 day.UpdateGuide(false);
                 reviewExpression = "idle";
 
+                room.FrameSimpleMinji(0, true);
+                room.PoseSimpleMinji(0, 0);
+                room.LightSimpleMinji(previousFill: true);
+                yield return null;
+                yield return new WaitForEndOfFrame();
+                WritePortrait(Path.Combine(folder, "unity-reference-fill.png"));
+                room.LightSimpleMinji();
+
                 foreach (var (yaw, label) in new[] { (0f, "front"), (45f, "45"), (180f, "back") })
                 {
                     room.FrameSimpleMinji(yaw, true);
