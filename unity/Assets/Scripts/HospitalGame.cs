@@ -91,7 +91,10 @@ namespace SunshineHospital
                 {
                     bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
                     if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
-                        StartCoroutine(ReviewSimpleMinji(volume: shift));
+                    {
+                        bool connected = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+                        StartCoroutine(ReviewSimpleMinji(volume: shift || connected, connected: connected));
+                    }
                     else if (shift)
                         StartCoroutine(ReviewMinjiFaceStudy());
                     else StartCoroutine(ReviewMinji());

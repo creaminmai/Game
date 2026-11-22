@@ -1,5 +1,7 @@
 # 민지의 입체 부피와 피부색 검토
 
+후속 작업에서 어깨와 손의 표면을 연결하고 새 12각도 참고를 반영했다. [연결 구조와 12각도 검토](minji-simple-connected-review.md)
+
 이전 마감본 `ddd1a1a`를 기준으로 같은 단순 민지를 다듬었다. `Hospital` 씬의 Unity 에디터 Play 모드에서 Game 뷰에 포커스를 두고 `Option+Shift+F1`을 누르면 새 자산을 검토할 수 있다. 별도 첫날 상태에서 대화·운영 화면을 시연하고 이전 상태로 돌아온다. 일반 플레이와 배포 빌드는 기존 자산을 사용한다. [이전 마감본](minji-simple-review.md) · [기준 캐릭터 시트](../reference/art/minji-simple-v1/minji-character-sheet.png)
 
 ## 앞뒤 부피

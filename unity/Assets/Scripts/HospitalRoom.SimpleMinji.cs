@@ -21,6 +21,7 @@ namespace SunshineHospital
         private (Light light, int mask)[] volumeLightMasks;
         private Transform[] volumeWalkJoints;
         private Quaternion[] volumeRestAngles;
+        private Vector3[] volumeWalkAxes;
         private Vector3 volumeStation;
         private float volumeNurseTime;
 
@@ -44,13 +45,17 @@ namespace SunshineHospital
             }
         }
 
-        internal bool BeginSimpleMinjiReview(bool volume = false)
+        internal bool BeginSimpleMinjiReview(bool volume = false, bool connected = false)
         {
-            string path = volume
+            string path = connected ? "Assets/Editor/HospitalArt/MinjiConnectedReview.prefab" : volume
                 ? "Assets/Editor/HospitalArt/MinjiVolumeReview.prefab"
                 : "Assets/Editor/HospitalArt/MinjiSimpleReview.prefab";
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (prefab == null || nurseActor == null || nurseActor.childCount == 0) return false;
+            if (prefab == null || nurseActor == null || nurseActor.childCount == 0)
+            {
+                Debug.LogWarning($"[Hospital QA] Minji review could not use {path}, or the room's staff actor is missing.");
+                return false;
+            }
             if (portraitCamera == null) BuildPortrait();
             if (portraitCamera == null) return false;
 
@@ -63,6 +68,8 @@ namespace SunshineHospital
             simpleMotion = simplePortrait.GetComponentInChildren<Animation>(true);
             if (simpleMotion == null || simpleMotion.clip == null || simpleFaces.Any(part => part == null))
             {
+                Debug.LogWarning($"[Hospital QA] Minji review clip present: {simpleMotion != null && simpleMotion.clip != null}; " +
+                    $"facial groups present: {simpleFaces.Count(part => part != null)}/{simpleFaces.Length}.");
                 EndSimpleMinjiReview();
                 return false;
             }
@@ -79,12 +86,12 @@ namespace SunshineHospital
             originalFillAngle = portraitFill.spotAngle;
             originalKeyIntensity = portraitKey.intensity;
             LightSimpleMinji();
-            if (volume) BeginVolumeReview();
+            if (volume) BeginVolumeReview(connected);
             simplePortrait.SetActive(true);
             return true;
         }
 
-        private void BeginVolumeReview()
+        private void BeginVolumeReview(bool connected)
         {
             volumeReview = true;
             volumeCameraPose = new CameraPose(Camera);
@@ -101,6 +108,15 @@ namespace SunshineHospital
             volumeWalkJoints = new[] { "LegL", "LegR", "ShoulderL", "ShoulderR" }
                 .Select(name => parts.First(part => part.name == name)).ToArray();
             volumeRestAngles = volumeWalkJoints.Select(part => part.localRotation).ToArray();
+            volumeWalkAxes = volumeWalkJoints.Select(part => connected
+                ? part.InverseTransformDirection(simpleOperation.transform.right) : Vector3.right).ToArray();
+            if (connected)
+            {
+                var deforming = simpleOperation.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                Debug.Log($"[Hospital QA] Connected Minji: {deforming.Length} skinned surfaces, " +
+                    $"{deforming.SelectMany(part => part.bones).Distinct().Count()} unique skin bones.");
+                return;
+            }
             var head = parts.First(part => part.name == "Round head").GetComponent<Renderer>();
             var skin = head.sharedMaterial;
             bool unifiedSkin = parts.Where(part => part.name.StartsWith("Mitten palm"))
@@ -134,7 +150,7 @@ namespace SunshineHospital
             for (int i = 0; i < volumeWalkJoints.Length; i++)
             {
                 float degrees = swing * (i < 2 ? 21f : -14f) * (i % 2 == 0 ? 1 : -1);
-                volumeWalkJoints[i].localRotation = volumeRestAngles[i] * Quaternion.Euler(degrees, 0, 0);
+                volumeWalkJoints[i].localRotation = volumeRestAngles[i] * Quaternion.AngleAxis(degrees, volumeWalkAxes[i]);
             }
         }
 
@@ -162,6 +178,25 @@ namespace SunshineHospital
 
         internal void RotateSimpleMinji(float yaw) =>
             simplePortrait.transform.localRotation = Quaternion.Euler(0, yaw, 0);
+
+        internal void FrameConnectedShoulder(float yaw, float lift)
+        {
+            RotateSimpleMinji(yaw);
+            var focus = PortraitOrigin + new Vector3(-.13f, .93f, 0);
+            portraitCamera.transform.position = focus + new Vector3(0, lift, 4);
+            portraitCamera.transform.LookAt(focus);
+            portraitCamera.orthographicSize = .80f;
+        }
+
+        internal void PoseConnectedLift(float angle)
+        {
+            PoseSimpleMinji(0, 0);
+            var shoulder = simplePortrait.GetComponentsInChildren<Transform>(true).First(part => part.name == "ShoulderR");
+            var arm = Vector3.ProjectOnPlane(shoulder.GetChild(0).position - shoulder.position, simplePortrait.transform.forward);
+            var axis = simplePortrait.transform.forward;
+            if (Vector3.Dot(Vector3.Cross(axis, arm), Vector3.up) < 0) axis = -axis;
+            shoulder.localRotation *= Quaternion.AngleAxis(angle, shoulder.InverseTransformDirection(axis));
+        }
 
         internal void PoseSimpleMinji(int face, float seconds)
         {
